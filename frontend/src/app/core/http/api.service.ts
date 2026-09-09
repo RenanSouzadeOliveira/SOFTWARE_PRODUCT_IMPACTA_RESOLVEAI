@@ -17,6 +17,14 @@ export class ApiService {
     return this.http.get<TResponse>(this.resolveUrl(path), options);
   }
 
+  post<TResponse, TBody>(path: string, body: TBody): Observable<TResponse> {
+    return this.http.post<TResponse>(this.resolveUrl(path), body);
+  }
+
+  patch<TResponse, TBody>(path: string, body: TBody): Observable<TResponse> {
+    return this.http.patch<TResponse>(this.resolveUrl(path), body);
+  }
+
   private resolveUrl(path: string): string {
     const normalizedPath = path.replace(/^\//, '');
     return `${this.baseUrl}/${normalizedPath}`;

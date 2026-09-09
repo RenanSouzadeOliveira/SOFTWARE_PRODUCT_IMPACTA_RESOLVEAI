@@ -1,6 +1,6 @@
 # Catálogo de campos para o front-end
 
-Este é um catálogo de contratos planejados para DTOs consumidos pelo Angular. Não são entidades JPA, não são um compromisso com nomes internos do Spring e este cartão não cria endpoints. Até que a API seja implementada e documentada no OpenAPI, os nomes abaixo devem ser tratados como proposta de contrato para alinhar telas, formulários e validações.
+Este é um catálogo de contratos consumidos ou planejados pelo Angular. Eles não são entidades JPA nem reproduzem nomes internos do Spring. Os contratos de autenticação e Minha conta descritos na seção de usuário já estão implementados; os contratos dos cartões futuros continuam identificados como planejados.
 
 ## Convenções de tipos
 
@@ -18,6 +18,8 @@ type TipoEventoHistorico = 'CRIACAO' | 'ATRIBUICAO' | 'STATUS' | 'PRIORIDADE';
 Campos `id` e `versao` são números no contrato JSON planejado, embora sejam `BIGINT` no PostgreSQL. Se o volume de identificadores puder ultrapassar o limite seguro de `number` do JavaScript, o contrato deverá migrar de forma coordenada para strings. Datas nunca devem ser interpretadas como horário local: o valor deve conter o sufixo UTC (`Z`).
 
 ## Usuário
+
+Os contratos implementados neste cartão são `CadastroInput`, `LoginInput`, `LoginResponse`, `Usuario` e `AtualizacaoMinhaContaInput`. O cadastro aceita apenas `nome`, `email` e `senha`; Minha conta aceita apenas `nome`. Campos adicionais como `perfil`, `ativo` ou identificadores não concedem permissão nem alteram a conta.
 
 ### Entradas
 

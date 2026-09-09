@@ -39,4 +39,18 @@ describe('ApiService', () => {
     request.flush(expectedResponse);
     expect(actualResponse).toEqual(expectedResponse);
   });
+
+  it('faz POST e PATCH tipados', () => {
+    service.post<{ id: number }, { nome: string }>('recursos', { nome: 'Novo' }).subscribe();
+    const post = httpController.expectOne(`${environment.apiUrl}/recursos`);
+    expect(post.request.method).toBe('POST');
+    expect(post.request.body).toEqual({ nome: 'Novo' });
+    post.flush({ id: 1 });
+
+    service.patch<{ id: number }, { nome: string }>('recursos/1', { nome: 'Editado' }).subscribe();
+    const patch = httpController.expectOne(`${environment.apiUrl}/recursos/1`);
+    expect(patch.request.method).toBe('PATCH');
+    expect(patch.request.body).toEqual({ nome: 'Editado' });
+    patch.flush({ id: 1 });
+  });
 });

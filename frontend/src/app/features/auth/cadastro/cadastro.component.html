@@ -1,0 +1,87 @@
+<section class="form-page" aria-labelledby="cadastro-title">
+  <div class="form-card">
+    <p class="eyebrow">Comece por aqui</p>
+    <h1 id="cadastro-title">Criar uma conta</h1>
+    <p class="form-intro">Seu cadastro será criado com o perfil de solicitante.</p>
+
+    @if (succeeded()) {
+      <p class="alert alert--success" role="status">Cadastro realizado com sucesso.</p>
+    }
+    @if (errorMessage(); as message) {
+      <p class="alert alert--error" role="alert" data-testid="cadastro-error">{{ message }}</p>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="field">
+        <label for="cadastro-nome">Nome</label>
+        <input
+          id="cadastro-nome"
+          type="text"
+          formControlName="nome"
+          autocomplete="name"
+          maxlength="120"
+          [attr.aria-invalid]="form.controls.nome.invalid && form.controls.nome.touched"
+          aria-describedby="cadastro-nome-error"
+        />
+        <div id="cadastro-nome-error" class="field-error" aria-live="polite">
+          @if (form.controls.nome.touched && form.controls.nome.hasError('required')) {
+            Informe seu nome.
+          }
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="cadastro-email">E-mail</label>
+        <input
+          id="cadastro-email"
+          type="email"
+          formControlName="email"
+          autocomplete="email"
+          inputmode="email"
+          maxlength="254"
+          [attr.aria-invalid]="form.controls.email.invalid && form.controls.email.touched"
+          aria-describedby="cadastro-email-error"
+        />
+        <div id="cadastro-email-error" class="field-error" aria-live="polite">
+          @if (form.controls.email.touched && form.controls.email.hasError('required')) {
+            Informe o e-mail.
+          } @else if (form.controls.email.touched && form.controls.email.invalid) {
+            Informe um e-mail válido.
+          }
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="cadastro-senha">Senha</label>
+        <input
+          id="cadastro-senha"
+          type="password"
+          formControlName="senha"
+          autocomplete="new-password"
+          minlength="8"
+          maxlength="72"
+          [attr.aria-invalid]="form.controls.senha.invalid && form.controls.senha.touched"
+          aria-describedby="cadastro-senha-hint cadastro-senha-error"
+        />
+        <p id="cadastro-senha-hint" class="field-hint">
+          Use pelo menos 8 caracteres e no máximo 72 bytes em UTF-8.
+        </p>
+        <div id="cadastro-senha-error" class="field-error" aria-live="polite">
+          @if (form.controls.senha.touched && form.controls.senha.hasError('required')) {
+            Informe uma senha.
+          } @else if (form.controls.senha.touched && form.controls.senha.hasError('minlength')) {
+            A senha deve ter pelo menos 8 caracteres.
+          } @else if (form.controls.senha.touched && form.controls.senha.invalid) {
+            A senha deve ocupar no máximo 72 bytes em UTF-8.
+          }
+        </div>
+      </div>
+
+      <button class="primary-button" type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Cadastrando…' : 'Criar conta' }}
+      </button>
+    </form>
+
+    <p class="form-footer">Já tem conta? <a routerLink="/login">Entre</a>.</p>
+  </div>
+</section>

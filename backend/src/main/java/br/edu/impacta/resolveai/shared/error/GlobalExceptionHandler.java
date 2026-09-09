@@ -78,6 +78,27 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.METHOD_NOT_ALLOWED, "Metodo HTTP nao permitido", request, List.of());
     }
 
+    @ExceptionHandler(NaoAutorizadoException.class)
+    ResponseEntity<ApiErrorResponse> handleUnauthorized(
+            NaoAutorizadoException exception,
+            HttpServletRequest request) {
+        return build(HttpStatus.UNAUTHORIZED, exception.getMessage(), request, List.of());
+    }
+
+    @ExceptionHandler(ConflitoException.class)
+    ResponseEntity<ApiErrorResponse> handleConflict(
+            ConflitoException exception,
+            HttpServletRequest request) {
+        return build(HttpStatus.CONFLICT, exception.getMessage(), request, List.of());
+    }
+
+    @ExceptionHandler(DadosInvalidosException.class)
+    ResponseEntity<ApiErrorResponse> handleInvalidData(
+            DadosInvalidosException exception,
+            HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, exception.getMessage(), request, List.of());
+    }
+
     @ExceptionHandler(Exception.class)
     ResponseEntity<ApiErrorResponse> handleUnexpectedException(
             Exception exception,

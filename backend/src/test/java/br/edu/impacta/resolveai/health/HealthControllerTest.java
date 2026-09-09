@@ -41,12 +41,12 @@ class HealthControllerTest {
     }
 
     @Test
-    void shouldReturnConsistentNotFoundError() throws Exception {
+    void shouldRequireAuthenticationForUnknownApiResource() throws Exception {
         mockMvc.perform(get("/api/unknown"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.error").value("Not Found"))
-                .andExpect(jsonPath("$.message").value("Recurso nao encontrado"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.error").value("Unauthorized"))
+                .andExpect(jsonPath("$.message").value("Autenticacao necessaria"))
                 .andExpect(jsonPath("$.path").value("/api/unknown"));
     }
 }

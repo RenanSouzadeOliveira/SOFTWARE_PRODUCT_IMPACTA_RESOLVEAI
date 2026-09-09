@@ -18,8 +18,11 @@ Fundação executável do ResolveAí, sistema acadêmico de gestão de chamados 
 Crie o arquivo local de ambiente a partir do exemplo e ajuste os valores fictícios:
 
 ```bash
-cp .env.example .env
+cp backend/.env.example .env
+openssl rand -hex 32
 ```
+
+Copie a saída aleatória do segundo comando para `JWT_SECRET` no `.env`. O placeholder do exemplo é deliberadamente curto e a API recusa a inicialização até que ele seja substituído.
 
 ## Executar os três componentes
 
@@ -47,6 +50,8 @@ mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 O Flyway aplica automaticamente todas as migrations antes de o Hibernate validar o schema. A API fica disponível em `http://localhost:8080`; a documentação OpenAPI fica em `http://localhost:8080/swagger-ui.html`.
+
+`JWT_SECRET` deve permanecer com pelo menos 32 bytes em todos os ambientes. `JWT_EXPIRATION` aceita uma duração ISO 8601, como `PT2H`.
 
 Valide diretamente:
 
@@ -86,10 +91,23 @@ Resposta de sucesso (`200 OK`):
 
 Os erros usam um objeto JSON consistente com data/hora, status HTTP, tipo, mensagem e caminho. Erros de validação também informam os campos inválidos.
 
+## Autenticação e perfis
+
+Os contratos e o roteiro de validação estão documentados em [Autenticação e autorização](docs/autenticacao.md). Endpoints disponíveis:
+
+- `POST /api/auth/register`: cadastro público, sempre como `SOLICITANTE`;
+- `POST /api/auth/login`: autenticação e emissão do JWT;
+- `GET /api/usuarios/me`: consulta da conta autenticada;
+- `PATCH /api/usuarios/me`: alteração do próprio nome;
+- `GET /api/atendimento/acesso`: verificação protegida exclusiva de `ATENDENTE`.
+
+O Angular disponibiliza as rotas `/cadastro`, `/login`, `/minha-conta` e `/atendimento`. O token permanece apenas na sessão da aba e é removido no logout.
+
 ## Modelo de dados
 
 - [Modelo entidade-relacionamento](docs/modelo-entidade-relacionamento.md): diagrama Mermaid, cardinalidades, constraints e índices do schema.
 - [Catálogo de campos do front-end](docs/campos-frontend.md): DTOs planejados para formulários e telas, sem exposição das entidades JPA.
+- [Autenticação e autorização](docs/autenticacao.md): contratos HTTP, segurança do JWT e roteiro de evidência.
 
 As entidades `Usuario`, `Categoria` e `Chamado` mapeiam explicitamente a migration V1. Os relacionamentos JPA são lazy, não possuem cascata de remoção e os repositórios expõem apenas operações de persistência e consulta. Usuários e categorias são desativados logicamente.
 
@@ -113,7 +131,7 @@ mvn package
 
 ## Validar migrations desde um banco vazio
 
-Use um volume descartável de desenvolvimento e confirme no log da API que o Flyway aplicou a `V1`:
+Use um volume descartável de desenvolvimento e confirme no log da API que o Flyway aplicou todas as migrations pendentes:
 
 ```bash
 docker compose down -v

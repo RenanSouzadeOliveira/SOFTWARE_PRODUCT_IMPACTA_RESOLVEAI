@@ -1,6 +1,6 @@
 # Modelo entidade-relacionamento
 
-Este documento descreve exatamente o schema criado pela migration `V1__create_initial_schema.sql`. As entidades em foco são `USUARIOS`, `CATEGORIAS` e `CHAMADOS`; `COMENTARIOS` e `HISTORICO_CHAMADOS` também aparecem porque fazem parte do modelo persistido e das relações de auditoria.
+Este documento descreve o schema criado pelas migrations Flyway. A V1 cria o modelo relacional e a V2 exige que e-mails de usuário sejam armazenados normalizados. As entidades em foco são `USUARIOS`, `CATEGORIAS` e `CHAMADOS`; `COMENTARIOS` e `HISTORICO_CHAMADOS` também aparecem porque fazem parte do modelo persistido e das relações de auditoria.
 
 ## Diagrama
 
@@ -95,7 +95,7 @@ No bloco Mermaid, `TIMESTAMPTZ` é o nome curto usado para o tipo PostgreSQL `TI
 
 ### Unicidade e checks
 
-Há unicidade em `usuarios.email`, `categorias.nome` e `chamados.protocolo`. Os `CHECK`s da V1 são:
+Há unicidade em `usuarios.email`, `categorias.nome` e `chamados.protocolo`. Antes de acrescentar `ck_usuarios_email_normalizado`, a V2 normaliza os e-mails já existentes com `LOWER(TRIM(email))`; combinada à unicidade da V1, a constraint elimina diferenças de caixa e espaços externos. Se dados antigos contiverem duas versões do mesmo e-mail que colidam após a normalização, a migration falha de forma atômica para que o conflito seja resolvido explicitamente. Os demais `CHECK`s da V1 são:
 
 - `usuarios.perfil`: `SOLICITANTE`, `ATENDENTE` ou `ADMIN`; nome e e-mail não podem ser vazios após `TRIM`.
 - `categorias.nome` não pode ser vazio após `TRIM`.

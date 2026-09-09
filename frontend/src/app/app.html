@@ -9,6 +9,16 @@
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
         Início
       </a>
+      @if (currentUser(); as user) {
+        @if (user.perfil === 'ATENDENTE') {
+          <a routerLink="/atendimento" routerLinkActive="active">Atendimento</a>
+        }
+        <a routerLink="/minha-conta" routerLinkActive="active">Minha conta</a>
+        <button type="button" class="nav-button" (click)="logout()">Sair</button>
+      } @else {
+        <a routerLink="/cadastro" routerLinkActive="active">Cadastre-se</a>
+        <a routerLink="/login" routerLinkActive="active">Entrar</a>
+      }
     </nav>
   </header>
 

@@ -1,0 +1,58 @@
+<section class="form-page" aria-labelledby="conta-title">
+  <div class="form-card form-card--wide">
+    <p class="eyebrow">Perfil</p>
+    <h1 id="conta-title">Minha conta</h1>
+
+    @let currentState = state();
+    @switch (currentState.kind) {
+      @case ('loading') {
+        <p class="loading-state" role="status" data-testid="account-loading">Carregando seus dados…</p>
+      }
+      @case ('error') {
+        <div class="alert alert--error" role="alert" data-testid="account-load-error">
+          <p>Não foi possível carregar sua conta.</p>
+          <button class="secondary-button" type="button" (click)="load()">Tentar novamente</button>
+        </div>
+      }
+      @case ('ready') {
+        <dl class="account-summary">
+          <div><dt>E-mail</dt><dd>{{ currentState.user.email }}</dd></div>
+          <div><dt>Perfil</dt><dd>{{ currentState.user.perfil }}</dd></div>
+        </dl>
+
+        @if (saveSucceeded()) {
+          <p class="alert alert--success" role="status" data-testid="account-success">
+            Nome atualizado com sucesso.
+          </p>
+        }
+        @if (errorMessage(); as message) {
+          <p class="alert alert--error" role="alert" data-testid="account-save-error">{{ message }}</p>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+          <div class="field">
+            <label for="conta-nome">Nome</label>
+            <input
+              id="conta-nome"
+              type="text"
+              formControlName="nome"
+              autocomplete="name"
+              maxlength="120"
+              [attr.aria-invalid]="form.controls.nome.invalid && form.controls.nome.touched"
+              aria-describedby="conta-nome-error"
+            />
+            <div id="conta-nome-error" class="field-error" aria-live="polite">
+              @if (form.controls.nome.touched && form.controls.nome.hasError('required')) {
+                Informe seu nome.
+              }
+            </div>
+          </div>
+
+          <button class="primary-button" type="submit" [disabled]="saving()">
+            {{ saving() ? 'Salvando…' : 'Salvar alterações' }}
+          </button>
+        </form>
+      }
+    }
+  </div>
+</section>

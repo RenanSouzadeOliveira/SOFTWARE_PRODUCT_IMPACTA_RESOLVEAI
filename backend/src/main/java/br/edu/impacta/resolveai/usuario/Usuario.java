@@ -77,6 +77,11 @@ public class Usuario {
         this.atualizadoEm = Objects.requireNonNull(agora, "agora nao pode ser nulo");
     }
 
+    public void alterarNome(String nome, Instant agora) {
+        this.nome = requiredText(nome, "nome", 120);
+        this.atualizadoEm = Objects.requireNonNull(agora, "agora nao pode ser nulo");
+    }
+
     public Long id() {
         return id;
     }
@@ -95,6 +100,13 @@ public class Usuario {
 
     public boolean ativo() {
         return ativo;
+    }
+
+    /**
+     * Uso restrito ao processo de autenticacao. O hash nunca deve integrar DTOs ou logs.
+     */
+    public String senhaHashParaAutenticacao() {
+        return senhaHash;
     }
 
     public Instant criadoEm() {
