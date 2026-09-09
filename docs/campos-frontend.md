@@ -1,6 +1,6 @@
 # Catálogo de campos para o front-end
 
-Este é um catálogo de contratos consumidos ou planejados pelo Angular. Eles não são entidades JPA nem reproduzem nomes internos do Spring. Os contratos de autenticação, Minha conta, categorias ativas e abertura de chamado já estão implementados; os contratos dos cartões futuros continuam identificados como planejados.
+Este é um catálogo de contratos consumidos ou planejados pelo Angular. Eles não são entidades JPA nem reproduzem nomes internos do Spring. Os contratos de autenticação, Minha conta, categorias ativas, abertura e consulta dos próprios chamados já estão implementados; os contratos dos cartões futuros continuam identificados como planejados.
 
 ## Convenções de tipos
 
@@ -105,11 +105,11 @@ As entradas de transição não autorizam qualquer mudança arbitrária só por 
 | `ChamadoResumoDto`/`ChamadoDto` | `id` | `Id` | Somente leitura; identificador interno/rota. |
 | `ChamadoResumoDto`/`ChamadoDto` | `protocolo` | `string` | Somente leitura; valor público único para consulta. |
 | `ChamadoResumoDto`/`ChamadoDto` | `titulo` | `string` | Somente leitura em lista; editável apenas se houver caso de uso futuro explícito. |
-| `ChamadoResumoDto`/`ChamadoDto` | `descricao` | `string` | Somente leitura após criação na versão planejada. |
+| `ChamadoDto` | `descricao` | `string` | Somente leitura no detalhe após a criação. Não integra o resumo da listagem. |
 | `ChamadoResumoDto`/`ChamadoDto` | `status` | `StatusChamado` | Somente leitura/estado; alterações passam por ações autorizadas. |
 | `ChamadoResumoDto`/`ChamadoDto` | `prioridade` | `PrioridadeChamado` | Somente leitura em lista; alteração por ação autorizada. |
-| `ChamadoResumoDto`/`ChamadoDto` | `solicitante` | `UsuarioResumoDto` | Somente leitura; projeção DTO da FK `solicitante_id`. |
-| `ChamadoResumoDto`/`ChamadoDto` | `atendente` | `UsuarioResumoDto \| null` | Somente leitura; projeção DTO da FK opcional `atendente_id`. |
+| `ChamadoDto` | `solicitante` | `UsuarioResumoDto` | Somente leitura no detalhe; projeção DTO da FK `solicitante_id`. |
+| `ChamadoDto` | `atendente` | `UsuarioResumoDto \| null` | Somente leitura no detalhe; projeção DTO da FK opcional `atendente_id`. |
 | `ChamadoResumoDto`/`ChamadoDto` | `categoria` | `CategoriaResumoDto` | Somente leitura; projeção DTO da FK obrigatória `categoria_id`. |
 | `ChamadoDto` | `solucao` | `string \| null` | Somente leitura após resolução; exibida quando disponível. |
 | `ChamadoDto` | `criadoEm` | `IsoUtc` | Somente leitura. |
@@ -118,7 +118,9 @@ As entradas de transição não autorizam qualquer mudança arbitrária só por 
 | `ChamadoDto` | `fechadoEm` | `IsoUtc \| null` | Somente leitura; obrigatório no banco para status `FECHADO`. |
 | `ChamadoDto` | `versao` | `Versao` | Campo interno de concorrência; não é editado pelo usuário. |
 
-Na resposta implementada, `solicitante`, `atendente` e `categoria` são projeções pequenas para apresentação, nunca entidades JPA. `atendente` é `null` na abertura.
+Na resposta de detalhe, `solicitante`, `atendente` e `categoria` são projeções pequenas para apresentação, nunca entidades JPA. O resumo omite descrição, solução e usuários relacionados, retornando apenas os dados necessários à lista. `atendente` é `null` na abertura.
+
+`GET /api/chamados/me` não recebe identificador de solicitante e retorna `ChamadoResumoDto[]` em ordem decrescente de `criadoEm`. `GET /api/chamados/{id}` retorna `ChamadoDto` somente quando o chamado pertence ao solicitante autenticado; chamado inexistente ou alheio usa o mesmo `404`.
 
 ### Comentários e histórico exibidos no detalhe
 

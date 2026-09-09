@@ -31,3 +31,5 @@ Angular :4200  --->  Spring Security  --->  Spring Boot :8080  --->  PostgreSQL 
 - A abertura de chamado é transacional: a API recarrega o solicitante ativo, bloqueia a categoria ativa para leitura durante a criação e persiste o chamado antes de produzir o DTO.
 - Protocolos usam 128 bits gerados por `SecureRandom`; a constraint única do PostgreSQL é a barreira final e colisões são repetidas em transações independentes e limitadas.
 - Somente o perfil `dev` carrega categorias fictícias reproduzíveis por uma migration em `db/devdata`; produção executa apenas `db/migration`.
+- As consultas do solicitante são escopadas pelo identificador autenticado já no repositório. Um detalhe inexistente e um detalhe pertencente a terceiros produzem a mesma resposta `404`, evitando confirmar a existência de dados alheios.
+- A listagem simples da AC1 usa o índice existente em `(solicitante_id, criado_em)` e não antecipa paginação ou filtros da AC3.

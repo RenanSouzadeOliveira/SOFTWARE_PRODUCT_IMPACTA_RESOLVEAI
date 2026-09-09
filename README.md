@@ -112,12 +112,22 @@ O primeiro fluxo do solicitante está disponível na rota protegida `/chamados/n
 
 No perfil `dev`, uma migration de dados separada cria categorias fictícias para a demonstração local. Essa carga não é executada em produção. O contrato e o roteiro completo de evidência estão em [Abertura de chamado](docs/abertura-chamado.md).
 
+## Consulta dos próprios chamados
+
+O solicitante autenticado acompanha seus registros pelas rotas protegidas `/chamados` e `/chamados/:id`. A listagem apresenta primeiro os chamados mais recentes e a página de detalhe exibe somente um chamado pertencente à conta atual.
+
+- `GET /api/chamados/me`: lista exclusivamente os chamados do solicitante autenticado;
+- `GET /api/chamados/{id}`: consulta um chamado próprio e responde `404` para identificadores inexistentes ou pertencentes a terceiros.
+
+O contrato, a decisão de segurança e o roteiro com dois solicitantes estão em [Consulta dos próprios chamados](docs/consulta-chamados.md).
+
 ## Modelo de dados
 
 - [Modelo entidade-relacionamento](docs/modelo-entidade-relacionamento.md): diagrama Mermaid, cardinalidades, constraints e índices do schema.
 - [Catálogo de campos do front-end](docs/campos-frontend.md): DTOs planejados para formulários e telas, sem exposição das entidades JPA.
 - [Autenticação e autorização](docs/autenticacao.md): contratos HTTP, segurança do JWT e roteiro de evidência.
 - [Abertura de chamado](docs/abertura-chamado.md): formulário, contratos, regras protegidas e roteiro de validação.
+- [Consulta dos próprios chamados](docs/consulta-chamados.md): listagem, detalhe, isolamento entre solicitantes e roteiro de evidência.
 
 As entidades `Usuario`, `Categoria` e `Chamado` mapeiam explicitamente o schema resultante das migrations. Os relacionamentos JPA são lazy, não possuem cascata de remoção e os repositórios expõem apenas operações de persistência e consulta. Usuários e categorias são desativados logicamente.
 

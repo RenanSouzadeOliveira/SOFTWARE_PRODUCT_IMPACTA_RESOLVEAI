@@ -2,6 +2,7 @@ package br.edu.impacta.resolveai.chamado;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -51,6 +52,16 @@ class ChamadoServiceTest {
             @Override
             public Optional<Chamado> findByProtocolo(String protocolo) {
                 return Optional.of(new Chamado());
+            }
+
+            @Override
+            public List<Chamado> findAllBySolicitanteIdOrderByCriadoEmDesc(Long solicitanteId) {
+                return List.of();
+            }
+
+            @Override
+            public Optional<Chamado> findByIdAndSolicitanteId(Long id, Long solicitanteId) {
+                return Optional.empty();
             }
         };
         ProtocoloChamadoGenerator generator = new ProtocoloChamadoGenerator() {

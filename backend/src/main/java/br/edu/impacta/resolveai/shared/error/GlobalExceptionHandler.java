@@ -96,6 +96,13 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.CONFLICT, exception.getMessage(), request, List.of());
     }
 
+    @ExceptionHandler(RecursoNaoEncontradoException.class)
+    ResponseEntity<ApiErrorResponse> handleNotFound(
+            RecursoNaoEncontradoException exception,
+            HttpServletRequest request) {
+        return build(HttpStatus.NOT_FOUND, exception.getMessage(), request, List.of());
+    }
+
     @ExceptionHandler(DadosInvalidosException.class)
     ResponseEntity<ApiErrorResponse> handleInvalidData(
             DadosInvalidosException exception,

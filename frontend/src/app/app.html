@@ -11,6 +11,7 @@
       </a>
       @if (currentUser(); as user) {
         @if (user.perfil === 'SOLICITANTE') {
+          <a routerLink="/chamados" routerLinkActive="active">Meus chamados</a>
           <a routerLink="/chamados/novo" routerLinkActive="active">Abrir chamado</a>
         }
         @if (user.perfil === 'ATENDENTE') {

@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ApiService } from '../../core/http/api.service';
-import { Categoria, Chamado, CriarChamadoInput } from './chamado.model';
+import { Categoria, Chamado, ChamadoResumo, CriarChamadoInput } from './chamado.model';
 
 @Injectable({ providedIn: 'root' })
 export class ChamadosService {
@@ -14,5 +14,13 @@ export class ChamadosService {
 
   criar(input: CriarChamadoInput): Observable<Chamado> {
     return this.api.post<Chamado, CriarChamadoInput>('chamados', input);
+  }
+
+  listarMeus(): Observable<readonly ChamadoResumo[]> {
+    return this.api.get<readonly ChamadoResumo[]>('chamados/me');
+  }
+
+  buscarPorId(id: number): Observable<Chamado> {
+    return this.api.get<Chamado>(`chamados/${encodeURIComponent(String(id))}`);
   }
 }

@@ -44,6 +44,26 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'chamados',
+    title: 'Meus chamados | ResolveAí',
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'SOLICITANTE' },
+    loadComponent: () =>
+      import('./features/chamados/meus-chamados.component').then(
+        (component) => component.MeusChamadosComponent,
+      ),
+  },
+  {
+    path: 'chamados/:id',
+    title: 'Detalhes do chamado | ResolveAí',
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'SOLICITANTE' },
+    loadComponent: () =>
+      import('./features/chamados/detalhe-chamado.component').then(
+        (component) => component.DetalheChamadoComponent,
+      ),
+  },
+  {
     path: 'atendimento',
     title: 'Atendimento | ResolveAí',
     canActivate: [authGuard, roleGuard],

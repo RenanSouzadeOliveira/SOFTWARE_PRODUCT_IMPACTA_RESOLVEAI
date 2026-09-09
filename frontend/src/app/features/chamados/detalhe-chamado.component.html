@@ -1,0 +1,86 @@
+<section class="detail-page" aria-labelledby="detalhe-chamado-title">
+  <a class="back-link" routerLink="/chamados">← Voltar para meus chamados</a>
+
+  @switch (state()) {
+    @case ('loading') {
+      <p
+        class="loading-state"
+        role="status"
+        aria-live="polite"
+        data-testid="chamado-detail-loading"
+      >
+        Carregando chamado…
+      </p>
+    }
+
+    @case ('error') {
+      <div class="state-panel state-panel--error" role="alert" data-testid="chamado-detail-error">
+        <h1>Não foi possível carregar o chamado</h1>
+        <p>{{ errorMessage() }}</p>
+        <button class="secondary-button" type="button" (click)="load()">Tentar novamente</button>
+      </div>
+    }
+
+    @case ('success') {
+      @if (chamado(); as item) {
+        <article class="detail-card" data-testid="chamado-detail-success">
+          <header class="detail-header">
+            <div>
+              <p class="eyebrow">Detalhes da solicitação</p>
+              <h1 id="detalhe-chamado-title">{{ item.titulo }}</h1>
+              <p class="protocol">{{ item.protocolo }}</p>
+            </div>
+            <span class="status-badge">{{ statusLabel(item.status) }}</span>
+          </header>
+
+          <dl class="detail-meta">
+            <div>
+              <dt>Categoria</dt>
+              <dd>{{ item.categoria.nome }}</dd>
+            </div>
+            <div>
+              <dt>Prioridade</dt>
+              <dd>{{ prioridadeLabel(item.prioridade) }}</dd>
+            </div>
+            <div>
+              <dt>Aberto em</dt>
+              <dd>{{ item.criadoEm | date: 'dd/MM/yyyy HH:mm' }}</dd>
+            </div>
+            <div>
+              <dt>Atualizado em</dt>
+              <dd>{{ item.atualizadoEm | date: 'dd/MM/yyyy HH:mm' }}</dd>
+            </div>
+            @if (item.resolvidoEm) {
+              <div>
+                <dt>Resolvido em</dt>
+                <dd>{{ item.resolvidoEm | date: 'dd/MM/yyyy HH:mm' }}</dd>
+              </div>
+            }
+            @if (item.fechadoEm) {
+              <div>
+                <dt>Fechado em</dt>
+                <dd>{{ item.fechadoEm | date: 'dd/MM/yyyy HH:mm' }}</dd>
+              </div>
+            }
+            <div>
+              <dt>Atendente</dt>
+              <dd>{{ item.atendente?.nome ?? 'Ainda não atribuído' }}</dd>
+            </div>
+          </dl>
+
+          <section class="detail-section" aria-labelledby="descricao-title">
+            <h2 id="descricao-title">Descrição</h2>
+            <p class="description">{{ item.descricao }}</p>
+          </section>
+
+          @if (item.solucao) {
+            <section class="detail-section" aria-labelledby="solucao-title">
+              <h2 id="solucao-title">Solução registrada</h2>
+              <p class="description">{{ item.solucao }}</p>
+            </section>
+          }
+        </article>
+      }
+    }
+  }
+</section>

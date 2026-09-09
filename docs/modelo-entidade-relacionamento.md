@@ -123,7 +123,7 @@ Todos os timestamps da V1 são `TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURREN
 
 As constraints `UNIQUE` também criam índices únicos no PostgreSQL. Não há índices adicionais nem colunas para anexos, notificações ou outros módulos fora do escopo da V1.
 
-A V3 não duplica índices: a unicidade de `protocolo` e os índices iniciados por `solicitante_id`, `status` e `categoria_id` já atendem a abertura e às consultas planejadas. Em uma atualização, a V3 falha sem truncar dados se existirem títulos ou descrições incompatíveis; esses registros devem ser corrigidos explicitamente antes de repetir a migration.
+A V3 não duplica índices: a unicidade de `protocolo` e os índices iniciados por `solicitante_id`, `status` e `categoria_id` já atendem a abertura e às consultas planejadas. Em particular, `idx_chamados_solicitante_criado_em` atende `WHERE solicitante_id = ? ORDER BY criado_em DESC` por varredura reversa. Como este cartão não introduz filtro por status nem paginação, criar outro índice composto seria redundante; a necessidade deve ser reavaliada junto às consultas da AC3. Em uma atualização, a V3 falha sem truncar dados se existirem títulos ou descrições incompatíveis; esses registros devem ser corrigidos explicitamente antes de repetir a migration.
 
 ## Limites do que o schema garante
 

@@ -260,6 +260,122 @@ class ChamadoIntegrationTest {
         assertThat(specification.at("/paths/~1api~1categorias/get/responses/200").isMissingNode()).isFalse();
     }
 
+    @Test
+    void shouldListOnlyOwnTicketsNewestFirstAndSupportEmptyList() throws Exception {
+        Instant now = Instant.now();
+        Chamado older = persistTicket(solicitante, "RA-CONSULTA-ANTIGO", "Chamado mais antigo", now.minusSeconds(120));
+        Chamado newer = persistTicket(solicitante, "RA-CONSULTA-NOVO", "Chamado mais recente", now.minusSeconds(30));
+
+        String otherEmail = "outro-" + UUID.randomUUID() + "@example.com";
+        String otherToken = registerAndLogin(otherEmail);
+        Usuario otherRequester = usuarioRepository.findByEmail(otherEmail).orElseThrow();
+        persistTicket(otherRequester, "RA-CONSULTA-OUTRO", "Chamado de outra pessoa", now);
+
+        mockMvc.perform(get("/api/chamados/me")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(tokenSolicitante)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].id").value(newer.id()))
+                .andExpect(jsonPath("$[1].id").value(older.id()))
+                .andExpect(jsonPath("$[0].protocolo").value("RA-CONSULTA-NOVO"))
+                .andExpect(jsonPath("$[0].categoria.id").value(categoriaAtiva.id()))
+                .andExpect(jsonPath("$[0].prioridade").value("MEDIA"))
+                .andExpect(jsonPath("$[0].status").value("ABERTO"))
+                .andExpect(jsonPath("$[0].descricao").doesNotExist())
+                .andExpect(jsonPath("$[0].solicitante").doesNotExist());
+
+        mockMvc.perform(get("/api/chamados/me")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(otherToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].protocolo").value("RA-CONSULTA-OUTRO"));
+
+        String emptyToken = registerAndLogin("vazio-" + UUID.randomUUID() + "@example.com");
+        mockMvc.perform(get("/api/chamados/me")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(emptyToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void newlyCreatedTicketShouldAppearAndExposeItsSafeDetail() throws Exception {
+        MvcResult creationResult = mockMvc.perform(post("/api/chamados")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(tokenSolicitante))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(validPayload(categoriaAtiva.id())))
+                .andExpect(status().isCreated())
+                .andReturn();
+        JsonNode created = json(creationResult);
+
+        mockMvc.perform(get("/api/chamados/me")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(tokenSolicitante)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(created.get("id").asLong()))
+                .andExpect(jsonPath("$[0].protocolo").value(created.get("protocolo").asText()));
+
+        mockMvc.perform(get("/api/chamados/{id}", created.get("id").asLong())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(tokenSolicitante)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(created.get("id").asLong()))
+                .andExpect(jsonPath("$.descricao").value("Nao consigo acessar o recurso solicitado."))
+                .andExpect(jsonPath("$.solicitante.id").value(solicitante.id()))
+                .andExpect(jsonPath("$.solicitante.nome").value(solicitante.nome()))
+                .andExpect(jsonPath("$.categoria.id").value(categoriaAtiva.id()))
+                .andExpect(jsonPath("$.atendente").value((Object) null));
+    }
+
+    @Test
+    void shouldReturnIndistinguishableNotFoundForForeignAndMissingTicket() throws Exception {
+        Chamado ticket = persistTicket(
+                solicitante, "RA-CONSULTA-PRIVADO", "Chamado privado", Instant.now());
+        String otherToken = registerAndLogin("intruso-" + UUID.randomUUID() + "@example.com");
+
+        MvcResult foreign = mockMvc.perform(get("/api/chamados/{id}", ticket.id())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(otherToken)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Chamado nao encontrado"))
+                .andReturn();
+        MvcResult missing = mockMvc.perform(get("/api/chamados/{id}", 999_999_999L)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(otherToken)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Chamado nao encontrado"))
+                .andReturn();
+
+        assertThat(json(foreign).get("status")).isEqualTo(json(missing).get("status"));
+        assertThat(json(foreign).get("error")).isEqualTo(json(missing).get("error"));
+        assertThat(json(foreign).get("message")).isEqualTo(json(missing).get("message"));
+    }
+
+    @Test
+    void shouldProtectTicketQueriesByAuthenticationAndRequesterRoleAndPublishOpenApi() throws Exception {
+        mockMvc.perform(get("/api/chamados/me"))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/chamados/{id}", 1L))
+                .andExpect(status().isUnauthorized());
+
+        String attendantEmail = "consulta-atendente-" + UUID.randomUUID() + "@example.com";
+        Usuario attendant = usuarioRepository.save(Usuario.novo(
+                "Atendente", attendantEmail, passwordEncoder.encode(PASSWORD),
+                Perfil.ATENDENTE, Instant.now()));
+        String attendantToken = login(attendant.email());
+        mockMvc.perform(get("/api/chamados/me")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(attendantToken)))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/chamados/{id}", 1L)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(attendantToken)))
+                .andExpect(status().isForbidden());
+
+        JsonNode specification = json(mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk())
+                .andReturn());
+        assertThat(specification.at("/paths/~1api~1chamados~1me/get/responses/200").isMissingNode()).isFalse();
+        assertThat(specification.at("/paths/~1api~1chamados~1me/get/responses/403").isMissingNode()).isFalse();
+        assertThat(specification.at("/paths/~1api~1chamados~1{id}/get/responses/404").isMissingNode()).isFalse();
+        assertThat(specification.at("/paths/~1api~1chamados~1{id}/get/security/0/bearerAuth").isMissingNode())
+                .isFalse();
+    }
+
     private String registerAndLogin(String email) throws Exception {
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -290,6 +406,16 @@ class ChamadoIntegrationTest {
                   "prioridade":"MEDIA"
                 }
                 """.formatted(categoryId);
+    }
+
+    private Chamado persistTicket(Usuario requester, String protocol, String title, Instant createdAt) {
+        return chamadoRepository.saveAndFlush(Chamado.abrir(
+                protocol,
+                title,
+                "Descricao suficientemente longa para consulta.",
+                requester,
+                categoriaAtiva,
+                createdAt));
     }
 
     private JsonNode json(MvcResult result) throws Exception {

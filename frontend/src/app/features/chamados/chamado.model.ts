@@ -36,6 +36,19 @@ export interface Chamado {
   readonly versao?: number;
 }
 
+export interface ChamadoResumo {
+  readonly id: number;
+  readonly protocolo: string;
+  readonly titulo: string;
+  readonly status: StatusChamado;
+  readonly prioridade: Prioridade;
+  readonly categoria: Categoria;
+  readonly criadoEm: string;
+  readonly atualizadoEm: string;
+  readonly resolvidoEm: string | null;
+  readonly fechadoEm: string | null;
+}
+
 export interface CriarChamadoInput {
   readonly titulo: string;
   readonly descricao: string;

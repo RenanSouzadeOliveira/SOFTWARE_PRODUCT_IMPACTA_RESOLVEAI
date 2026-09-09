@@ -1,0 +1,151 @@
+.detail-page {
+  margin: 0 auto;
+  max-width: 58rem;
+}
+
+.back-link {
+  color: #0756b3;
+  display: inline-block;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+  text-decoration: none;
+}
+
+.detail-card,
+.state-panel {
+  background: #fff;
+  border: 1px solid #dce3ea;
+  border-radius: 1rem;
+  box-shadow: 0 1rem 2.5rem rgb(36 59 83 / 8%);
+  padding: clamp(1.25rem, 5vw, 2.5rem);
+}
+
+.detail-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.eyebrow {
+  color: #0756b3;
+  font-size: 0.78rem;
+  font-weight: 750;
+  letter-spacing: 0.09em;
+  margin: 0 0 0.5rem;
+  text-transform: uppercase;
+}
+
+h1,
+h2 {
+  color: #12263a;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(2rem, 7vw, 3rem);
+}
+h2 {
+  font-size: 1.25rem;
+}
+
+.protocol {
+  color: #0756b3;
+  font-weight: 750;
+  margin: 0.75rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.status-badge {
+  background: #e8f1fc;
+  border-radius: 999px;
+  color: #0756b3;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.4rem 0.7rem;
+  white-space: nowrap;
+}
+
+.detail-meta {
+  border-bottom: 1px solid #dce3ea;
+  border-top: 1px solid #dce3ea;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 2rem 0;
+  padding: 1.25rem 0;
+}
+
+.detail-meta dt {
+  color: #627d98;
+  font-size: 0.75rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.detail-meta dd {
+  color: #243b53;
+  margin: 0.15rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.detail-section + .detail-section {
+  margin-top: 1.75rem;
+}
+.detail-section h2 {
+  margin-bottom: 0.75rem;
+}
+.description {
+  color: #334e68;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.loading-state {
+  color: #52606d;
+  padding: 2rem 0;
+}
+
+.state-panel--error {
+  background: #fff8f7;
+  border-color: #f0c7c3;
+}
+.state-panel--error h1 {
+  color: #8a1c14;
+  font-size: 1.5rem;
+}
+.state-panel--error p {
+  color: #52606d;
+}
+
+.secondary-button {
+  background: #fff;
+  border: 1px solid #9fb3c8;
+  border-radius: 0.55rem;
+  color: #243b53;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  min-height: 2.8rem;
+  padding: 0.65rem 1rem;
+}
+
+@media (max-width: 38rem) {
+  .detail-header {
+    flex-direction: column;
+  }
+  .status-badge {
+    align-self: flex-start;
+  }
+  .detail-meta {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 24rem) {
+  .detail-meta {
+    grid-template-columns: 1fr;
+  }
+}
