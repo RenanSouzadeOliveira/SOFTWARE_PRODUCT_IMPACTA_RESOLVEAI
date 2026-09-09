@@ -6,6 +6,15 @@ Fundação executável do ResolveAí, sistema acadêmico de gestão de chamados 
 - Java 21 e Spring Boot no back-end;
 - PostgreSQL com migrations Flyway.
 
+## Arquitetura
+
+```text
+Angular :4200  ── HTTP /api + JWT ──>  Spring Boot :8080  ── JPA ──>  PostgreSQL :5432
+                                                └──────── Flyway ──────────────┘
+```
+
+O Angular concentra a interface e os contratos tipados; o Spring Boot aplica validação, autenticação, autorização e regras de negócio; o PostgreSQL garante a integridade relacional. O Flyway é a única ferramenta que cria ou evolui o schema e o Hibernate apenas o valida. As decisões completas estão em [Arquitetura inicial](docs/architecture.md).
+
 ## Pré-requisitos
 
 - Node.js 22.12 ou superior na linha 22 e npm 10+
@@ -23,6 +32,24 @@ openssl rand -hex 32
 ```
 
 Copie a saída aleatória do segundo comando para `JWT_SECRET` no `.env`. O placeholder do exemplo é deliberadamente curto e a API recusa a inicialização até que ele seja substituído.
+
+### Variáveis de ambiente
+
+| Variável | Obrigatória | Uso |
+| --- | --- | --- |
+| `POSTGRES_DB` | Sim | Nome do banco criado pelo container. |
+| `POSTGRES_USER` | Sim | Usuário local do PostgreSQL. |
+| `POSTGRES_PASSWORD` | Sim | Senha local do PostgreSQL; nunca deve ser versionada. |
+| `POSTGRES_PORT` | Não | Porta publicada pelo container; padrão `5432`. |
+| `DB_URL` | Sim | URL JDBC da API, coerente com banco e porta configurados. |
+| `DB_USERNAME` | Sim | Usuário usado pela API. |
+| `DB_PASSWORD` | Sim | Senha usada pela API. |
+| `CORS_ALLOWED_ORIGINS` | Sim | Origens autorizadas, separadas conforme a configuração da aplicação. |
+| `JWT_SECRET` | Sim | Segredo de assinatura com pelo menos 32 bytes. |
+| `JWT_EXPIRATION` | Não | Duração ISO 8601 do token; padrão `PT2H`. |
+| `SPRING_PROFILES_ACTIVE` | Não | Perfil Spring; o exemplo local usa `dev`. |
+
+O repositório contém somente valores fictícios em `.env.example`. O arquivo `.env` é ignorado pelo Git e deve permanecer local.
 
 ## Executar os três componentes
 
@@ -145,9 +172,10 @@ Back-end:
 
 ```bash
 cd backend
-mvn test
-mvn package
+mvn clean verify
 ```
+
+O comando `verify` executa os testes e gera `backend/target/resolveai-api-0.0.1-SNAPSHOT.jar`.
 
 ## Validar migrations desde um banco vazio
 
@@ -185,3 +213,7 @@ docker compose exec postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c '\d c
 - Flyway é a única ferramenta autorizada a criar ou evoluir o schema.
 - CORS aceita somente as origens informadas por `CORS_ALLOWED_ORIGINS`.
 - Nenhuma senha, token ou chave é fornecida pelo código-fonte.
+
+## Consolidar e demonstrar a AC1
+
+O roteiro consolidado para ambiente limpo, dados fictícios, funcionalidades do vídeo e registro das evidências está em [Entrega da AC1](docs/entrega-ac1.md). Não considere a entrega pública concluída antes de preencher no cartão os links do commit, da release e do vídeo e confirmar que repositório e quadro estão acessíveis sem autenticação.
