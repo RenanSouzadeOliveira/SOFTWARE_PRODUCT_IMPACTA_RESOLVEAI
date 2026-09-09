@@ -32,10 +32,10 @@ public class Chamado {
     @Column(nullable = false, length = 30, unique = true)
     private String protocolo;
 
-    @Column(nullable = false, length = 160)
+    @Column(nullable = false, length = 120)
     private String titulo;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, length = 2000)
     private String descricao;
 
     @Enumerated(EnumType.STRING)
@@ -88,6 +88,17 @@ public class Chamado {
             Usuario solicitante,
             Categoria categoria,
             Instant agora) {
+        return abrir(protocolo, titulo, descricao, PrioridadeChamado.MEDIA, solicitante, categoria, agora);
+    }
+
+    public static Chamado abrir(
+            String protocolo,
+            String titulo,
+            String descricao,
+            PrioridadeChamado prioridade,
+            Usuario solicitante,
+            Categoria categoria,
+            Instant agora) {
         Objects.requireNonNull(categoria, "categoria nao pode ser nula");
         if (!categoria.ativa()) {
             throw new IllegalStateException("Nao e permitido abrir chamado em categoria inativa");
@@ -95,10 +106,10 @@ public class Chamado {
 
         Chamado chamado = new Chamado();
         chamado.protocolo = requiredText(protocolo, "protocolo", 30);
-        chamado.titulo = requiredText(titulo, "titulo", 160);
-        chamado.descricao = requiredText(descricao, "descricao", Integer.MAX_VALUE);
+        chamado.titulo = requiredText(titulo, "titulo", 5, 120);
+        chamado.descricao = requiredText(descricao, "descricao", 20, 2000);
         chamado.status = StatusChamado.ABERTO;
-        chamado.prioridade = PrioridadeChamado.MEDIA;
+        chamado.prioridade = Objects.requireNonNull(prioridade, "prioridade nao pode ser nula");
         chamado.solicitante = Objects.requireNonNull(solicitante, "solicitante nao pode ser nulo");
         chamado.atendente = null;
         chamado.categoria = categoria;
@@ -177,6 +188,14 @@ public class Chamado {
         String normalized = value.trim();
         if (normalized.length() > maxLength) {
             throw new IllegalArgumentException(field + " excede " + maxLength + " caracteres");
+        }
+        return normalized;
+    }
+
+    private static String requiredText(String value, String field, int minLength, int maxLength) {
+        String normalized = requiredText(value, field, maxLength);
+        if (normalized.length() < minLength) {
+            throw new IllegalArgumentException(field + " deve ter ao menos " + minLength + " caracteres");
         }
         return normalized;
     }

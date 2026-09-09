@@ -103,13 +103,23 @@ Os contratos e o roteiro de validação estão documentados em [Autenticação e
 
 O Angular disponibiliza as rotas `/cadastro`, `/login`, `/minha-conta` e `/atendimento`. O token permanece apenas na sessão da aba e é removido no logout.
 
+## Abertura de chamado
+
+O primeiro fluxo do solicitante está disponível na rota protegida `/chamados/novo`. O formulário consulta as categorias ativas e envia apenas título, descrição, categoria e prioridade. O protocolo, o solicitante, o status inicial e o atendente são controlados pela API.
+
+- `GET /api/categorias`: lista autenticada de categorias ativas, ordenadas por nome;
+- `POST /api/chamados`: abre um chamado para o `SOLICITANTE` autenticado e retorna `201 Created` com o protocolo.
+
+No perfil `dev`, uma migration de dados separada cria categorias fictícias para a demonstração local. Essa carga não é executada em produção. O contrato e o roteiro completo de evidência estão em [Abertura de chamado](docs/abertura-chamado.md).
+
 ## Modelo de dados
 
 - [Modelo entidade-relacionamento](docs/modelo-entidade-relacionamento.md): diagrama Mermaid, cardinalidades, constraints e índices do schema.
 - [Catálogo de campos do front-end](docs/campos-frontend.md): DTOs planejados para formulários e telas, sem exposição das entidades JPA.
 - [Autenticação e autorização](docs/autenticacao.md): contratos HTTP, segurança do JWT e roteiro de evidência.
+- [Abertura de chamado](docs/abertura-chamado.md): formulário, contratos, regras protegidas e roteiro de validação.
 
-As entidades `Usuario`, `Categoria` e `Chamado` mapeiam explicitamente a migration V1. Os relacionamentos JPA são lazy, não possuem cascata de remoção e os repositórios expõem apenas operações de persistência e consulta. Usuários e categorias são desativados logicamente.
+As entidades `Usuario`, `Categoria` e `Chamado` mapeiam explicitamente o schema resultante das migrations. Os relacionamentos JPA são lazy, não possuem cascata de remoção e os repositórios expõem apenas operações de persistência e consulta. Usuários e categorias são desativados logicamente.
 
 ## Testes e builds
 

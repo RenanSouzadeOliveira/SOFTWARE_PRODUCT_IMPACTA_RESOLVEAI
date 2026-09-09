@@ -1,0 +1,159 @@
+<section class="form-page" aria-labelledby="novo-chamado-title">
+  <div class="form-card form-card--wide">
+    <p class="eyebrow">Solicitação de atendimento</p>
+    <h1 id="novo-chamado-title">Abrir chamado</h1>
+    <p class="form-intro">Descreva o que aconteceu para que nossa equipe possa ajudar.</p>
+
+    @if (createdTicket(); as chamado) {
+      <div class="success-panel" role="status" data-testid="chamado-success" tabindex="-1">
+        <p class="success-panel__eyebrow">Chamado registrado</p>
+        <h2>Recebemos sua solicitação</h2>
+        <p>
+          Anote o protocolo
+          <strong data-testid="chamado-protocolo">{{ chamado.protocolo }}</strong>
+          para acompanhar o atendimento.
+        </p>
+        <button class="secondary-button" type="button" (click)="openAnother()">
+          Abrir outro chamado
+        </button>
+      </div>
+    } @else {
+      @if (errorMessage(); as message) {
+        <p class="alert alert--error" role="alert" data-testid="chamado-error">{{ message }}</p>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="field">
+          <label for="chamado-titulo">Título</label>
+          <input
+            id="chamado-titulo"
+            type="text"
+            formControlName="titulo"
+            maxlength="120"
+            autocomplete="off"
+            [attr.aria-invalid]="form.controls.titulo.invalid && form.controls.titulo.touched"
+            aria-describedby="chamado-titulo-error"
+          />
+          <div id="chamado-titulo-error" class="field-error" aria-live="polite">
+            @if (form.controls.titulo.touched && form.controls.titulo.hasError('required')) {
+              Informe um título.
+            } @else if (form.controls.titulo.touched && form.controls.titulo.hasError('minlength')) {
+              O título deve ter pelo menos 5 caracteres.
+            } @else if (form.controls.titulo.touched && form.controls.titulo.hasError('maxlength')) {
+              O título deve ter no máximo 120 caracteres.
+            }
+            @for (message of fieldViolationMessages('titulo'); track $index) {
+              <span class="field-error__item">{{ message }}</span>
+            }
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="chamado-descricao">Descrição</label>
+          <textarea
+            id="chamado-descricao"
+            formControlName="descricao"
+            rows="7"
+            maxlength="2000"
+            [attr.aria-invalid]="form.controls.descricao.invalid && form.controls.descricao.touched"
+            aria-describedby="chamado-descricao-hint chamado-descricao-error"
+          ></textarea>
+          <p id="chamado-descricao-hint" class="field-hint">
+            Explique o problema com detalhes (20 a 2.000 caracteres).
+          </p>
+          <div id="chamado-descricao-error" class="field-error" aria-live="polite">
+            @if (form.controls.descricao.touched && form.controls.descricao.hasError('required')) {
+              Informe uma descrição.
+            } @else if (form.controls.descricao.touched && form.controls.descricao.hasError('minlength')) {
+              A descrição deve ter pelo menos 20 caracteres.
+            } @else if (form.controls.descricao.touched && form.controls.descricao.hasError('maxlength')) {
+              A descrição deve ter no máximo 2.000 caracteres.
+            }
+            @for (message of fieldViolationMessages('descricao'); track $index) {
+              <span class="field-error__item">{{ message }}</span>
+            }
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="chamado-categoria">Categoria</label>
+          @switch (categoriasState()) {
+            @case ('loading') {
+              <p class="loading-state" role="status" data-testid="categorias-loading">
+                Carregando categorias…
+              </p>
+            }
+            @case ('error') {
+              <div class="category-error" role="alert" data-testid="categorias-error">
+                <p>{{ categoriasError() }}</p>
+                <button class="secondary-button" type="button" (click)="loadCategorias()">
+                  Tentar novamente
+                </button>
+              </div>
+            }
+            @case ('empty') {
+              <p class="empty-state" role="status" data-testid="categorias-empty">
+                Nenhuma categoria está disponível no momento.
+              </p>
+            }
+            @case ('ready') {
+              <select
+                id="chamado-categoria"
+                formControlName="categoriaId"
+                [attr.aria-invalid]="form.controls.categoriaId.invalid && form.controls.categoriaId.touched"
+                aria-describedby="chamado-categoria-error"
+              >
+                <option [ngValue]="0">Selecione uma categoria</option>
+                @for (categoria of categorias(); track categoria.id) {
+                  <option [ngValue]="categoria.id">{{ categoria.nome }}</option>
+                }
+              </select>
+            }
+          }
+          <div id="chamado-categoria-error" class="field-error" aria-live="polite">
+            @if (form.controls.categoriaId.touched && form.controls.categoriaId.hasError('required')) {
+              Selecione uma categoria.
+            }
+            @for (message of fieldViolationMessages('categoriaId'); track $index) {
+              <span class="field-error__item">{{ message }}</span>
+            }
+          </div>
+        </div>
+
+        <fieldset class="field priority-field">
+          <legend>Prioridade</legend>
+          <div class="priority-options">
+            <label>
+              <input type="radio" formControlName="prioridade" value="BAIXA" />
+              Baixa
+            </label>
+            <label>
+              <input type="radio" formControlName="prioridade" value="MEDIA" />
+              Média
+            </label>
+            <label>
+              <input type="radio" formControlName="prioridade" value="ALTA" />
+              Alta
+            </label>
+          </div>
+          <div id="chamado-prioridade-error" class="field-error" aria-live="polite">
+            @if (form.controls.prioridade.touched && form.controls.prioridade.hasError('required')) {
+              Selecione uma prioridade.
+            }
+            @for (message of fieldViolationMessages('prioridade'); track $index) {
+              <span class="field-error__item">{{ message }}</span>
+            }
+          </div>
+        </fieldset>
+
+        <button
+          class="primary-button"
+          type="submit"
+          [disabled]="submitting() || categoriasState() !== 'ready'"
+        >
+          {{ submitting() ? 'Abrindo chamado…' : 'Abrir chamado' }}
+        </button>
+      </form>
+    }
+  </div>
+</section>

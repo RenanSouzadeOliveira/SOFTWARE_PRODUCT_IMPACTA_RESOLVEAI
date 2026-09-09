@@ -8,6 +8,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.flywaydb.core.api.output.MigrateResult;
@@ -31,8 +34,8 @@ class InitialMigrationTest {
                 .load();
         MigrateResult migrationResult = flyway.migrate();
 
-        assertThat(migrationResult.migrationsExecuted).isEqualTo(2);
-        assertThat(flyway.info().applied()).hasSize(2);
+        assertThat(migrationResult.migrationsExecuted).isEqualTo(3);
+        assertThat(flyway.info().applied()).hasSize(3);
 
         try (Connection connection = dataSource.getConnection()) {
             DatabaseMetaData metadata = connection.getMetaData();
@@ -44,6 +47,10 @@ class InitialMigrationTest {
             }
             assertThat(tables).contains(
                     "usuarios", "categorias", "chamados", "comentarios", "historico_chamados");
+
+            assertColumnSize(metadata, "chamados", "titulo", 120);
+            assertColumnSize(metadata, "chamados", "descricao", 2000);
+            assertTicketIndexes(metadata);
         }
     }
 
@@ -80,5 +87,39 @@ class InitialMigrationTest {
             assertThat(result.next()).isTrue();
             assertThat(result.getString("email")).isEqualTo("pessoa@example.com");
         }
+    }
+
+    private void assertColumnSize(DatabaseMetaData metadata, String table, String column, int expectedSize)
+            throws SQLException {
+        try (ResultSet result = metadata.getColumns(null, "public", table, column)) {
+            assertThat(result.next()).isTrue();
+            assertThat(result.getInt("COLUMN_SIZE")).isEqualTo(expectedSize);
+        }
+    }
+
+    private void assertTicketIndexes(DatabaseMetaData metadata) throws SQLException {
+        Map<String, List<String>> columnsByIndex = new LinkedHashMap<>();
+        Set<String> uniqueIndexes = new HashSet<>();
+        try (ResultSet result = metadata.getIndexInfo(null, "public", "chamados", false, false)) {
+            while (result.next()) {
+                String indexName = result.getString("INDEX_NAME");
+                String columnName = result.getString("COLUMN_NAME");
+                if (indexName != null && columnName != null) {
+                    columnsByIndex.computeIfAbsent(indexName.toLowerCase(), ignored -> new java.util.ArrayList<>())
+                            .add(columnName.toLowerCase());
+                    if (!result.getBoolean("NON_UNIQUE")) {
+                        uniqueIndexes.add(indexName.toLowerCase());
+                    }
+                }
+            }
+        }
+
+        assertThat(columnsByIndex).anySatisfy((name, columns) -> {
+            assertThat(uniqueIndexes).contains(name);
+            assertThat(columns).containsExactly("protocolo");
+        });
+        assertThat(columnsByIndex.values()).anySatisfy(columns -> assertThat(columns.getFirst()).isEqualTo("solicitante_id"));
+        assertThat(columnsByIndex.values()).anySatisfy(columns -> assertThat(columns.getFirst()).isEqualTo("status"));
+        assertThat(columnsByIndex.values()).anySatisfy(columns -> assertThat(columns.getFirst()).isEqualTo("categoria_id"));
     }
 }

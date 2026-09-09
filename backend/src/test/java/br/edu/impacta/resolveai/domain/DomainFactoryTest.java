@@ -41,13 +41,14 @@ class DomainFactoryTest {
                 "RES-2026-0001",
                 "Falha de acesso",
                 "Nao foi possivel acessar o sistema.",
+                PrioridadeChamado.ALTA,
                 solicitante,
                 categoria,
                 CREATED_AT);
 
         assertThat(categoria.ativa()).isTrue();
         assertThat(chamado.status()).isEqualTo(StatusChamado.ABERTO);
-        assertThat(chamado.prioridade()).isEqualTo(PrioridadeChamado.MEDIA);
+        assertThat(chamado.prioridade()).isEqualTo(PrioridadeChamado.ALTA);
         assertThat(chamado.solicitante()).isSameAs(solicitante);
         assertThat(chamado.categoria()).isSameAs(categoria);
         assertThat(chamado.atendente()).isNull();

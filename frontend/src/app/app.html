@@ -10,6 +10,9 @@
         Início
       </a>
       @if (currentUser(); as user) {
+        @if (user.perfil === 'SOLICITANTE') {
+          <a routerLink="/chamados/novo" routerLinkActive="active">Abrir chamado</a>
+        }
         @if (user.perfil === 'ATENDENTE') {
           <a routerLink="/atendimento" routerLinkActive="active">Atendimento</a>
         }

@@ -3,7 +3,10 @@ package br.edu.impacta.resolveai.shared.error;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
@@ -54,7 +57,8 @@ public class GlobalExceptionHandler {
     ResponseEntity<ApiErrorResponse> handleUnreadableMessage(
             HttpMessageNotReadableException exception,
             HttpServletRequest request) {
-        return build(HttpStatus.BAD_REQUEST, "Corpo da requisicao invalido", request, List.of());
+        List<FieldViolation> violations = invalidFormatViolation(exception);
+        return build(HttpStatus.BAD_REQUEST, "Corpo da requisicao invalido", request, violations);
     }
 
     @ExceptionHandler({MissingServletRequestParameterException.class, MethodArgumentTypeMismatchException.class})
@@ -109,6 +113,22 @@ public class GlobalExceptionHandler {
     private FieldViolation toViolation(FieldError error) {
         String message = error.getDefaultMessage() == null ? "valor invalido" : error.getDefaultMessage();
         return new FieldViolation(error.getField(), message);
+    }
+
+    private List<FieldViolation> invalidFormatViolation(HttpMessageNotReadableException exception) {
+        Throwable cause = exception.getMostSpecificCause();
+        if (!(cause instanceof InvalidFormatException invalidFormat)) {
+            return List.of();
+        }
+
+        String field = invalidFormat.getPath().stream()
+                .map(reference -> reference.getFieldName())
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining("."));
+        if (field.isBlank()) {
+            return List.of();
+        }
+        return List.of(new FieldViolation(field, "valor invalido"));
     }
 
     private ResponseEntity<ApiErrorResponse> build(

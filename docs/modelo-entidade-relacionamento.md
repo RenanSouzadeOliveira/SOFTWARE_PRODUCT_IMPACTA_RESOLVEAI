@@ -1,6 +1,6 @@
 # Modelo entidade-relacionamento
 
-Este documento descreve o schema criado pelas migrations Flyway. A V1 cria o modelo relacional e a V2 exige que e-mails de usuário sejam armazenados normalizados. As entidades em foco são `USUARIOS`, `CATEGORIAS` e `CHAMADOS`; `COMENTARIOS` e `HISTORICO_CHAMADOS` também aparecem porque fazem parte do modelo persistido e das relações de auditoria.
+Este documento descreve o schema criado pelas migrations Flyway. A V1 cria o modelo relacional, a V2 exige e-mails normalizados e a V3 alinha título e descrição aos limites da abertura de chamado. As entidades em foco são `USUARIOS`, `CATEGORIAS` e `CHAMADOS`; `COMENTARIOS` e `HISTORICO_CHAMADOS` também aparecem porque fazem parte do modelo persistido e das relações de auditoria.
 
 ## Diagrama
 
@@ -32,8 +32,8 @@ erDiagram
     CHAMADOS {
         BIGINT id PK "identity, NOT NULL"
         VARCHAR_30 protocolo "NOT NULL, UNIQUE"
-        VARCHAR_160 titulo "NOT NULL"
-        TEXT descricao "NOT NULL"
+        VARCHAR_120 titulo "NOT NULL, 5 a 120 após TRIM"
+        VARCHAR_2000 descricao "NOT NULL, 20 a 2000 após TRIM"
         VARCHAR_20 status "NOT NULL, default ABERTO"
         VARCHAR_10 prioridade "NOT NULL, default MEDIA"
         BIGINT solicitante_id FK "NOT NULL"
@@ -81,7 +81,7 @@ erDiagram
     USUARIOS o|--o{ HISTORICO_CHAMADOS : "atendente_novo_id"
 ```
 
-No bloco Mermaid, `TIMESTAMPTZ` é o nome curto usado para o tipo PostgreSQL `TIMESTAMP WITH TIME ZONE` da migration. Os tamanhos (`VARCHAR_120`, por exemplo) são rótulos visuais para os `VARCHAR(n)`; a definição normativa é a migration V1.
+No bloco Mermaid, `TIMESTAMPTZ` é o nome curto usado para o tipo PostgreSQL `TIMESTAMP WITH TIME ZONE`. Os tamanhos (`VARCHAR_120`, por exemplo) são rótulos visuais para os `VARCHAR(n)`; a definição normativa é o conjunto ordenado das migrations.
 
 ## Chaves, cardinalidades e integridade
 
@@ -99,7 +99,7 @@ Há unicidade em `usuarios.email`, `categorias.nome` e `chamados.protocolo`. Ant
 
 - `usuarios.perfil`: `SOLICITANTE`, `ATENDENTE` ou `ADMIN`; nome e e-mail não podem ser vazios após `TRIM`.
 - `categorias.nome` não pode ser vazio após `TRIM`.
-- `chamados.status`: `ABERTO`, `EM_ATENDIMENTO`, `RESOLVIDO` ou `FECHADO`; `prioridade`: `BAIXA`, `MEDIA` ou `ALTA`; título e descrição não podem ser vazios após `TRIM`.
+- `chamados.status`: `ABERTO`, `EM_ATENDIMENTO`, `RESOLVIDO` ou `FECHADO`; `prioridade`: `BAIXA`, `MEDIA` ou `ALTA`. A V3 limita o título a 5–120 caracteres e a descrição a 20–2.000 caracteres depois de `TRIM`.
 - Um chamado em `RESOLVIDO` ou `FECHADO` precisa ter `resolvido_em`; um chamado em `FECHADO` precisa ter `fechado_em`. A V1 não exige o inverso (não proíbe uma data em outro status).
 - `comentarios.conteudo` não pode ser vazio após `TRIM`.
 - `historico_chamados.tipo_evento`: `CRIACAO`, `ATRIBUICAO`, `STATUS` ou `PRIORIDADE`. Os campos de status e prioridade, quando não nulos, devem usar os mesmos valores enumerados acima.
@@ -122,6 +122,8 @@ Todos os timestamps da V1 são `TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURREN
 | `idx_historico_chamado_criado_em` | `historico_chamados(chamado_id, criado_em)` | histórico cronológico por chamado |
 
 As constraints `UNIQUE` também criam índices únicos no PostgreSQL. Não há índices adicionais nem colunas para anexos, notificações ou outros módulos fora do escopo da V1.
+
+A V3 não duplica índices: a unicidade de `protocolo` e os índices iniciados por `solicitante_id`, `status` e `categoria_id` já atendem a abertura e às consultas planejadas. Em uma atualização, a V3 falha sem truncar dados se existirem títulos ou descrições incompatíveis; esses registros devem ser corrigidos explicitamente antes de repetir a migration.
 
 ## Limites do que o schema garante
 

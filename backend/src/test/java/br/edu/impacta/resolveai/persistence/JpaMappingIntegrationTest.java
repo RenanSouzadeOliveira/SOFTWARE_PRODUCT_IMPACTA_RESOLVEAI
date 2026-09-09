@@ -134,7 +134,7 @@ class JpaMappingIntegrationTest {
         chamadoRepository.save(Chamado.abrir(
                 "RES-2026-DUP",
                 "Primeiro chamado",
-                "Primeira descricao",
+                "Primeira descricao valida",
                 solicitante,
                 categoria,
                 CREATED_AT));
@@ -144,7 +144,7 @@ class JpaMappingIntegrationTest {
             chamadoRepository.save(Chamado.abrir(
                     "RES-2026-DUP",
                     "Segundo chamado",
-                    "Segunda descricao",
+                    "Segunda descricao valida",
                     solicitante,
                     categoria,
                     CREATED_AT.plusSeconds(1)));
@@ -194,7 +194,7 @@ class JpaMappingIntegrationTest {
                     solicitante_id, atendente_id, categoria_id, criado_em, atualizado_em, versao
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                protocolo, "Teste de FK", "Descricao valida", "ABERTO", "MEDIA",
+                protocolo, "Teste de FK", "Descricao valida para teste", "ABERTO", "MEDIA",
                 solicitanteId, atendenteId, categoriaId, CREATED_AT, CREATED_AT, 0L);
     }
 }

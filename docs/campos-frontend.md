@@ -1,6 +1,6 @@
 # Catálogo de campos para o front-end
 
-Este é um catálogo de contratos consumidos ou planejados pelo Angular. Eles não são entidades JPA nem reproduzem nomes internos do Spring. Os contratos de autenticação e Minha conta descritos na seção de usuário já estão implementados; os contratos dos cartões futuros continuam identificados como planejados.
+Este é um catálogo de contratos consumidos ou planejados pelo Angular. Eles não são entidades JPA nem reproduzem nomes internos do Spring. Os contratos de autenticação, Minha conta, categorias ativas e abertura de chamado já estão implementados; os contratos dos cartões futuros continuam identificados como planejados.
 
 ## Convenções de tipos
 
@@ -23,7 +23,7 @@ Os contratos implementados neste cartão são `CadastroInput`, `LoginInput`, `Lo
 
 ### Entradas
 
-| DTO planejado | Campo | Tipo JSON/TypeScript | Uso e classificação |
+| DTO | Campo | Tipo JSON/TypeScript | Uso e classificação |
 | --- | --- | --- | --- |
 | `CadastroUsuarioInput` | `nome` | `string` | Campo de formulário; obrigatório, até 120 caracteres e não vazio. |
 | `CadastroUsuarioInput` | `email` | `string` | Campo de formulário; obrigatório, até 254 caracteres e único. |
@@ -84,22 +84,23 @@ Mesmo que uma categoria apareça ativa no Angular, o serviço deve revalidar exi
 
 | DTO planejado | Campo | Tipo JSON/TypeScript | Uso e classificação |
 | --- | --- | --- | --- |
-| `CriacaoChamadoInput` | `titulo` | `string` | Campo de formulário; obrigatório, até 160 caracteres e não vazio. |
-| `CriacaoChamadoInput` | `descricao` | `string` | Campo de formulário; obrigatório e não vazio. |
+| `CriacaoChamadoInput` | `titulo` | `string` | Campo implementado; obrigatório, de 5 a 120 caracteres após `trim`. |
+| `CriacaoChamadoInput` | `descricao` | `string` | Campo implementado; obrigatório, de 20 a 2.000 caracteres após `trim`. |
 | `CriacaoChamadoInput` | `categoriaId` | `Id` | Campo de formulário (seletor); obrigatório e deve referenciar categoria ativa. |
+| `CriacaoChamadoInput` | `prioridade` | `PrioridadeChamado` | Campo implementado; obrigatório e limitado a `BAIXA`, `MEDIA` ou `ALTA`. |
 | `AtribuicaoChamadoInput` | `atendenteId` | `Id` | Campo de ação da operação de atendimento; o serviço valida perfil, atividade e concorrência. |
 | `AlteracaoPrioridadeChamadoInput` | `prioridade` | `PrioridadeChamado` | Campo de ação/formulário de atendente autorizado. |
 | `ResolucaoChamadoInput` | `solucao` | `string` | Campo de formulário ao resolver; o serviço deve preencher `resolvidoEm` e registrar histórico. |
 | `ReaberturaChamadoInput` | `justificativa` | `string` | Campo de formulário ao solicitar reabertura; o serviço valida o estado e registra o evento aplicável. |
 | `ComentarioCriacaoInput` | `conteudo` | `string` | Campo de formulário; obrigatório e não vazio. Comentários são imutáveis nesta versão. |
 
-`CriacaoChamadoInput` deliberadamente não contém `solicitanteId`: o solicitante é obtido da sessão autenticada pelo back-end, nunca de um valor digitado ou oculto no Angular. Da mesma forma, `autorId` de comentário/histórico é derivado da sessão. A criação usa `status = 'ABERTO'` e `prioridade = 'MEDIA'` quando a regra de negócio não fornecer outro valor; a tela não deve forçar status nem atendente.
+`CriacaoChamadoInput` deliberadamente não contém `solicitanteId`: o solicitante é obtido da sessão autenticada pelo back-end, nunca de um valor digitado ou oculto no Angular. Também não contém protocolo, status, atendente, solução ou timestamps. A abertura implementada aceita a prioridade informada, sempre usa `status = 'ABERTO'` e persiste `atendente = null`.
 
 As entradas de transição não autorizam qualquer mudança arbitrária só por conter um enum. O serviço deve aplicar a máquina de estados, permissões e regras de preenchimento de datas. O fechamento por confirmação e demais ações podem receber DTOs específicos quando o endpoint for definido.
 
 ### Saída principal
 
-| DTO planejado | Campo | Tipo JSON/TypeScript | Uso e classificação |
+| DTO | Campo | Tipo JSON/TypeScript | Uso e classificação |
 | --- | --- | --- | --- |
 | `ChamadoResumoDto`/`ChamadoDto` | `id` | `Id` | Somente leitura; identificador interno/rota. |
 | `ChamadoResumoDto`/`ChamadoDto` | `protocolo` | `string` | Somente leitura; valor público único para consulta. |
@@ -117,7 +118,7 @@ As entradas de transição não autorizam qualquer mudança arbitrária só por 
 | `ChamadoDto` | `fechadoEm` | `IsoUtc \| null` | Somente leitura; obrigatório no banco para status `FECHADO`. |
 | `ChamadoDto` | `versao` | `Versao` | Campo interno de concorrência; não é editado pelo usuário. |
 
-Os objetos `UsuarioResumoDto` e `CategoriaResumoDto` são projeções pequenas para apresentação, não entidades aninhadas. Caso o contrato prefira IDs planos, os equivalentes são `solicitanteId: Id`, `atendenteId: Id | null` e `categoriaId: Id`; a escolha deve ser única e documentada no OpenAPI.
+Na resposta implementada, `solicitante`, `atendente` e `categoria` são projeções pequenas para apresentação, nunca entidades JPA. `atendente` é `null` na abertura.
 
 ### Comentários e histórico exibidos no detalhe
 

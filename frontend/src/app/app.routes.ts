@@ -34,6 +34,16 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'chamados/novo',
+    title: 'Abrir chamado | ResolveAí',
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'SOLICITANTE' },
+    loadComponent: () =>
+      import('./features/chamados/novo-chamado.component').then(
+        (component) => component.NovoChamadoComponent,
+      ),
+  },
+  {
     path: 'atendimento',
     title: 'Atendimento | ResolveAí',
     canActivate: [authGuard, roleGuard],

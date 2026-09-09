@@ -46,4 +46,19 @@ describe('App', () => {
     expect(auth.logout).toHaveBeenCalledOnce();
     expect(navigate).toHaveBeenCalledWith(['/login']);
   });
+
+  it('mostra o atalho de abertura somente para solicitantes', () => {
+    const auth = TestBed.inject(AuthService);
+    Object.defineProperty(auth, 'currentUser', {
+      value: signal({ id: 1, nome: 'Ana', email: 'ana@example.com', perfil: 'SOLICITANTE', ativo: true }),
+    });
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>(
+        'a[routerLink="/chamados/novo"]',
+      ),
+    ).not.toBeNull();
+  });
 });

@@ -15,7 +15,7 @@ import org.springframework.data.repository.Repository;
 class RepositoryContractTest {
 
     @Test
-    void repositoriesShouldExposeOnlyExplicitSaveAndFindOperations() {
+    void repositoriesShouldExposeOnlyExplicitPersistenceAndFindOperations() {
         List<Class<?>> repositories = List.of(
                 UsuarioRepository.class,
                 CategoriaRepository.class,
@@ -26,7 +26,9 @@ class RepositoryContractTest {
             assertThat(CrudRepository.class.isAssignableFrom(repository)).isFalse();
             assertThat(repository.getMethods())
                     .extracting(Method::getName)
-                    .allMatch(name -> name.equals("save") || name.startsWith("find"))
+                    .allMatch(name -> name.equals("save")
+                            || name.equals("saveAndFlush")
+                            || name.startsWith("find"))
                     .noneMatch(name -> name.startsWith("delete"));
         });
     }
