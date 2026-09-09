@@ -1,0 +1,95 @@
+:host {
+  display: block;
+  min-height: 100%;
+}
+
+.app-shell {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100vh;
+}
+
+.site-header {
+  align-items: center;
+  background: #ffffff;
+  border-bottom: 1px solid #dce3ea;
+  display: flex;
+  justify-content: space-between;
+  min-height: 4.5rem;
+  padding: 0.75rem max(1rem, calc((100% - 72rem) / 2));
+}
+
+.brand {
+  align-items: center;
+  color: #12263a;
+  display: inline-flex;
+  font-size: 1.2rem;
+  font-weight: 750;
+  gap: 0.65rem;
+  text-decoration: none;
+}
+
+.brand__mark {
+  align-items: center;
+  background: #0967d2;
+  border-radius: 0.65rem;
+  color: #ffffff;
+  display: inline-flex;
+  font-size: 1rem;
+  height: 2.25rem;
+  justify-content: center;
+  width: 2.25rem;
+}
+
+nav a {
+  border-radius: 0.5rem;
+  color: #334e68;
+  display: inline-block;
+  font-weight: 650;
+  padding: 0.65rem 0.8rem;
+  text-decoration: none;
+}
+
+nav a:hover,
+nav a.active {
+  background: #e8f1fc;
+  color: #0756b3;
+}
+
+.site-main {
+  margin: 0 auto;
+  max-width: 72rem;
+  padding: 3rem 1.25rem;
+  width: 100%;
+}
+
+.site-footer {
+  border-top: 1px solid #dce3ea;
+  color: #52606d;
+  font-size: 0.875rem;
+  padding: 1.25rem;
+  text-align: center;
+}
+
+.site-footer p {
+  margin: 0;
+}
+
+@media (max-width: 30rem) {
+  .site-header {
+    min-height: 4rem;
+  }
+
+  .brand {
+    font-size: 1.05rem;
+  }
+
+  .brand__mark {
+    height: 2rem;
+    width: 2rem;
+  }
+
+  .site-main {
+    padding: 2rem 1rem;
+  }
+}

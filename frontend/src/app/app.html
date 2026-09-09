@@ -1,0 +1,22 @@
+<div class="app-shell">
+  <header class="site-header">
+    <a class="brand" routerLink="/" aria-label="ResolveAí, página inicial">
+      <span class="brand__mark" aria-hidden="true">R</span>
+      <span>ResolveAí</span>
+    </a>
+
+    <nav aria-label="Navegação principal">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        Início
+      </a>
+    </nav>
+  </header>
+
+  <main id="conteudo-principal" class="site-main">
+    <router-outlet />
+  </main>
+
+  <footer class="site-footer">
+    <p>ResolveAí · Gestão de chamados</p>
+  </footer>
+</div>

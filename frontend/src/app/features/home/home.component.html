@@ -1,0 +1,55 @@
+<section class="hero" aria-labelledby="home-title">
+  <div class="hero__content">
+    <p class="eyebrow">Atendimento simples e transparente</p>
+    <h1 id="home-title">Bem-vindo ao ResolveAí</h1>
+    <p class="hero__description">
+      A base para registrar solicitações e acompanhar cada etapa do atendimento em um só lugar.
+    </p>
+  </div>
+
+  <aside class="health-card" aria-labelledby="health-title">
+    <div>
+      <p class="eyebrow">Disponibilidade</p>
+      <h2 id="health-title">Conexão com a API</h2>
+    </div>
+
+    @let state = healthState();
+    @switch (state.kind) {
+      @case ('loading') {
+        <div class="health-state" role="status" aria-live="polite" data-testid="health-loading">
+          <span class="spinner" aria-hidden="true"></span>
+          <div>
+            <strong>Verificando conexão</strong>
+            <p>Aguarde um instante.</p>
+          </div>
+        </div>
+      }
+
+      @case ('success') {
+        <div
+          class="health-state health-state--success"
+          role="status"
+          aria-live="polite"
+          data-testid="health-success"
+        >
+          <span class="status-dot" aria-hidden="true"></span>
+          <div>
+            <strong>API disponível</strong>
+            <p>O serviço respondeu com status {{ state.health.status }}.</p>
+          </div>
+        </div>
+      }
+
+      @case ('error') {
+        <div class="health-state health-state--error" role="alert" data-testid="health-error">
+          <span class="status-dot" aria-hidden="true"></span>
+          <div>
+            <strong>Não foi possível conectar</strong>
+            <p>Confira se a API está ativa e tente novamente.</p>
+          </div>
+        </div>
+        <button type="button" class="retry-button" (click)="checkHealth()">Tentar novamente</button>
+      }
+    }
+  </aside>
+</section>
