@@ -86,6 +86,13 @@ Resposta de sucesso (`200 OK`):
 
 Os erros usam um objeto JSON consistente com data/hora, status HTTP, tipo, mensagem e caminho. Erros de validação também informam os campos inválidos.
 
+## Modelo de dados
+
+- [Modelo entidade-relacionamento](docs/modelo-entidade-relacionamento.md): diagrama Mermaid, cardinalidades, constraints e índices do schema.
+- [Catálogo de campos do front-end](docs/campos-frontend.md): DTOs planejados para formulários e telas, sem exposição das entidades JPA.
+
+As entidades `Usuario`, `Categoria` e `Chamado` mapeiam explicitamente a migration V1. Os relacionamentos JPA são lazy, não possuem cascata de remoção e os repositórios expõem apenas operações de persistência e consulta. Usuários e categorias são desativados logicamente.
+
 ## Testes e builds
 
 Front-end:
@@ -120,10 +127,22 @@ mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
 O comando `docker compose down -v` apaga apenas o volume local declarado neste projeto. Não o execute quando houver dados locais que precisem ser preservados.
 
+Para inspecionar as tabelas e os relacionamentos usados como evidência:
+
+```bash
+set -a
+source .env
+set +a
+docker compose exec postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c '\dt'
+docker compose exec postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c '\d usuarios'
+docker compose exec postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c '\d categorias'
+docker compose exec postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c '\d chamados'
+```
+
 ## Perfis e segurança de configuração
 
 - `dev`: desenvolvimento local, com migrations automáticas e sem criação de schema pelo Hibernate.
-- `prod`: exige as variáveis de conexão e mantém `ddl-auto=validate`; a validação de mapeamentos ocorrerá quando houver entidades JPA.
+- `prod`: exige as variáveis de conexão e mantém `ddl-auto=validate`, validando as entidades JPA contra o schema criado pelo Flyway.
 - `test`: isolado para a suíte automatizada.
 - Flyway é a única ferramenta autorizada a criar ou evoluir o schema.
 - CORS aceita somente as origens informadas por `CORS_ALLOWED_ORIGINS`.
