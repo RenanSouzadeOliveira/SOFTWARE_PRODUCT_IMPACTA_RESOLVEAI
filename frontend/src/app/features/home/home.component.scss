@@ -249,6 +249,15 @@ h3 {
   color: #116b4b;
 }
 
+.audience-icon svg {
+  height: 1.45rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+  width: 1.45rem;
+}
+
 @media (max-width: 48rem) {
   .hero,
   .steps,
