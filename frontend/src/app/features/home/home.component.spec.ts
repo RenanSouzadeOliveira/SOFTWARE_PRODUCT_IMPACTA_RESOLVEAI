@@ -1,74 +1,64 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { Subject } from 'rxjs';
+import { provideRouter } from '@angular/router';
 
-import { HealthResponse } from '../health/health.model';
-import { HealthService } from '../health/health.service';
+import { AuthService } from '../../core/auth/auth.service';
+import { Usuario } from '../../core/auth/auth.models';
 import { HomeComponent } from './home.component';
 
 describe('HomeComponent', () => {
-  const responses: Subject<HealthResponse>[] = [];
-  const healthService = {
-    check: vi.fn(() => {
-      const response = new Subject<HealthResponse>();
-      responses.push(response);
-      return response.asObservable();
-    }),
-  };
+  const auth = { currentUser: signal<Usuario | null>(null) };
 
   beforeEach(async () => {
-    responses.length = 0;
-    healthService.check.mockClear();
+    auth.currentUser.set(null);
 
     await TestBed.configureTestingModule({
       imports: [HomeComponent],
-      providers: [{ provide: HealthService, useValue: healthService }],
+      providers: [provideRouter([]), { provide: AuthService, useValue: auth }],
     }).compileComponents();
   });
 
-  it('mostra o estado de carregamento enquanto verifica a API', () => {
+  it('explica o problema resolvido e o funcionamento do sistema', () => {
     const fixture = TestBed.createComponent(HomeComponent);
     fixture.detectChanges();
 
     const element = fixture.nativeElement as HTMLElement;
-    expect(element.querySelector('[data-testid="health-loading"]')).not.toBeNull();
-    expect(healthService.check).toHaveBeenCalledTimes(1);
-  });
 
-  it('mostra o estado de sucesso com o status recebido', () => {
-    const fixture = TestBed.createComponent(HomeComponent);
-    fixture.detectChanges();
-
-    responses[0].next({
-      status: 'UP',
-      service: 'resolveai-api',
-      timestamp: '2026-09-08T12:00:00Z',
-    });
-    responses[0].complete();
-    fixture.detectChanges();
-
-    const success = (fixture.nativeElement as HTMLElement).querySelector(
-      '[data-testid="health-success"]',
+    expect(element.querySelector('#home-title')?.textContent).toContain(
+      'Transforme problemas em atendimentos acompanháveis',
     );
-    expect(success?.textContent).toContain('API disponível');
-    expect(success?.textContent).toContain('UP');
+    expect(element.querySelector('#problem-title')?.textContent).toContain(
+      'Solicitações não deveriam se perder',
+    );
+    expect(element.querySelectorAll('.steps li')).toHaveLength(3);
   });
 
-  it('mostra erro e permite tentar novamente sem duplicar requisições em andamento', () => {
+  it('oferece cadastro e login ao visitante', () => {
     const fixture = TestBed.createComponent(HomeComponent);
     fixture.detectChanges();
 
-    responses[0].error(new Error('API indisponível'));
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.querySelector('[data-testid="home-register"]')).not.toBeNull();
+    expect(element.querySelector('[data-testid="home-login"]')).not.toBeNull();
+    expect(element.querySelector('[data-testid="home-open-ticket"]')).toBeNull();
+  });
+
+  it('oferece abertura e consulta de chamados ao solicitante autenticado', () => {
+    auth.currentUser.set({
+      id: 1,
+      nome: 'Ana',
+      email: 'ana@example.com',
+      perfil: 'SOLICITANTE',
+      ativo: true,
+    });
+    const fixture = TestBed.createComponent(HomeComponent);
     fixture.detectChanges();
 
     const element = fixture.nativeElement as HTMLElement;
-    expect(element.querySelector('[data-testid="health-error"]')).not.toBeNull();
 
-    const retryButton = element.querySelector<HTMLButtonElement>('.retry-button');
-    retryButton?.click();
-    fixture.componentInstance.checkHealth();
-    fixture.detectChanges();
-
-    expect(healthService.check).toHaveBeenCalledTimes(2);
-    expect(element.querySelector('[data-testid="health-loading"]')).not.toBeNull();
+    expect(element.querySelector('[data-testid="home-open-ticket"]')).not.toBeNull();
+    expect(element.querySelector('[data-testid="home-my-tickets"]')).not.toBeNull();
+    expect(element.querySelector('[data-testid="home-register"]')).toBeNull();
   });
 });

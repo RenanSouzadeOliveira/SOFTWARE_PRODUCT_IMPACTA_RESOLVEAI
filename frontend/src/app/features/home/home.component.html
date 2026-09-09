@@ -1,55 +1,97 @@
 <section class="hero" aria-labelledby="home-title">
   <div class="hero__content">
-    <p class="eyebrow">Atendimento simples e transparente</p>
-    <h1 id="home-title">Bem-vindo ao ResolveAí</h1>
+    <p class="eyebrow">Gestão de chamados sem ruído</p>
+    <h1 id="home-title">Transforme problemas em atendimentos acompanháveis.</h1>
     <p class="hero__description">
-      A base para registrar solicitações e acompanhar cada etapa do atendimento em um só lugar.
+      O ResolveAí centraliza pedidos de suporte, organiza as prioridades e deixa cada etapa visível
+      para quem solicita e para quem atende.
     </p>
+
+    <div class="hero__actions" aria-label="Ações principais">
+      @if (currentUser(); as user) {
+        @if (user.perfil === 'SOLICITANTE') {
+          <a class="button button--primary" routerLink="/chamados/novo" data-testid="home-open-ticket">
+            Abrir chamado
+          </a>
+          <a class="button button--secondary" routerLink="/chamados" data-testid="home-my-tickets">
+            Meus chamados
+          </a>
+        } @else if (user.perfil === 'ATENDENTE') {
+          <a class="button button--primary" routerLink="/atendimento">Acessar atendimento</a>
+          <a class="button button--secondary" routerLink="/minha-conta">Minha conta</a>
+        } @else {
+          <a class="button button--primary" routerLink="/minha-conta">Acessar minha conta</a>
+        }
+      } @else {
+        <a class="button button--primary" routerLink="/cadastro" data-testid="home-register">
+          Criar conta grátis
+        </a>
+        <a class="button button--secondary" routerLink="/login" data-testid="home-login">
+          Já tenho uma conta
+        </a>
+      }
+    </div>
   </div>
 
-  <aside class="health-card" aria-labelledby="health-title">
-    <div>
-      <p class="eyebrow">Disponibilidade</p>
-      <h2 id="health-title">Conexão com a API</h2>
-    </div>
-
-    @let state = healthState();
-    @switch (state.kind) {
-      @case ('loading') {
-        <div class="health-state" role="status" aria-live="polite" data-testid="health-loading">
-          <span class="spinner" aria-hidden="true"></span>
-          <div>
-            <strong>Verificando conexão</strong>
-            <p>Aguarde um instante.</p>
-          </div>
-        </div>
-      }
-
-      @case ('success') {
-        <div
-          class="health-state health-state--success"
-          role="status"
-          aria-live="polite"
-          data-testid="health-success"
-        >
-          <span class="status-dot" aria-hidden="true"></span>
-          <div>
-            <strong>API disponível</strong>
-            <p>O serviço respondeu com status {{ state.health.status }}.</p>
-          </div>
-        </div>
-      }
-
-      @case ('error') {
-        <div class="health-state health-state--error" role="alert" data-testid="health-error">
-          <span class="status-dot" aria-hidden="true"></span>
-          <div>
-            <strong>Não foi possível conectar</strong>
-            <p>Confira se a API está ativa e tente novamente.</p>
-          </div>
-        </div>
-        <button type="button" class="retry-button" (click)="checkHealth()">Tentar novamente</button>
-      }
-    }
+  <aside class="problem-card" aria-labelledby="problem-title">
+    <p class="eyebrow">O problema que resolvemos</p>
+    <h2 id="problem-title">Solicitações não deveriam se perder em mensagens e planilhas.</h2>
+    <p>
+      Sem um fluxo único, falta contexto, ninguém sabe quem está cuidando e o solicitante precisa
+      perguntar várias vezes pelo andamento.
+    </p>
+    <ul>
+      <li>Um canal organizado para registrar cada necessidade.</li>
+      <li>Protocolo e status para acompanhar sem depender de cobranças.</li>
+      <li>Informações centralizadas para um atendimento mais claro.</li>
+    </ul>
   </aside>
+</section>
+
+<section class="how-it-works" aria-labelledby="how-title">
+  <header class="section-heading">
+    <p class="eyebrow">Como funciona</p>
+    <h2 id="how-title">Do registro à solução, tudo segue um fluxo simples.</h2>
+  </header>
+
+  <ol class="steps">
+    <li>
+      <span class="step-number" aria-hidden="true">01</span>
+      <h3>Registre o problema</h3>
+      <p>Descreva o que aconteceu, escolha a categoria e indique a prioridade.</p>
+    </li>
+    <li>
+      <span class="step-number" aria-hidden="true">02</span>
+      <h3>Acompanhe o chamado</h3>
+      <p>Receba um protocolo e consulte o status e os detalhes sempre que precisar.</p>
+    </li>
+    <li>
+      <span class="step-number" aria-hidden="true">03</span>
+      <h3>Chegue à resolução</h3>
+      <p>A equipe atende com contexto e mantém a evolução registrada até o encerramento.</p>
+    </li>
+  </ol>
+</section>
+
+<section class="audiences" aria-labelledby="audiences-title">
+  <div class="section-heading">
+    <p class="eyebrow">Transparência para todos</p>
+    <h2 id="audiences-title">Cada pessoa enxerga o que precisa para avançar.</h2>
+  </div>
+  <div class="audience-grid">
+    <article>
+      <span class="audience-icon" aria-hidden="true">S</span>
+      <div>
+        <h3>Para quem solicita</h3>
+        <p>Mais autonomia para registrar problemas e acompanhar os próprios chamados.</p>
+      </div>
+    </article>
+    <article>
+      <span class="audience-icon audience-icon--team" aria-hidden="true">A</span>
+      <div>
+        <h3>Para quem atende</h3>
+        <p>Mais organização para priorizar demandas e conduzir cada atendimento.</p>
+      </div>
+    </article>
+  </div>
 </section>

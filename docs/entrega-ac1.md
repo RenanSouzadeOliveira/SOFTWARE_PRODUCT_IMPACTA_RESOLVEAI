@@ -11,7 +11,7 @@ Este roteiro consolida a base integrada, autenticação, abertura e consulta de 
 5. Execute `docker compose up -d postgres` e aguarde `docker compose ps` indicar `healthy`.
 6. Inicie a API com os comandos do README. Confirme no log que o Flyway aplicou V1, V2, V3 e a carga fictícia do perfil `dev`, e que o Hibernate validou o schema.
 7. Execute `npm ci` e `npm start` dentro de `frontend/`.
-8. Abra `http://localhost:4200` e confira **API disponível**.
+8. Abra `http://localhost:4200` e confira a apresentação do problema, do funcionamento do sistema e das ações de cadastro e login.
 
 Para repetir a demonstração desde um banco vazio, execute `docker compose down -v` somente quando o volume local puder ser descartado e então refaça os passos acima.
 
@@ -54,7 +54,7 @@ Critérios para prosseguir com a gravação:
 
 ## Roteiro do vídeo
 
-1. Mostre brevemente a arquitetura de três camadas e a resposta de `GET /api/health`.
+1. Mostre brevemente a página inicial, a arquitetura de três camadas e a resposta de `GET /api/health` pelo Swagger ou terminal.
 2. Cadastre o primeiro solicitante e destaque que o perfil é definido pelo servidor.
 3. Saia e entre novamente, mostrando login, rota protegida e **Minha conta**.
 4. Altere o nome em **Minha conta**, saia, entre novamente e confirme a persistência.

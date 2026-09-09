@@ -29,6 +29,7 @@ describe('App', () => {
     expect(element.querySelector('main#conteudo-principal')).not.toBeNull();
     expect(element.querySelector('footer')).not.toBeNull();
     expect(element.querySelector('nav')?.getAttribute('aria-label')).toBe('Navegação principal');
+    expect(element.querySelector('[data-testid="nav-home"]')).not.toBeNull();
   });
 
   it('encerra a sessão pelo cabeçalho e navega para o login', () => {
@@ -72,6 +73,25 @@ describe('App', () => {
         'a[routerLink="/chamados/novo"]',
       ),
     ).not.toBeNull();
+  });
+
+  it('oculta o item Início quando o usuário está autenticado', () => {
+    const auth = TestBed.inject(AuthService);
+    Object.defineProperty(auth, 'currentUser', {
+      value: signal({
+        id: 1,
+        nome: 'Ana',
+        email: 'ana@example.com',
+        perfil: 'SOLICITANTE',
+        ativo: true,
+      }),
+    });
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('[data-testid="nav-home"]'),
+    ).toBeNull();
   });
 
   it('mostra o atalho de consulta somente para solicitantes', () => {

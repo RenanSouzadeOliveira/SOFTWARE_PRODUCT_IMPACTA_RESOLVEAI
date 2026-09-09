@@ -6,9 +6,6 @@
     </a>
 
     <nav aria-label="Navegação principal">
-      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-        Início
-      </a>
       @if (currentUser(); as user) {
         @if (user.perfil === 'SOLICITANTE') {
           <a routerLink="/chamados" routerLinkActive="active">Meus chamados</a>
@@ -20,6 +17,14 @@
         <a routerLink="/minha-conta" routerLinkActive="active">Minha conta</a>
         <button type="button" class="nav-button" (click)="logout()">Sair</button>
       } @else {
+        <a
+          routerLink="/"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          data-testid="nav-home"
+        >
+          Início
+        </a>
         <a routerLink="/cadastro" routerLinkActive="active">Cadastre-se</a>
         <a routerLink="/login" routerLinkActive="active">Entrar</a>
       }

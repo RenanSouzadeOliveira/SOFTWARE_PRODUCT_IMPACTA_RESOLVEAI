@@ -96,7 +96,7 @@ npm ci
 npm start
 ```
 
-Abra `http://localhost:4200`. A página inicial consulta `GET /api/health` e apresenta os estados de carregamento, sucesso e erro. No desenvolvimento, a URL configurada aponta para `http://localhost:8080/api`; no build de produção, usa o caminho relativo `/api`.
+Abra `http://localhost:4200`. A página inicial apresenta o problema resolvido pelo ResolveAí, seu fluxo de atendimento e ações adequadas ao estado de autenticação. No desenvolvimento, a URL configurada aponta para `http://localhost:8080/api`; no build de produção, usa o caminho relativo `/api`.
 
 ## Contrato inicial da API
 
