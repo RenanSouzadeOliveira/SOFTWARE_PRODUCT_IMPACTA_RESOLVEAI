@@ -48,7 +48,7 @@ describe('LoginComponent', () => {
 
     result.next(response);
     result.complete();
-    expect(navigate).toHaveBeenCalledWith('/');
+    expect(navigate).toHaveBeenCalledWith('/chamados');
   });
 
   it('apresenta erro de credenciais inválidas', () => {

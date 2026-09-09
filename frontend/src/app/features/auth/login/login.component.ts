@@ -4,6 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
+import type { Perfil } from '../../../core/auth/auth.models';
 import { AuthService } from '../../../core/auth/auth.service';
 import { safeReturnUrl } from '../../../core/auth/auth.guard';
 import { apiErrorMessage } from '../../../core/http/api-error';
@@ -45,9 +46,12 @@ export class LoginComponent {
       .login(this.form.getRawValue())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => {
-          const returnUrl = safeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl'));
-          void this.router.navigateByUrl(returnUrl);
+        next: (response) => {
+          const requestedUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+          const destination = requestedUrl
+            ? safeReturnUrl(requestedUrl)
+            : defaultRouteFor(response.usuario.perfil);
+          void this.router.navigateByUrl(destination);
         },
         error: (error: unknown) => {
           this.submitting.set(false);
@@ -59,4 +63,14 @@ export class LoginComponent {
         },
       });
   }
+}
+
+function defaultRouteFor(perfil: Perfil): string {
+  if (perfil === 'SOLICITANTE') {
+    return '/chamados';
+  }
+  if (perfil === 'ATENDENTE') {
+    return '/atendimento';
+  }
+  return '/minha-conta';
 }
