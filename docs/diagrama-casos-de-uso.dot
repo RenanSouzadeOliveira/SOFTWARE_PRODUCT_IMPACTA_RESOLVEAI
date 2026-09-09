@@ -1,0 +1,228 @@
+digraph ResolveAiUseCases {
+  graph [
+    charset="UTF-8",
+    rankdir=TB,
+    bgcolor="#F8FAFC",
+    color="#94A3B8",
+    fontcolor="#0F172A",
+    fontname="Arial",
+    fontsize=22,
+    label="Diagrama de casos de uso — ResolveAí",
+    labelloc=t,
+    newrank=true,
+    nodesep=0.42,
+    pad=0.35,
+    ranksep=0.7,
+    splines=line
+  ];
+
+  node [
+    color="#475569",
+    fillcolor="#FFFFFF",
+    fontcolor="#0F172A",
+    fontname="Arial",
+    fontsize=11,
+    margin="0.14,0.08",
+    shape=ellipse,
+    style=filled
+  ];
+
+  edge [
+    color="#64748B",
+    fontcolor="#475569",
+    fontname="Arial",
+    fontsize=9,
+    penwidth=1.1
+  ];
+
+  visitor [label="«actor»\nVisitante", shape=box, style="rounded,filled", fillcolor="#FFFFFF"];
+  authenticated [label="«actor abstrato»\nUsuário autenticado", shape=box, style="rounded,dashed,filled", fillcolor="#F1F5F9"];
+  requester [label="«actor»\nSolicitante", shape=box, style="rounded,filled", fillcolor="#E0F2FE", color="#0369A1"];
+  attendant [label="«actor»\nAtendente", shape=box, style="rounded,filled", fillcolor="#E0F2FE", color="#0369A1"];
+  admin [label="«actor»\nAdministrador", shape=box, style="rounded,filled", fillcolor="#E0F2FE", color="#0369A1"];
+
+  requester -> authenticated [arrowhead=empty, label="é um", color="#0369A1", constraint=false];
+  attendant -> authenticated [arrowhead=empty, label="é um", color="#0369A1", constraint=false];
+  admin -> authenticated [arrowhead=empty, label="é um", color="#0369A1", constraint=false];
+
+  subgraph cluster_system {
+    label="Sistema ResolveAí";
+    color="#334155";
+    fillcolor="#FFFFFF";
+    fontcolor="#0F172A";
+    fontname="Arial Bold";
+    fontsize=18;
+    margin=22;
+    penwidth=1.6;
+    style="rounded,filled";
+
+    subgraph cluster_access {
+      label="Acesso e conta";
+      color="#CBD5E1";
+      fontcolor="#334155";
+      style="rounded";
+
+      register [label="[AC1 ✓]\nCadastrar-se", fillcolor="#DCFCE7", color="#15803D"];
+      login [label="[AC1 ✓]\nAutenticar-se", fillcolor="#DCFCE7", color="#15803D"];
+      view_account [label="[AC1 ✓]\nConsultar minha conta", fillcolor="#DCFCE7", color="#15803D"];
+      edit_name [label="[AC1 ✓]\nAlterar meu nome", fillcolor="#DCFCE7", color="#15803D"];
+      logout [label="[AC1 ✓]\nEncerrar sessão", fillcolor="#DCFCE7", color="#15803D"];
+      { rank=same; register; login; }
+      { rank=same; view_account; edit_name; logout; }
+      register -> login [style=invis, weight=60];
+      view_account -> edit_name -> logout [style=invis, weight=60];
+      register -> view_account [style=invis, weight=60];
+    }
+
+    subgraph cluster_requester {
+      label="Jornada do solicitante";
+      color="#CBD5E1";
+      fontcolor="#334155";
+      style="rounded";
+
+      active_categories [label="[AC1 ✓]\nConsultar categorias\nativas", fillcolor="#DCFCE7", color="#15803D"];
+      open_ticket [label="[AC1 ✓]\nAbrir chamado", fillcolor="#DCFCE7", color="#15803D"];
+      own_tickets [label="[AC1 ✓]\nConsultar meus\nchamados", fillcolor="#DCFCE7", color="#15803D"];
+      own_detail [label="[AC1 ✓]\nConsultar detalhe\ndo meu chamado", fillcolor="#DCFCE7", color="#15803D"];
+      requester_comment [label="[AC2]\nComentar meu chamado", fillcolor="#DBEAFE", color="#1D4ED8"];
+      confirm_resolution [label="[AC2]\nConfirmar resolução\ne fechar chamado", fillcolor="#DBEAFE", color="#1D4ED8"];
+      request_reopen [label="[AC2]\nSolicitar reabertura\ncom justificativa", fillcolor="#DBEAFE", color="#1D4ED8"];
+      { rank=same; open_ticket; active_categories; own_tickets; own_detail; requester_comment; confirm_resolution; request_reopen; }
+      open_ticket -> active_categories -> own_tickets -> own_detail -> requester_comment -> confirm_resolution -> request_reopen [style=invis, weight=60];
+    }
+
+    subgraph cluster_service {
+      label="Operação de atendimento";
+      color="#CBD5E1";
+      fontcolor="#334155";
+      style="rounded";
+
+      queue [label="[AC2]\nConsultar fila\nde atendimento", fillcolor="#DBEAFE", color="#1D4ED8"];
+      service_detail [label="[AC2]\nConsultar detalhe\nde atendimento", fillcolor="#DBEAFE", color="#1D4ED8"];
+      assume_ticket [label="[AC2]\nAssumir chamado", fillcolor="#DBEAFE", color="#1D4ED8"];
+      change_priority [label="[AC2]\nAlterar prioridade", fillcolor="#DBEAFE", color="#1D4ED8"];
+      attendant_comment [label="[AC2]\nRegistrar comentário\nno atendimento", fillcolor="#DBEAFE", color="#1D4ED8"];
+      resolve [label="[AC2]\nResolver chamado", fillcolor="#DBEAFE", color="#1D4ED8"];
+      record_solution [label="[AC2]\nRegistrar solução", fillcolor="#DBEAFE", color="#1D4ED8"];
+      { rank=same; queue; service_detail; assume_ticket; change_priority; attendant_comment; resolve; record_solution; }
+      queue -> service_detail -> assume_ticket -> change_priority -> attendant_comment -> resolve -> record_solution [style=invis, weight=60];
+    }
+
+    subgraph cluster_advanced {
+      label="Consulta avançada e auditoria";
+      color="#CBD5E1";
+      fontcolor="#334155";
+      style="rounded";
+
+      authorized_list [label="«abstrato»\nConsultar chamados\nautorizados", style="dashed,filled", fillcolor="#FFF7ED", color="#C2410C"];
+      authorized_detail [label="«abstrato»\nConsultar detalhe\nautorizado", style="dashed,filled", fillcolor="#FFF7ED", color="#C2410C"];
+      search [label="[AC3]\nPesquisar chamados", fillcolor="#FFEDD5", color="#C2410C"];
+      filters [label="[AC3]\nAplicar filtros\ncombinados", fillcolor="#FFEDD5", color="#C2410C"];
+      pagination [label="[AC3]\nPaginar e ordenar\nresultados", fillcolor="#FFEDD5", color="#C2410C"];
+      history [label="[AC3]\nConsultar histórico\ncompleto", fillcolor="#FFEDD5", color="#C2410C"];
+      { rank=same; authorized_list; search; filters; pagination; }
+      { rank=same; authorized_detail; history; }
+      authorized_list -> search -> filters -> pagination [style=invis, weight=60];
+      authorized_detail -> history [style=invis, weight=60];
+      authorized_list -> authorized_detail [style=invis, weight=60];
+    }
+
+    subgraph cluster_management {
+      label="Gestão e visão global";
+      color="#CBD5E1";
+      fontcolor="#334155";
+      style="rounded";
+
+      global_view [label="[FINAL]\nConsultar chamados\nglobalmente", fillcolor="#F3E8FF", color="#7E22CE"];
+      dashboard [label="[FINAL]\nConsultar dashboard\noperacional", fillcolor="#F3E8FF", color="#7E22CE"];
+      manage_users [label="[FINAL]\nAdministrar usuários\n(listar, consultar e alterar\nnome, e-mail e perfil;\nativar e desativar)", fillcolor="#F3E8FF", color="#7E22CE"];
+      manage_categories [label="[FINAL]\nAdministrar categorias\n(listar, criar, alterar,\nativar e desativar)", fillcolor="#F3E8FF", color="#7E22CE"];
+      { rank=same; global_view; dashboard; manage_users; manage_categories; }
+      global_view -> dashboard -> manage_users -> manage_categories [style=invis, weight=60];
+    }
+
+    lifecycle_note [
+      label="Ciclo do chamado\nABERTO → EM_ATENDIMENTO → RESOLVIDO → FECHADO\nReabertura: RESOLVIDO → EM_ATENDIMENTO\nFECHADO é terminal",
+      shape=note,
+      fillcolor="#F8FAFC",
+      color="#64748B",
+      fontsize=10
+    ];
+
+    rules_note [
+      label="Regras transversais\n• visibilidade conforme o perfil\n• comentários imutáveis\n• mudanças relevantes auditáveis\n• usuários e categorias são desativados, não excluídos",
+      shape=note,
+      fillcolor="#F8FAFC",
+      color="#64748B",
+      fontsize=10
+    ];
+
+    legend [
+      shape=plain,
+      label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="7" COLOR="#CBD5E1">
+        <TR><TD BGCOLOR="#DCFCE7"><B>AC1 ✓</B> Implementado</TD><TD BGCOLOR="#DBEAFE"><B>AC2</B> Planejado</TD><TD BGCOLOR="#FFEDD5"><B>AC3</B> Planejado</TD><TD BGCOLOR="#F3E8FF"><B>FINAL</B> Planejado</TD></TR>
+      </TABLE>>
+    ];
+
+    register -> open_ticket -> queue -> authorized_list -> global_view [style=invis, weight=100];
+    { rank=same; lifecycle_note; rules_note; legend; }
+    lifecycle_note -> rules_note -> legend [style=invis, weight=20];
+  }
+
+  visitor -> register [style=invis, weight=200];
+  requester -> open_ticket [style=invis, weight=200];
+  authenticated -> view_account [style=invis, weight=200];
+  attendant -> queue [style=invis, weight=200];
+  admin -> global_view [style=invis, weight=200];
+
+  { rank=same; visitor; register; login; }
+  { rank=same; authenticated; view_account; edit_name; logout; }
+  { rank=same; requester; open_ticket; active_categories; own_tickets; own_detail; requester_comment; confirm_resolution; request_reopen; }
+  { rank=same; attendant; queue; service_detail; assume_ticket; change_priority; attendant_comment; resolve; record_solution; }
+  { rank=same; admin; global_view; dashboard; manage_users; manage_categories; }
+
+  visitor -> register [dir=none, constraint=false];
+  visitor -> login [dir=none, constraint=false];
+
+  authenticated -> view_account [dir=none, constraint=false];
+  authenticated -> edit_name [dir=none, constraint=false];
+  authenticated -> logout [dir=none, constraint=false];
+
+  requester -> open_ticket [dir=none, constraint=false];
+  requester -> own_tickets [dir=none, constraint=false];
+  requester -> own_detail [dir=none, constraint=false];
+  requester -> requester_comment [dir=none, constraint=false];
+  requester -> confirm_resolution [dir=none, constraint=false];
+  requester -> request_reopen [dir=none, constraint=false];
+
+  attendant -> queue [dir=none, constraint=false];
+  attendant -> service_detail [dir=none, constraint=false];
+  attendant -> assume_ticket [dir=none, constraint=false];
+  attendant -> change_priority [dir=none, constraint=false];
+  attendant -> attendant_comment [dir=none, constraint=false];
+  attendant -> resolve [dir=none, constraint=false];
+
+  admin -> global_view [dir=none, constraint=false];
+  admin -> dashboard [dir=none, constraint=false];
+  admin -> manage_users [dir=none, constraint=false];
+  admin -> manage_categories [dir=none, constraint=false];
+
+  open_ticket -> active_categories [style=dashed, arrowhead=open, label="«include»", constraint=false];
+  resolve -> record_solution [style=dashed, arrowhead=open, label="«include»", constraint=false];
+  own_tickets -> authorized_list [arrowhead=empty, label="especializa", color="#C2410C", constraint=false];
+  queue -> authorized_list [arrowhead=empty, label="especializa", color="#C2410C", constraint=false];
+  global_view -> authorized_list [arrowhead=empty, label="especializa", color="#C2410C", constraint=false];
+  own_detail -> authorized_detail [arrowhead=empty, label="especializa", color="#C2410C", constraint=false];
+  service_detail -> authorized_detail [arrowhead=empty, label="especializa", color="#C2410C", constraint=false];
+  search -> authorized_list [style=dashed, arrowhead=open, label="«extend»", constraint=false];
+  filters -> authorized_list [style=dashed, arrowhead=open, label="«extend»", constraint=false];
+  authorized_list -> pagination [style=dashed, arrowhead=open, label="«include»", constraint=false];
+  history -> authorized_detail [style=dashed, arrowhead=open, label="«extend»", constraint=false];
+  requester_comment -> authorized_detail [style=dashed, arrowhead=open, label="«extend»", constraint=false];
+  attendant_comment -> authorized_detail [style=dashed, arrowhead=open, label="«extend»", constraint=false];
+  confirm_resolution -> own_detail [style=dashed, arrowhead=open, label="«extend»\nse RESOLVIDO", constraint=false];
+  request_reopen -> own_detail [style=dashed, arrowhead=open, label="«extend»\nse RESOLVIDO", constraint=false];
+  assume_ticket -> service_detail [style=dashed, arrowhead=open, label="«extend»", constraint=false];
+  change_priority -> service_detail [style=dashed, arrowhead=open, label="«extend»", constraint=false];
+  resolve -> service_detail [style=dashed, arrowhead=open, label="«extend»", constraint=false];
+}
