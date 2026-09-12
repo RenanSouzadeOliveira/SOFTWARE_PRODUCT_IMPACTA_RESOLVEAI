@@ -231,7 +231,3 @@ docker compose exec postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c '\d c
 - Flyway é a única ferramenta autorizada a criar ou evoluir o schema.
 - CORS aceita somente as origens informadas por `CORS_ALLOWED_ORIGINS`.
 - Nenhuma senha, token ou chave é fornecida pelo código-fonte.
-
-## Consolidar e demonstrar a AC1
-
-O roteiro consolidado para ambiente limpo, dados fictícios, funcionalidades do vídeo e registro das evidências está em [Entrega da AC1](docs/entrega-ac1.md). Não considere a entrega pública concluída antes de preencher no cartão os links do commit, da release e do vídeo e confirmar que repositório e quadro estão acessíveis sem autenticação.
