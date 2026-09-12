@@ -17,6 +17,8 @@ import br.edu.impacta.resolveai.usuario.UsuarioRepository;
 import br.edu.impacta.resolveai.usuario.dto.UsuarioResponse;
 import jakarta.persistence.EntityManager;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AuthService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AuthService.class);
     private static final int BCRYPT_MAX_PASSWORD_BYTES = 72;
     private static final String INVALID_CREDENTIALS = "E-mail ou senha invalidos";
     private static final String DUMMY_PASSWORD = "credencial-ficticia-usada-apenas-para-tempo-constante";
@@ -54,6 +57,7 @@ public class AuthService {
         String email = normalizeEmail(request.email());
         ensurePasswordFitsBcrypt(request.senha());
         if (usuarioRepository.findByEmail(email).isPresent()) {
+            LOGGER.warn("AUDITORIA evento=CADASTRO_RECUSADO motivo=EMAIL_DUPLICADO");
             throw new ConflitoException("E-mail ja cadastrado");
         }
 
@@ -66,8 +70,13 @@ public class AuthService {
         try {
             Usuario saved = usuarioRepository.save(usuario);
             entityManager.flush();
+            LOGGER.info(
+                    "AUDITORIA evento=USUARIO_CADASTRADO usuarioId={} perfil={}",
+                    saved.id(),
+                    saved.perfil());
             return UsuarioResponse.from(saved);
         } catch (DataIntegrityViolationException exception) {
+            LOGGER.warn("AUDITORIA evento=CADASTRO_RECUSADO motivo=EMAIL_DUPLICADO");
             throw new ConflitoException("E-mail ja cadastrado");
         }
     }
@@ -84,10 +93,15 @@ public class AuthService {
                 : usuario.senhaHashParaAutenticacao();
         boolean passwordMatches = passwordEncoder.matches(request.senha(), passwordHash);
         if (usuario == null || !usuario.ativo() || !passwordMatches) {
+            LOGGER.warn("AUDITORIA evento=LOGIN_RECUSADO motivo=CREDENCIAIS_INVALIDAS");
             throw new NaoAutorizadoException(INVALID_CREDENTIALS);
         }
 
         String token = jwtService.generate(usuario);
+        LOGGER.info(
+                "AUDITORIA evento=LOGIN_REALIZADO usuarioId={} perfil={}",
+                usuario.id(),
+                usuario.perfil());
         return new LoginResponse(
                 token,
                 "Bearer",

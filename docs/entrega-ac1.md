@@ -64,9 +64,10 @@ Critérios para prosseguir com a gravação:
 8. Abra **Meus chamados**, confirme a ordem do mais recente e consulte um detalhe.
 9. Cadastre ou entre com o segundo solicitante, compare as listagens e tente abrir pela URL o chamado do primeiro; mostre o `404` sem dados alheios.
 10. Mostre no PostgreSQL as migrations, os relacionamentos e os chamados associados aos respectivos `solicitante_id`.
-11. Mostre os resultados finais dos testes e builds.
+11. Mostre no terminal da API os eventos `USUARIO_CADASTRADO`, `LOGIN_REALIZADO`, `CONTA_ATUALIZADA` e `CHAMADO_ABERTO`, junto aos respectivos status HTTP.
+12. Mostre os resultados finais dos testes e builds.
 
-Evite enquadrar terminais que contenham `.env`, tokens JWT, cabeçalhos `Authorization`, senhas ou dados reais.
+Os logs funcionais registram IDs, perfil, protocolo e estado, sem nome, e-mail ou conteúdo informado pelo usuário. Evite enquadrar terminais que contenham `.env`, tokens JWT, cabeçalhos `Authorization`, senhas ou dados reais.
 
 ## Evidências públicas
 

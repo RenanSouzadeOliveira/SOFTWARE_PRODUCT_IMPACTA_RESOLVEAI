@@ -86,6 +86,23 @@ Valide diretamente:
 curl -i http://localhost:8080/api/health
 ```
 
+### Logs da API para demonstração
+
+O terminal da API registra uma linha HTTP para cada chamada em `/api` e eventos funcionais de auditoria. Os eventos incluem somente identificadores técnicos e estados; e-mail, nome, senha, hash, JWT, cabeçalhos e conteúdo dos formulários não são registrados.
+
+Exemplos exibidos durante cadastro, login, atualização da conta e abertura de chamado:
+
+```text
+AUDITORIA evento=USUARIO_CADASTRADO usuarioId=1 perfil=SOLICITANTE
+HTTP metodo=POST caminho=/api/auth/register status=201 duracaoMs=120
+AUDITORIA evento=LOGIN_REALIZADO usuarioId=1 perfil=SOLICITANTE
+AUDITORIA evento=CONTA_ATUALIZADA usuarioId=1 campos=nome
+AUDITORIA evento=CHAMADO_ABERTO chamadoId=10 protocolo=RA-... solicitanteId=1 status=ABERTO atendenteId=null
+HTTP metodo=POST caminho=/api/chamados status=201 duracaoMs=35
+```
+
+Os valores variam em cada execução. Para usar como evidência, mantenha o terminal em uma área visível durante o fluxo e não mostre o arquivo `.env`.
+
 ### 3. Angular
 
 Em outro terminal:

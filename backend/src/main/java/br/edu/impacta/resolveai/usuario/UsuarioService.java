@@ -6,11 +6,15 @@ import br.edu.impacta.resolveai.security.UsuarioPrincipal;
 import br.edu.impacta.resolveai.shared.error.NaoAutorizadoException;
 import br.edu.impacta.resolveai.usuario.dto.AtualizarNomeRequest;
 import br.edu.impacta.resolveai.usuario.dto.UsuarioResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UsuarioService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(UsuarioService.class);
 
     private final UsuarioRepository usuarioRepository;
     private final Clock clock;
@@ -29,7 +33,11 @@ public class UsuarioService {
     public UsuarioResponse updateName(UsuarioPrincipal principal, AtualizarNomeRequest request) {
         Usuario usuario = requireActive(principal.id());
         usuario.alterarNome(request.nome(), clock.instant());
-        return UsuarioResponse.from(usuarioRepository.save(usuario));
+        Usuario saved = usuarioRepository.save(usuario);
+        LOGGER.info(
+                "AUDITORIA evento=CONTA_ATUALIZADA usuarioId={} campos=nome",
+                saved.id());
+        return UsuarioResponse.from(saved);
     }
 
     private Usuario requireActive(Long id) {
