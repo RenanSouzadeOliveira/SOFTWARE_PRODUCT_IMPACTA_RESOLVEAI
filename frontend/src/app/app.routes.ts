@@ -67,7 +67,17 @@ export const routes: Routes = [
     path: 'atendimento',
     title: 'Atendimento | ResolveAí',
     canActivate: [authGuard, roleGuard],
-    data: { role: 'ATENDENTE' },
+    data: { roles: ['ATENDENTE', 'ADMIN'], carteira: false },
+    loadComponent: () =>
+      import('./features/atendimento/atendimento.component').then(
+        (component) => component.AtendimentoComponent,
+      ),
+  },
+  {
+    path: 'atendimento/me',
+    title: 'Meus atendimentos | ResolveAí',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ATENDENTE', 'ADMIN'], carteira: true },
     loadComponent: () =>
       import('./features/atendimento/atendimento.component').then(
         (component) => component.AtendimentoComponent,

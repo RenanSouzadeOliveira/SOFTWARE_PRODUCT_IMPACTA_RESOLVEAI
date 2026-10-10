@@ -69,7 +69,7 @@ function defaultRouteFor(perfil: Perfil): string {
   if (perfil === 'SOLICITANTE') {
     return '/chamados';
   }
-  if (perfil === 'ATENDENTE') {
+  if (perfil === 'ATENDENTE' || perfil === 'ADMIN') {
     return '/atendimento';
   }
   return '/minha-conta';

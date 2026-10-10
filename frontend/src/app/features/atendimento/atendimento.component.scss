@@ -1,0 +1,132 @@
+:host {
+  display: block;
+}
+.atendimento-page {
+  margin: 0 auto;
+  max-width: 70rem;
+  background: white;
+  border: 1px solid #dce3ea;
+  border-radius: 1rem;
+  padding: clamp(1rem, 4vw, 2.5rem);
+}
+h1 {
+  color: #12263a;
+  font-size: clamp(1.8rem, 5vw, 2.6rem);
+  margin: 0.5rem 0;
+}
+.eyebrow,
+.protocol {
+  color: #0756b3;
+  font-weight: 700;
+}
+.tabs,
+.actions,
+.pagination {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.tabs {
+  margin: 1.5rem 0;
+  border-bottom: 1px solid #dce3ea;
+}
+.tabs a {
+  padding: 0.75rem;
+  text-decoration: none;
+  color: #334e68;
+}
+.tabs a.active {
+  color: #0756b3;
+  border-bottom: 3px solid #0756b3;
+  font-weight: 700;
+}
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: end;
+  margin-bottom: 1.5rem;
+}
+.filters div {
+  flex: 1 1 10rem;
+}
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+select {
+  width: 100%;
+  min-height: 2.8rem;
+  border: 1px solid #829ab1;
+  border-radius: 0.4rem;
+  padding: 0.5rem;
+  font: inherit;
+  background: white;
+}
+.notice,
+.confirmation,
+.empty {
+  background: #e8f8f0;
+  border-radius: 0.6rem;
+  margin: 1rem 0;
+  padding: 1rem;
+}
+.notice--error {
+  background: #fff1ed;
+}
+.notice a {
+  display: inline-block;
+  margin-left: 0.5rem;
+}
+.confirmation {
+  background: #edf4ff;
+  border: 2px solid #0756b3;
+}
+.confirmation h2 {
+  margin-top: 0;
+}
+.tickets {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 25rem), 1fr));
+  gap: 1rem;
+}
+.ticket {
+  border: 1px solid #dce3ea;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  overflow-wrap: anywhere;
+}
+.ticket h2 {
+  font-size: 1.2rem;
+  margin: 0.5rem 0 1rem;
+}
+.protocol {
+  margin: 0;
+}
+dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+dt {
+  font-size: 0.8rem;
+  color: #486581;
+}
+dd {
+  margin: 0.25rem 0 0;
+}
+.pagination {
+  margin-top: 1.5rem;
+  justify-content: space-between;
+}
+@media (max-width: 440px) {
+  .pagination span {
+    order: -1;
+    width: 100%;
+  }
+  .filters button {
+    width: 100%;
+  }
+}

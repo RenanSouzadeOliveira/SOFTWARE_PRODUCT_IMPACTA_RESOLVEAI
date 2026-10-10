@@ -61,7 +61,7 @@ GET /api/atendimento/acesso
 Authorization: Bearer <token>
 ```
 
-Somente `ATENDENTE` recebe `200 OK`. Um usuário autenticado com outro perfil recebe `403 Forbidden`; ausência, expiração ou adulteração do token retorna `401 Unauthorized`.
+`ATENDENTE` e `ADMIN` recebem `200 OK`. Um solicitante autenticado recebe `403 Forbidden`; ausência, expiração ou adulteração do token retorna `401 Unauthorized`. Na AC2, esses mesmos perfis acessam [Fila e Meus atendimentos](fila-atendimento.md), sempre com validação no back-end.
 
 ## Comportamento no Angular
 

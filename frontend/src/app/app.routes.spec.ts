@@ -20,4 +20,13 @@ describe('app routes for requester tickets', () => {
     expect(detailRoute?.canActivate).toEqual([authGuard, roleGuard]);
     expect(detailRoute?.data).toEqual({ role: 'SOLICITANTE' });
   });
+
+  it('protege fila e carteira para atendente ou administrador', () => {
+    for (const path of ['atendimento', 'atendimento/me']) {
+      const route = routes.find((candidate) => candidate.path === path);
+      expect(route?.canActivate).toEqual([authGuard, roleGuard]);
+      expect(route?.data?.['roles']).toEqual(['ATENDENTE', 'ADMIN']);
+      expect(route?.data?.['carteira']).toBe(path.endsWith('/me'));
+    }
+  });
 });

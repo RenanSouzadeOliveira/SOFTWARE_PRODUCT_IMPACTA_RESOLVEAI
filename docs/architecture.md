@@ -33,3 +33,5 @@ Angular :4200  --->  Spring Security  --->  Spring Boot :8080  --->  PostgreSQL 
 - Somente o perfil `dev` carrega categorias fictícias reproduzíveis por uma migration em `db/devdata`; produção executa apenas `db/migration`.
 - As consultas do solicitante são escopadas pelo identificador autenticado já no repositório. Um detalhe inexistente e um detalhe pertencente a terceiros produzem a mesma resposta `404`, evitando confirmar a existência de dados alheios.
 - A listagem simples da AC1 usa o índice existente em `(solicitante_id, criado_em)` e não antecipa paginação ou filtros da AC3.
+- A área de atendimento da AC2 autoriza `ATENDENTE` e `ADMIN`. A fila consulta apenas chamados `ABERTO` sem responsável; a carteira é escopada pelo usuário autenticado. As duas consultas aplicam filtros, limite e paginação no banco, com ordenação estável por criação e ID.
+- Assumir um chamado altera responsável, status e data de atribuição de forma transacional, protegida pela versão do registro. Uma disputa produz uma atribuição e um conflito `409`, preservando o vencedor. O histórico de atribuição é gravado na mesma transação.

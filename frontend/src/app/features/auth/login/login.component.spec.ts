@@ -9,7 +9,9 @@ import { LoginComponent } from './login.component';
 
 describe('LoginComponent', () => {
   const response: LoginResponse = {
-    accessToken: 'token', tokenType: 'Bearer', expiresIn: 3600,
+    accessToken: 'token',
+    tokenType: 'Bearer',
+    expiresIn: 3600,
     usuario: { id: 1, nome: 'Ana', email: 'ana@example.com', perfil: 'SOLICITANTE', ativo: true },
   };
   const auth = { login: vi.fn() };
@@ -55,9 +57,7 @@ describe('LoginComponent', () => {
     auth.login.mockReturnValue(of(response));
     const fixture = TestBed.createComponent(LoginComponent);
     fixture.detectChanges();
-    auth.login.mockReturnValue(
-      new Subject<LoginResponse>(),
-    );
+    auth.login.mockReturnValue(new Subject<LoginResponse>());
     const result = auth.login.mock.results;
     fill(fixture.nativeElement, '#login-email', 'ana@example.com');
     fill(fixture.nativeElement, '#login-senha', 'senha-segura');
@@ -65,8 +65,21 @@ describe('LoginComponent', () => {
     const stream = result.at(-1)?.value as Subject<LoginResponse>;
     stream.error(new HttpErrorResponse({ status: 401 }));
     fixture.detectChanges();
-    expect((fixture.nativeElement as HTMLElement).querySelector('[data-testid="login-error"]')?.textContent)
-      .toContain('E-mail ou senha inválidos');
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('[data-testid="login-error"]')
+        ?.textContent,
+    ).toContain('E-mail ou senha inválidos');
+  });
+
+  it.each(['ATENDENTE', 'ADMIN'] as const)('encaminha %s para a fila após login', (perfil) => {
+    auth.login.mockReturnValue(of({ ...response, usuario: { ...response.usuario, perfil } }));
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+    const fixture = TestBed.createComponent(LoginComponent);
+    fixture.detectChanges();
+    fill(fixture.nativeElement, '#login-email', 'ana@example.com');
+    fill(fixture.nativeElement, '#login-senha', 'senha-segura');
+    fixture.componentInstance.submit();
+    expect(navigate).toHaveBeenCalledWith('/atendimento');
   });
 });
 

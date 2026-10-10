@@ -5,6 +5,8 @@ import java.util.Objects;
 
 import br.edu.impacta.resolveai.categoria.Categoria;
 import br.edu.impacta.resolveai.usuario.Usuario;
+import br.edu.impacta.resolveai.usuario.Perfil;
+import br.edu.impacta.resolveai.shared.error.ConflitoException;
 import jakarta.persistence.Access;
 import jakarta.persistence.AccessType;
 import jakarta.persistence.Column;
@@ -68,6 +70,9 @@ public class Chamado {
     @Column(name = "atualizado_em", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private Instant atualizadoEm;
 
+    @Column(name = "atribuido_em", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private Instant atribuidoEm;
+
     @Column(name = "resolvido_em", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private Instant resolvidoEm;
 
@@ -123,6 +128,25 @@ public class Chamado {
 
     public Long id() {
         return id;
+    }
+
+    public void assumir(Usuario responsavel, Instant agora) {
+        Objects.requireNonNull(responsavel, "responsavel nao pode ser nulo");
+        if (!responsavel.ativo()
+                || (responsavel.perfil() != Perfil.ATENDENTE && responsavel.perfil() != Perfil.ADMIN)) {
+            throw new IllegalArgumentException("Responsavel deve ser um atendente ou administrador ativo");
+        }
+        if (status != StatusChamado.ABERTO || atendente != null) {
+            throw new ConflitoException("Chamado nao esta disponivel para atribuicao");
+        }
+        this.atendente = responsavel;
+        this.status = StatusChamado.EM_ATENDIMENTO;
+        this.atribuidoEm = Objects.requireNonNull(agora, "agora nao pode ser nulo");
+        this.atualizadoEm = agora;
+    }
+
+    public Instant atribuidoEm() {
+        return atribuidoEm;
     }
 
     public String protocolo() {

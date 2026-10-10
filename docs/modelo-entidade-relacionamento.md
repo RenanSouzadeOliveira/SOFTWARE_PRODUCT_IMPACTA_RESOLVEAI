@@ -1,6 +1,6 @@
 # Modelo entidade-relacionamento
 
-Este documento descreve o schema criado pelas migrations Flyway. A V1 cria o modelo relacional, a V2 exige e-mails normalizados e a V3 alinha título e descrição aos limites da abertura de chamado. As entidades em foco são `USUARIOS`, `CATEGORIAS` e `CHAMADOS`; `COMENTARIOS` e `HISTORICO_CHAMADOS` também aparecem porque fazem parte do modelo persistido e das relações de auditoria.
+Este documento descreve o schema criado pelas migrations Flyway. A V1 cria o modelo relacional, a V2 exige e-mails normalizados, a V3 alinha título e descrição aos limites da abertura de chamado e a V4 acrescenta a data de atribuição e índices da área de atendimento. As entidades em foco são `USUARIOS`, `CATEGORIAS` e `CHAMADOS`; `COMENTARIOS` e `HISTORICO_CHAMADOS` também aparecem porque fazem parte do modelo persistido e das relações de auditoria.
 
 ## Diagrama
 
@@ -42,6 +42,7 @@ erDiagram
         TEXT solucao "nullable"
         TIMESTAMPTZ criado_em "NOT NULL, default CURRENT_TIMESTAMP"
         TIMESTAMPTZ atualizado_em "NOT NULL, default CURRENT_TIMESTAMP"
+        TIMESTAMPTZ atribuido_em "nullable, preenchido ao assumir"
         TIMESTAMPTZ resolvido_em "nullable"
         TIMESTAMPTZ fechado_em "nullable"
         BIGINT versao "NOT NULL, default 0, @Version"
@@ -125,6 +126,17 @@ As constraints `UNIQUE` também criam índices únicos no PostgreSQL. Não há �
 
 A V3 não duplica índices: a unicidade de `protocolo` e os índices iniciados por `solicitante_id`, `status` e `categoria_id` já atendem a abertura e às consultas planejadas. Em particular, `idx_chamados_solicitante_criado_em` atende `WHERE solicitante_id = ? ORDER BY criado_em DESC` por varredura reversa. Como este cartão não introduz filtro por status nem paginação, criar outro índice composto seria redundante; a necessidade deve ser reavaliada junto às consultas da AC3. Em uma atualização, a V3 falha sem truncar dados se existirem títulos ou descrições incompatíveis; esses registros devem ser corrigidos explicitamente antes de repetir a migration.
 
+Índices acrescentados pela V4 para consultas da AC2 sem filtros opcionais:
+
+| Índice | Colunas | Consulta |
+| --- | --- | --- |
+| `idx_chamados_fila_criado_id` | `(status, atendente_id, criado_em DESC, id DESC)` | fila aberta e sem responsável, ordenada de forma estável |
+| `idx_chamados_carteira_criado_id` | `(atendente_id, criado_em DESC, id DESC)` | carteira pessoal, ordenada de forma estável |
+
+Os índices anteriores continuam apoiando filtros por prioridade, status e categoria. A V4 recupera a data de atribuição de registros legados quando existe evento correspondente no histórico; conserva `NULL` quando não há evidência.
+
 ## Limites do que o schema garante
+
+Na AC2, `atribuido_em` registra em UTC o instante da atribuição; chamados legados conservam `NULL` quando não há data comprovada. A atribuição atualiza o responsável, o status, a data e a versão com proteção contra concorrência. O evento `ATRIBUICAO` é persistido em `historico_chamados` na mesma transação. Consulte [Fila e Meus atendimentos](fila-atendimento.md) para os contratos e o roteiro de validação.
 
 O banco garante tipos, nulabilidade, unicidade, valores enumerados, relações e alguns requisitos de datas. Ele não garante, sozinho, que o solicitante seja o usuário autenticado, que o atendente tenha perfil correto, que usuários/categorias estejam ativos, que as transições de status sejam válidas, que comentários sejam autorizados para aquele ator ou que alteração e histórico sejam gravados na mesma transação. Essas regras devem permanecer no Spring Boot, com autorização no servidor e auditoria transacional.

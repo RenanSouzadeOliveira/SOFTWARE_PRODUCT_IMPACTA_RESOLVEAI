@@ -14,6 +14,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 class ChamadoServiceTest {
 
@@ -62,6 +64,17 @@ class ChamadoServiceTest {
             @Override
             public Optional<Chamado> findByIdAndSolicitanteId(Long id, Long solicitanteId) {
                 return Optional.empty();
+            }
+
+            @Override
+            public Page<Chamado> findFila(PrioridadeChamado prioridade, Long categoriaId, Pageable pageable) {
+                return Page.empty(pageable);
+            }
+
+            @Override
+            public Page<Chamado> findCarteira(Long atendenteId, StatusChamado status,
+                    PrioridadeChamado prioridade, Long categoriaId, Pageable pageable) {
+                return Page.empty(pageable);
             }
         };
         ProtocoloChamadoGenerator generator = new ProtocoloChamadoGenerator() {

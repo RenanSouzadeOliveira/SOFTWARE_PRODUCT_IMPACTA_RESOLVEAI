@@ -10,6 +10,9 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.security.access.AccessDeniedException;
+import jakarta.persistence.OptimisticLockException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
@@ -94,6 +97,16 @@ public class GlobalExceptionHandler {
             ConflitoException exception,
             HttpServletRequest request) {
         return build(HttpStatus.CONFLICT, exception.getMessage(), request, List.of());
+    }
+
+    @ExceptionHandler({OptimisticLockingFailureException.class, OptimisticLockException.class})
+    ResponseEntity<ApiErrorResponse> handleConcurrentChange(Exception exception, HttpServletRequest request) {
+        return build(HttpStatus.CONFLICT, "Chamado alterado por outra operacao; atualize a lista", request, List.of());
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    ResponseEntity<ApiErrorResponse> handleAccessDenied(AccessDeniedException exception, HttpServletRequest request) {
+        return build(HttpStatus.FORBIDDEN, "Perfil autenticado sem permissao", request, List.of());
     }
 
     @ExceptionHandler(RecursoNaoEncontradoException.class)

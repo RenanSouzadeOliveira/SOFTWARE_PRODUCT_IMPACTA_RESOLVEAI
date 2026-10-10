@@ -17,4 +17,6 @@ public interface CategoriaRepository extends Repository<Categoria, Long> {
     Optional<Categoria> findByIdAndAtivaTrue(Long id);
 
     List<Categoria> findAllByAtivaTrueOrderByNomeAsc();
+
+    List<Categoria> findAllByOrderByNomeAscIdAsc();
 }

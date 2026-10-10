@@ -34,6 +34,26 @@ O contrato inicial esperado para `GET /api/health` é:
 }
 ```
 
+## Fila e carteira de atendimento
+
+As rotas `/atendimento` (fila) e `/atendimento/me` (carteira) são acessíveis a
+`ATENDENTE` e `ADMIN`. Ambos os perfis entram na fila após o login. A carteira
+consulta exclusivamente os chamados atribuídos à conta autenticada.
+
+As listagens usam `GET /api/atendimento/fila` e `GET /api/atendimento/me`, com páginas
+de 10 registros e filtros opcionais `prioridade` e `categoriaId`; a carteira também
+aceita `status`. Filtros e página ficam na URL. A resposta contém `content`, `page`,
+`size`, `totalElements` e `totalPages`.
+
+O seletor consulta `GET /api/atendimento/categorias`, incluindo categorias inativas
+para permitir filtrar chamados antigos. A abertura usa exclusivamente categorias ativas.
+
+A ação de assumir requer confirmação e envia `PATCH /api/chamados/{id}/assumir`
+com corpo vazio. A API obtém o responsável da sessão. Após sucesso, a fila é
+atualizada e a interface oferece acesso à carteira. O conflito `409` informa que o
+chamado deixou de estar disponível e também atualiza a fila. Requisições de listagem
+obsoletas são canceladas ao mudar filtros; envios de atribuição duplicados são bloqueados.
+
 ## Validação
 
 ```bash

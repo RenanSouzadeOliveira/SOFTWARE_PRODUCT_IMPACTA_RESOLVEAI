@@ -1,5 +1,11 @@
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree, provideRouter } from '@angular/router';
+import {
+  ActivatedRouteSnapshot,
+  Router,
+  RouterStateSnapshot,
+  UrlTree,
+  provideRouter,
+} from '@angular/router';
 
 import { AuthService } from './auth.service';
 import { authGuard, safeReturnUrl } from './auth.guard';
@@ -33,7 +39,10 @@ describe('guards de autenticação', () => {
   it('roleGuard aceita apenas o perfil indicado na rota', () => {
     auth.hasRole.mockReturnValue(true);
     const result = TestBed.runInInjectionContext(() =>
-      roleGuard({ data: { role: 'ATENDENTE' } } as unknown as ActivatedRouteSnapshot, {} as RouterStateSnapshot),
+      roleGuard(
+        { data: { role: 'ATENDENTE' } } as unknown as ActivatedRouteSnapshot,
+        {} as RouterStateSnapshot,
+      ),
     );
     expect(result).toBe(true);
     expect(auth.hasRole).toHaveBeenCalledWith('ATENDENTE');
@@ -43,5 +52,17 @@ describe('guards de autenticação', () => {
     expect(safeReturnUrl('https://example.com')).toBe('/');
     expect(safeReturnUrl('//example.com')).toBe('/');
     expect(safeReturnUrl('/\\example.com')).toBe('/');
+  });
+
+  it('permite ADMIN na área de atendimento e rejeita SOLICITANTE', () => {
+    auth.hasRole.mockImplementation((role: string) => role === 'ADMIN');
+    const route = { data: { roles: ['ATENDENTE', 'ADMIN'] } } as unknown as ActivatedRouteSnapshot;
+    expect(TestBed.runInInjectionContext(() => roleGuard(route, {} as RouterStateSnapshot))).toBe(
+      true,
+    );
+    auth.hasRole.mockReturnValue(false);
+    expect(
+      TestBed.runInInjectionContext(() => roleGuard(route, {} as RouterStateSnapshot)),
+    ).toBeInstanceOf(UrlTree);
   });
 });

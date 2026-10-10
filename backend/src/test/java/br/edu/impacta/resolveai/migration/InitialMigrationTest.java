@@ -34,8 +34,8 @@ class InitialMigrationTest {
                 .load();
         MigrateResult migrationResult = flyway.migrate();
 
-        assertThat(migrationResult.migrationsExecuted).isEqualTo(3);
-        assertThat(flyway.info().applied()).hasSize(3);
+        assertThat(migrationResult.migrationsExecuted).isEqualTo(4);
+        assertThat(flyway.info().applied()).hasSize(4);
 
         try (Connection connection = dataSource.getConnection()) {
             DatabaseMetaData metadata = connection.getMetaData();
@@ -50,6 +50,10 @@ class InitialMigrationTest {
 
             assertColumnSize(metadata, "chamados", "titulo", 120);
             assertColumnSize(metadata, "chamados", "descricao", 2000);
+            try (ResultSet result = metadata.getColumns(null, "public", "chamados", "atribuido_em")) {
+                assertThat(result.next()).isTrue();
+                assertThat(result.getInt("NULLABLE")).isEqualTo(DatabaseMetaData.columnNullable);
+            }
             assertTicketIndexes(metadata);
         }
     }
@@ -86,6 +90,49 @@ class InitialMigrationTest {
                         .executeQuery("SELECT email FROM usuarios")) {
             assertThat(result.next()).isTrue();
             assertThat(result.getString("email")).isEqualTo("pessoa@example.com");
+        }
+    }
+
+    @Test
+    void shouldPreserveLegacyAssignmentsAndUseOnlyRecordedAttributionTime() throws SQLException {
+        JdbcDataSource dataSource = new JdbcDataSource();
+        dataSource.setURL("jdbc:h2:mem:assignment_upgrade;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1");
+        dataSource.setUser("sa");
+        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration")
+                .target(MigrationVersion.fromVersion("3")).load().migrate();
+        try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {
+            statement.executeUpdate("""
+                    INSERT INTO usuarios (id, nome, email, senha_hash, perfil) VALUES
+                    (1, 'Solicitante ficticio', 'legado-requester@example.com', 'hash-ficticio', 'SOLICITANTE'),
+                    (2, 'Atendente ficticio', 'legado-attendant@example.com', 'hash-ficticio', 'ATENDENTE')
+                    """);
+            statement.executeUpdate("INSERT INTO categorias (id, nome) VALUES (1, 'Legado')");
+            statement.executeUpdate("""
+                    INSERT INTO chamados (id, protocolo, titulo, descricao, status, solicitante_id, atendente_id, categoria_id)
+                    VALUES (1, 'LEGADO-COM-EVIDENCIA', 'Chamado legado', 'Descricao suficientemente longa', 'EM_ATENDIMENTO', 1, 2, 1),
+                    (2, 'LEGADO-SEM-EVIDENCIA', 'Chamado legado', 'Descricao suficientemente longa', 'EM_ATENDIMENTO', 1, 2, 1),
+                    (3, 'LEGADO-ABERTO', 'Chamado legado', 'Descricao suficientemente longa', 'ABERTO', 1, NULL, 1)
+                    """);
+            statement.executeUpdate("""
+                    INSERT INTO historico_chamados (chamado_id, autor_id, tipo_evento, atendente_novo_id, criado_em)
+                    VALUES (1, 2, 'ATRIBUICAO', 2, TIMESTAMP WITH TIME ZONE '2026-01-01 12:00:00+00')
+                    """);
+        }
+        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load().migrate();
+        try (Connection connection = dataSource.getConnection();
+                ResultSet result = connection.createStatement().executeQuery(
+                        "SELECT id, status, atendente_id, atribuido_em FROM chamados ORDER BY id")) {
+            assertThat(result.next()).isTrue();
+            assertThat(result.getString("status")).isEqualTo("EM_ATENDIMENTO");
+            assertThat(result.getLong("atendente_id")).isEqualTo(2);
+            assertThat(result.getTimestamp("atribuido_em").toInstant())
+                    .isEqualTo(java.time.Instant.parse("2026-01-01T12:00:00Z"));
+            assertThat(result.next()).isTrue();
+            assertThat(result.getLong("atendente_id")).isEqualTo(2);
+            assertThat(result.getTimestamp("atribuido_em")).isNull();
+            assertThat(result.next()).isTrue();
+            assertThat(result.getString("status")).isEqualTo("ABERTO");
+            assertThat(result.getTimestamp("atribuido_em")).isNull();
         }
     }
 

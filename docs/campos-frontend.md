@@ -88,7 +88,6 @@ Mesmo que uma categoria apareça ativa no Angular, o serviço deve revalidar exi
 | `CriacaoChamadoInput` | `descricao` | `string` | Campo implementado; obrigatório, de 20 a 2.000 caracteres após `trim`. |
 | `CriacaoChamadoInput` | `categoriaId` | `Id` | Campo de formulário (seletor); obrigatório e deve referenciar categoria ativa. |
 | `CriacaoChamadoInput` | `prioridade` | `PrioridadeChamado` | Campo implementado; obrigatório e limitado a `BAIXA`, `MEDIA` ou `ALTA`. |
-| `AtribuicaoChamadoInput` | `atendenteId` | `Id` | Campo de ação da operação de atendimento; o serviço valida perfil, atividade e concorrência. |
 | `AlteracaoPrioridadeChamadoInput` | `prioridade` | `PrioridadeChamado` | Campo de ação/formulário de atendente autorizado. |
 | `ResolucaoChamadoInput` | `solucao` | `string` | Campo de formulário ao resolver; o serviço deve preencher `resolvidoEm` e registrar histórico. |
 | `ReaberturaChamadoInput` | `justificativa` | `string` | Campo de formulário ao solicitar reabertura; o serviço valida o estado e registra o evento aplicável. |
@@ -121,6 +120,14 @@ As entradas de transição não autorizam qualquer mudança arbitrária só por 
 Na resposta de detalhe, `solicitante`, `atendente` e `categoria` são projeções pequenas para apresentação, nunca entidades JPA. O resumo omite descrição, solução e usuários relacionados, retornando apenas os dados necessários à lista. `atendente` é `null` na abertura.
 
 `GET /api/chamados/me` não recebe identificador de solicitante e retorna `ChamadoResumoDto[]` em ordem decrescente de `criadoEm`. `GET /api/chamados/{id}` retorna `ChamadoDto` somente quando o chamado pertence ao solicitante autenticado; chamado inexistente ou alheio usa o mesmo `404`.
+
+### Fila e carteira implementadas na AC2
+
+`GET /api/atendimento/fila` e `GET /api/atendimento/me` retornam um envelope com `content`, `page`, `size`, `totalElements` e `totalPages`. Cada item contém `id`, `protocolo`, `titulo`, `categoria: { id, nome }`, `prioridade`, `status`, `criadoEm`, `atualizadoEm`, `atribuidoEm: IsoUtc | null` e `atendente: { id, nome } | null`. O contrato não expõe e-mail, senha nem entidades JPA.
+
+Os filtros são `prioridade` e `categoriaId`; a carteira também aceita `status`. O seletor de atendimento usa `GET /api/atendimento/categorias`, incluindo categorias inativas para consultar chamados existentes. O formulário de abertura continua oferecendo somente categorias ativas.
+
+`PATCH /api/chamados/{id}/assumir` não recebe `atendenteId` nem outro campo de atribuição. O servidor obtém o responsável da autenticação e define status e datas. A resposta é o item atualizado; `409` exige informar o conflito e recarregar a fila. Veja [o contrato e a validação da fila](fila-atendimento.md).
 
 ### Comentários e histórico exibidos no detalhe
 

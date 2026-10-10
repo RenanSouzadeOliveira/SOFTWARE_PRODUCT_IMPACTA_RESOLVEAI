@@ -143,7 +143,7 @@ Os contratos e o roteiro de validação estão documentados em [Autenticação e
 - `POST /api/auth/login`: autenticação e emissão do JWT;
 - `GET /api/usuarios/me`: consulta da conta autenticada;
 - `PATCH /api/usuarios/me`: alteração do próprio nome;
-- `GET /api/atendimento/acesso`: verificação protegida exclusiva de `ATENDENTE`.
+- `GET /api/atendimento/acesso`: verificação protegida para `ATENDENTE` ou `ADMIN`.
 
 O Angular disponibiliza as rotas `/cadastro`, `/login`, `/minha-conta` e `/atendimento`. O token permanece apenas na sessão da aba e é removido no logout.
 
@@ -164,6 +164,17 @@ O solicitante autenticado acompanha seus registros pelas rotas protegidas `/cham
 - `GET /api/chamados/{id}`: consulta um chamado próprio e responde `404` para identificadores inexistentes ou pertencentes a terceiros.
 
 O contrato, a decisão de segurança e o roteiro com dois solicitantes estão em [Consulta dos próprios chamados](docs/consulta-chamados.md).
+
+## Fila e Meus atendimentos — AC2
+
+A área `/atendimento` permite que `ATENDENTE` e `ADMIN` encontrem chamados `ABERTO` sem responsável, filtrem por prioridade/categoria e assumam um atendimento com confirmação. Em `/atendimento/me`, cada usuário consulta sua própria carteira, com filtros e paginação no servidor.
+
+- `GET /api/atendimento/fila`: fila paginada de chamados disponíveis.
+- `GET /api/atendimento/me`: carteira paginada do usuário autenticado.
+- `GET /api/atendimento/categorias`: categorias do filtro, incluindo inativas para consultar chamados existentes.
+- `PATCH /api/chamados/{id}/assumir`: registra responsável e data de atribuição, muda o status para `EM_ATENDIMENTO` e impede sobrescrita concorrente com resposta `409`.
+
+Os contratos, regras de concorrência e validação estão em [Fila e Meus atendimentos](docs/fila-atendimento.md). A migration V4 evolui o schema automaticamente; os comandos de execução permanecem os mesmos.
 
 ## Modelo de dados
 

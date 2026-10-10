@@ -1,0 +1,193 @@
+<section class="atendimento-page" aria-labelledby="atendimento-title">
+  <p class="eyebrow">Atendimento</p>
+  <h1 id="atendimento-title">{{ carteira ? 'Meus atendimentos' : 'Fila de chamados' }}</h1>
+  <p>
+    {{
+      carteira
+        ? 'Chamados sob sua responsabilidade, do mais recente ao mais antigo.'
+        : 'Chamados abertos disponíveis para assumir, do mais recente ao mais antigo.'
+    }}
+  </p>
+  <nav class="tabs" aria-label="Áreas de atendimento">
+    <a
+      routerLink="/atendimento"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      ariaCurrentWhenActive="page"
+      >Fila</a
+    >
+    <a routerLink="/atendimento/me" routerLinkActive="active" ariaCurrentWhenActive="page"
+      >Meus atendimentos</a
+    >
+  </nav>
+  <form [formGroup]="form" (ngSubmit)="applyFilters()" class="filters">
+    <div>
+      <label for="priority">Prioridade</label
+      ><select id="priority" formControlName="prioridade">
+        <option value="">Todas</option>
+        @for (p of prioridades; track p) {
+          <option [value]="p">{{ label(p) }}</option>
+        }
+      </select>
+    </div>
+    <div>
+      <label for="category">Categoria</label
+      ><select id="category" formControlName="categoriaId">
+        <option value="">Todas</option>
+        @for (c of categorias(); track c.id) {
+          <option [value]="c.id">{{ c.nome }}{{ c.ativa === false ? ' (inativa)' : '' }}</option>
+        }
+      </select>
+    </div>
+    @if (carteira) {
+      <div>
+        <label for="status">Status</label
+        ><select id="status" formControlName="status">
+          <option value="">Todos</option>
+          @for (s of statuses; track s) {
+            <option [value]="s">{{ label(s) }}</option>
+          }
+        </select>
+      </div>
+    }
+    <button type="submit" class="primary-button" [disabled]="submitting()">Filtrar</button>
+  </form>
+  @if (categoryError()) {
+    <p role="alert">
+      Não foi possível carregar as categorias.
+      <button type="button" class="secondary-button" (click)="loadCategories()">
+        Recarregar categorias
+      </button>
+    </p>
+  }
+  @if (notice()) {
+    <div
+      class="notice"
+      [class.notice--error]="!succeeded()"
+      [attr.role]="succeeded() ? 'status' : 'alert'"
+    >
+      {{ notice() }}
+      @if (succeeded()) {
+        <a routerLink="/atendimento/me">Ver meus atendimentos</a>
+      }
+    </div>
+  }
+  @if (selected(); as item) {
+    <section
+      class="confirmation"
+      role="dialog"
+      aria-labelledby="confirm-title"
+      aria-describedby="confirm-description"
+      (keydown.escape)="cancel()"
+    >
+      <h2 id="confirm-title">Assumir {{ item.protocolo }}?</h2>
+      <p id="confirm-description">
+        Você ficará responsável pelo chamado “{{ item.titulo }}”, que passará para Em atendimento.
+      </p>
+      <div class="actions">
+        <button
+          id="cancel-assignment"
+          type="button"
+          class="secondary-button"
+          [disabled]="submitting()"
+          (click)="cancel()"
+        >
+          Cancelar</button
+        ><button type="button" class="primary-button" [disabled]="submitting()" (click)="assumir()">
+          {{ submitting() ? 'Assumindo…' : 'Confirmar atribuição' }}
+        </button>
+      </div>
+    </section>
+  }
+  @switch (state()) {
+    @case ('loading') {
+      <p role="status">Carregando chamados…</p>
+    }
+    @case ('error') {
+      <div class="alert alert--error" role="alert">
+        <p>{{ error() }}</p>
+        <button type="button" class="secondary-button" (click)="refresh()">Tentar novamente</button>
+      </div>
+    }
+    @case ('success') {
+      @if (pagina(); as result) {
+        @if (result.content.length === 0) {
+          <p class="empty" role="status">
+            {{
+              carteira
+                ? 'Nenhum atendimento encontrado para estes filtros.'
+                : 'Nenhum chamado disponível para estes filtros.'
+            }}
+          </p>
+        }
+        <div class="tickets">
+          @for (item of result.content; track item.id) {
+            <article class="ticket" [attr.aria-labelledby]="'ticket-' + item.id">
+              <p class="protocol">{{ item.protocolo }}</p>
+              <h2 [id]="'ticket-' + item.id">{{ item.titulo }}</h2>
+              <dl>
+                <div>
+                  <dt>Categoria</dt>
+                  <dd>{{ item.categoria.nome }}</dd>
+                </div>
+                <div>
+                  <dt>Prioridade</dt>
+                  <dd>{{ label(item.prioridade) }}</dd>
+                </div>
+                <div>
+                  <dt>Status</dt>
+                  <dd>{{ label(item.status) }}</dd>
+                </div>
+                <div>
+                  <dt>Aberto em</dt>
+                  <dd>{{ item.criadoEm | date: 'dd/MM/yyyy HH:mm' }}</dd>
+                </div>
+                @if (carteira) {
+                  <div>
+                    <dt>Atribuído em</dt>
+                    <dd>{{ (item.atribuidoEm | date: 'dd/MM/yyyy HH:mm') ?? 'Não registrada' }}</dd>
+                  </div>
+                  <div>
+                    <dt>Responsável</dt>
+                    <dd>{{ item.atendente?.nome }}</dd>
+                  </div>
+                }
+              </dl>
+              @if (!carteira) {
+                <button
+                  type="button"
+                  class="primary-button"
+                  [disabled]="submitting() || selected() !== null"
+                  (click)="confirm(item, $event)"
+                  [attr.aria-label]="'Assumir chamado ' + item.protocolo"
+                >
+                  Assumir chamado
+                </button>
+              }
+            </article>
+          }
+        </div>
+        <nav class="pagination" aria-label="Paginação de chamados">
+          <button
+            type="button"
+            class="secondary-button"
+            [disabled]="result.page === 0 || submitting()"
+            (click)="goToPage(result.page - 1)"
+          >
+            Anterior</button
+          ><span
+            >{{ result.totalElements }} chamado(s) · Página {{ result.page + 1 }} de
+            {{ result.totalPages || 1 }}</span
+          ><button
+            type="button"
+            class="secondary-button"
+            [disabled]="result.page + 1 >= result.totalPages || submitting()"
+            (click)="goToPage(result.page + 1)"
+          >
+            Próxima
+          </button>
+        </nav>
+      }
+    }
+  }
+</section>

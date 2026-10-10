@@ -1,6 +1,6 @@
 # Diagrama de casos de uso do ResolveAí
 
-Este documento apresenta a visão funcional completa planejada para o ResolveAí e separa claramente o que já foi entregue na AC1 do que pertence às próximas etapas. Casos planejados representam a visão do produto, não funcionalidades disponíveis na versão atual.
+Este documento apresenta a visão funcional completa planejada para o ResolveAí. O diagrama foi elaborado na AC1; a legenda original da AC2 representa a etapa planejada, não sua entrega integral. Desde o primeiro cartão da AC2, **consulta da fila, filtros, atribuição e Meus atendimentos** estão implementados, conforme [o contrato da fila](fila-atendimento.md). Os demais casos planejados ainda não estão disponíveis.
 
 ![Diagrama completo de casos de uso do ResolveAí](diagrama-casos-de-uso.svg)
 

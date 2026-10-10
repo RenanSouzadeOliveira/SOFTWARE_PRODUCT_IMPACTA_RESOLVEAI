@@ -10,13 +10,17 @@
     <div class="hero__actions" aria-label="Ações principais">
       @if (currentUser(); as user) {
         @if (user.perfil === 'SOLICITANTE') {
-          <a class="button button--primary" routerLink="/chamados/novo" data-testid="home-open-ticket">
+          <a
+            class="button button--primary"
+            routerLink="/chamados/novo"
+            data-testid="home-open-ticket"
+          >
             Abrir chamado
           </a>
           <a class="button button--secondary" routerLink="/chamados" data-testid="home-my-tickets">
             Meus chamados
           </a>
-        } @else if (user.perfil === 'ATENDENTE') {
+        } @else if (user.perfil === 'ATENDENTE' || user.perfil === 'ADMIN') {
           <a class="button button--primary" routerLink="/atendimento">Acessar atendimento</a>
           <a class="button button--secondary" routerLink="/minha-conta">Minha conta</a>
         } @else {
@@ -95,7 +99,9 @@
       <span class="audience-icon audience-icon--team" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" focusable="false">
           <path d="M4.5 13v-1a7.5 7.5 0 0 1 15 0v1"></path>
-          <path d="M4.5 13.25A2.75 2.75 0 0 1 7.25 10.5H8v6H7.25a2.75 2.75 0 0 1-2.75-2.75v-.5Z"></path>
+          <path
+            d="M4.5 13.25A2.75 2.75 0 0 1 7.25 10.5H8v6H7.25a2.75 2.75 0 0 1-2.75-2.75v-.5Z"
+          ></path>
           <path d="M19.5 13.25a2.75 2.75 0 0 0-2.75-2.75H16v6h.75c.95 0 1.8-.48 2.3-1.2"></path>
           <path d="M19.5 15v1.25A2.75 2.75 0 0 1 16.75 19H14"></path>
           <circle cx="12.75" cy="19" r="1.25"></circle>
