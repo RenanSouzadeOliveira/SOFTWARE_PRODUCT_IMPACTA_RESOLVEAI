@@ -4,7 +4,9 @@
 
 As páginas protegidas `/chamados` e `/chamados/:id` permitem que um usuário com perfil `SOLICITANTE` acompanhe apenas os registros que abriu. O Angular usa o perfil para orientar a navegação, enquanto o Spring Security e as consultas escopadas pelo identificador autenticado aplicam a autorização efetiva.
 
-O cliente nunca envia `solicitanteId`. A API obtém esse identificador do JWT e o inclui na própria consulta. Para impedir enumeração, um chamado inexistente e um chamado de outro solicitante retornam o mesmo `404` e a mesma mensagem. Um perfil autenticado que não seja `SOLICITANTE` recebe `403`; token ausente, inválido ou de conta inativa recebe `401`.
+O cliente nunca envia `solicitanteId`. A API obtém esse identificador do JWT e o inclui na própria consulta. Para impedir enumeração, um chamado inexistente e um chamado de outro solicitante retornam o mesmo `404` e a mesma mensagem. Na listagem `/me`, um perfil autenticado que não seja `SOLICITANTE` recebe `403`; token ausente, inválido ou de conta inativa recebe `401`.
+
+Na AC2, o detalhe também autoriza o atendente responsável e ADMIN, sem ampliar a visibilidade de outro solicitante. Acrescenta ações autorizadas e histórico; veja [Status, prioridade e histórico](status-prioridade.md). Sem visibilidade, inclusive outro atendente, o detalhe retorna `404`.
 
 ## Listar meus chamados
 

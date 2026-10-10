@@ -364,7 +364,7 @@ class ChamadoIntegrationTest {
                 .andExpect(status().isForbidden());
         mockMvc.perform(get("/api/chamados/{id}", 1L)
                         .header(HttpHeaders.AUTHORIZATION, bearer(attendantToken)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isNotFound());
 
         JsonNode specification = json(mockMvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isOk())

@@ -120,7 +120,7 @@ public class GlobalExceptionHandler {
     ResponseEntity<ApiErrorResponse> handleInvalidData(
             DadosInvalidosException exception,
             HttpServletRequest request) {
-        return build(HttpStatus.BAD_REQUEST, exception.getMessage(), request, List.of());
+        return build(HttpStatus.BAD_REQUEST, exception.getMessage(), request, exception.violations());
     }
 
     @ExceptionHandler(Exception.class)

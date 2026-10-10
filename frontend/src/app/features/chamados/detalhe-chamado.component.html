@@ -1,5 +1,8 @@
 <section class="detail-page" aria-labelledby="detalhe-chamado-title">
-  <a class="back-link" routerLink="/chamados">← Voltar para meus chamados</a>
+  <a class="back-link" [routerLink]="backRoute">← {{ backLabel }}</a>
+  @if (notice()) {
+    <p id="operation-notice" role="status" tabindex="-1">{{ notice() }}</p>
+  }
 
   @switch (state()) {
     @case ('loading') {
@@ -66,6 +69,10 @@
               <dt>Atendente</dt>
               <dd>{{ item.atendente?.nome ?? 'Ainda não atribuído' }}</dd>
             </div>
+            <div>
+              <dt>Atribuído em</dt>
+              <dd>{{ (item.atribuidoEm | date: 'dd/MM/yyyy HH:mm') ?? 'Não registrado' }}</dd>
+            </div>
           </dl>
 
           <section class="detail-section" aria-labelledby="descricao-title">
@@ -73,12 +80,117 @@
             <p class="description">{{ item.descricao }}</p>
           </section>
 
-          @if (item.solucao) {
-            <section class="detail-section" aria-labelledby="solucao-title">
-              <h2 id="solucao-title">Solução registrada</h2>
-              <p class="description">{{ item.solucao }}</p>
+          <section class="detail-section" aria-labelledby="solucao-title">
+            <h2 id="solucao-title">Solução registrada</h2>
+            <p class="description">{{ item.solucao ?? 'Nenhuma solução registrada.' }}</p>
+          </section>
+          @if (actions().length) {
+            <section class="detail-section" aria-labelledby="actions-title">
+              <h2 id="actions-title">Ações disponíveis</h2>
+              <div class="actions">
+                @for (action of actions(); track action) {
+                  <button
+                    type="button"
+                    class="secondary-button"
+                    [attr.data-action]="action"
+                    [disabled]="submitting() || selectedAction() !== null"
+                    (click)="confirm(action, $event)"
+                  >
+                    {{ actionLabels[action] }}
+                  </button>
+                }
+              </div>
             </section>
           }
+          @if (selectedAction(); as action) {
+            <section
+              class="detail-section confirmation"
+              role="dialog"
+              aria-labelledby="confirmation-title"
+              aria-describedby="confirmation-description"
+              (keydown.escape)="cancel()"
+            >
+              <h2 id="confirmation-title">{{ actionLabels[action] }}</h2>
+              <p id="confirmation-description">
+                {{
+                  action === 'FECHAR'
+                    ? 'O fechamento é definitivo. Confirme que o problema foi solucionado.'
+                    : 'Confira os dados antes de confirmar a alteração.'
+                }}
+              </p>
+              <form [formGroup]="form" (ngSubmit)="submit()">
+                @if (action === 'ALTERAR_PRIORIDADE') {
+                  <label for="new-priority">Nova prioridade</label>
+                  <select
+                    id="new-priority"
+                    formControlName="prioridade"
+                    [attr.aria-disabled]="submitting()"
+                  >
+                    @for (priority of prioridades; track priority) {
+                      <option [value]="priority">{{ prioridadeLabel(priority) }}</option>
+                    }
+                  </select>
+                  <p>Selecione uma prioridade diferente da atual.</p>
+                } @else if (action !== 'FECHAR') {
+                  <label for="justification">{{
+                    action === 'RESOLVER' ? 'Solução' : 'Justificativa da reabertura'
+                  }}</label>
+                  <textarea
+                    id="justification"
+                    formControlName="justificativa"
+                    rows="5"
+                    aria-describedby="justification-help"
+                    [readOnly]="submitting()"
+                    [attr.aria-invalid]="
+                      form.controls.justificativa.touched && form.controls.justificativa.invalid
+                    "
+                  ></textarea>
+                  <p id="justification-help">
+                    Informe entre 10 e 500 caracteres, desconsiderando espaços nas extremidades.
+                  </p>
+                  @if (form.controls.justificativa.touched && form.controls.justificativa.invalid) {
+                    <p role="alert">A justificativa deve conter de 10 a 500 caracteres.</p>
+                  }
+                }
+                @if (operationError()) {
+                  <p role="alert">{{ operationError() }}</p>
+                }
+                <div class="actions">
+                  <button
+                    id="cancel-action"
+                    type="button"
+                    class="secondary-button"
+                    [disabled]="submitting()"
+                    (click)="cancel()"
+                  >
+                    Cancelar
+                  </button>
+                  <button type="submit" class="secondary-button" [disabled]="!canSubmit()">
+                    {{ submitting() ? 'Salvando…' : 'Confirmar alteração' }}
+                  </button>
+                </div>
+              </form>
+            </section>
+          }
+          <section class="detail-section" aria-labelledby="history-title">
+            <h2 id="history-title">Histórico de status</h2>
+            <ol class="history">
+              @for (event of item.historicoStatus ?? []; track event.id) {
+                <li>
+                  <p>
+                    {{ event.statusAnterior ? statusLabel(event.statusAnterior) + ' → ' : ''
+                    }}{{ statusLabel(event.statusNovo) }}
+                  </p>
+                  <p>{{ event.autor.nome }} · {{ event.criadoEm | date: 'dd/MM/yyyy HH:mm' }}</p>
+                  @if (event.observacao) {
+                    <p class="description">{{ event.observacao }}</p>
+                  }
+                </li>
+              } @empty {
+                <li>Nenhuma alteração de status registrada.</li>
+              }
+            </ol>
+          </section>
         </article>
       }
     }

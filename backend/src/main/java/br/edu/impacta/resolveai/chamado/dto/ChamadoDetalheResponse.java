@@ -1,6 +1,8 @@
 package br.edu.impacta.resolveai.chamado.dto;
 
 import java.time.Instant;
+import java.util.List;
+import br.edu.impacta.resolveai.chamado.AcaoChamado;
 
 import br.edu.impacta.resolveai.categoria.dto.CategoriaResponse;
 import br.edu.impacta.resolveai.chamado.Chamado;
@@ -8,7 +10,7 @@ import br.edu.impacta.resolveai.chamado.PrioridadeChamado;
 import br.edu.impacta.resolveai.chamado.StatusChamado;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "Detalhes seguros de um chamado do solicitante autenticado")
+@Schema(description = "Detalhes seguros, acoes autorizadas e historico ordenado por data/id")
 public record ChamadoDetalheResponse(
         Long id,
         String protocolo,
@@ -23,9 +25,13 @@ public record ChamadoDetalheResponse(
         Instant criadoEm,
         Instant atualizadoEm,
         Instant resolvidoEm,
-        Instant fechadoEm) {
+        Instant fechadoEm,
+        Instant atribuidoEm,
+        List<AcaoChamado> acoesPermitidas,
+        List<HistoricoStatusResponse> historicoStatus) {
 
-    public static ChamadoDetalheResponse from(Chamado chamado) {
+    public static ChamadoDetalheResponse from(Chamado chamado, List<AcaoChamado> acoes,
+            List<HistoricoStatusResponse> historico) {
         return new ChamadoDetalheResponse(
                 chamado.id(),
                 chamado.protocolo(),
@@ -40,6 +46,9 @@ public record ChamadoDetalheResponse(
                 chamado.criadoEm(),
                 chamado.atualizadoEm(),
                 chamado.resolvidoEm(),
-                chamado.fechadoEm());
+                chamado.fechadoEm(),
+                chamado.atribuidoEm(),
+                acoes,
+                historico);
     }
 }

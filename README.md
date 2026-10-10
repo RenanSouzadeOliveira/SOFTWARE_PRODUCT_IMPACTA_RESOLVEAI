@@ -176,6 +176,15 @@ A área `/atendimento` permite que `ATENDENTE` e `ADMIN` encontrem chamados `ABE
 
 Os contratos, regras de concorrência e validação estão em [Fila e Meus atendimentos](docs/fila-atendimento.md). A migration V4 evolui o schema automaticamente; os comandos de execução permanecem os mesmos.
 
+## Transições de status e prioridade — AC2
+
+O detalhe mostra as ações autorizadas para cada perfil e estado: resolver como responsável, reabrir ou fechar como solicitante proprietário, e operações administrativas. Justificativas são exigidas para resolução e reabertura; chamados fechados são terminais.
+
+- `PATCH /api/chamados/{id}/status`: transição validada pela máquina de estados.
+- `PATCH /api/chamados/{id}/prioridade`: atualização autorizada de prioridade.
+
+A migration V5 acrescenta o histórico de status. Alteração e evento são transacionais e protegidos por versão otimista. Consulte [Status, prioridade e histórico](docs/status-prioridade.md) para contratos, permissões e validação.
+
 ## Modelo de dados
 
 - [Diagrama de casos de uso](docs/diagrama-casos-de-uso.md): visão completa por ator, com separação entre AC1 implementada e funcionalidades planejadas.

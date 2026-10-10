@@ -2,6 +2,8 @@
 
 Este documento descreve o schema criado pelas migrations Flyway. A V1 cria o modelo relacional, a V2 exige e-mails normalizados, a V3 alinha título e descrição aos limites da abertura de chamado e a V4 acrescenta a data de atribuição e índices da área de atendimento. As entidades em foco são `USUARIOS`, `CATEGORIAS` e `CHAMADOS`; `COMENTARIOS` e `HISTORICO_CHAMADOS` também aparecem porque fazem parte do modelo persistido e das relações de auditoria.
 
+A V5 acrescenta `HISTORICO_STATUS`, com um registro imutável por transição, relacionado ao chamado e ao autor. A atribuição e a prioridade continuam com eventos próprios em `HISTORICO_CHAMADOS`.
+
 ## Diagrama
 
 ```mermaid
@@ -71,6 +73,16 @@ erDiagram
         TIMESTAMPTZ criado_em "NOT NULL, default CURRENT_TIMESTAMP"
     }
 
+    HISTORICO_STATUS {
+        BIGINT id PK "identity, NOT NULL"
+        BIGINT chamado_id FK "NOT NULL"
+        VARCHAR_20 status_anterior "NOT NULL, enum"
+        VARCHAR_20 status_novo "NOT NULL, enum"
+        BIGINT autor_id FK "NOT NULL"
+        TIMESTAMPTZ criado_em "NOT NULL"
+        VARCHAR_500 observacao "nullable"
+    }
+
     USUARIOS ||--o{ CHAMADOS : "solicitante_id"
     USUARIOS o|--o{ CHAMADOS : "atendente_id"
     CATEGORIAS ||--o{ CHAMADOS : "categoria_id"
@@ -80,6 +92,8 @@ erDiagram
     USUARIOS ||--o{ HISTORICO_CHAMADOS : "autor_id"
     USUARIOS o|--o{ HISTORICO_CHAMADOS : "atendente_anterior_id"
     USUARIOS o|--o{ HISTORICO_CHAMADOS : "atendente_novo_id"
+    CHAMADOS ||--o{ HISTORICO_STATUS : "chamado_id"
+    USUARIOS ||--o{ HISTORICO_STATUS : "autor_id"
 ```
 
 No bloco Mermaid, `TIMESTAMPTZ` é o nome curto usado para o tipo PostgreSQL `TIMESTAMP WITH TIME ZONE`. Os tamanhos (`VARCHAR_120`, por exemplo) são rótulos visuais para os `VARCHAR(n)`; a definição normativa é o conjunto ordenado das migrations.
@@ -135,7 +149,11 @@ A V3 não duplica índices: a unicidade de `protocolo` e os índices iniciados p
 
 Os índices anteriores continuam apoiando filtros por prioridade, status e categoria. A V4 recupera a data de atribuição de registros legados quando existe evento correspondente no histórico; conserva `NULL` quando não há evidência.
 
+A V5 cria `idx_historico_status_chamado_data_id (chamado_id, criado_em, id)` para a linha do tempo ordenada. As FKs impedem histórico órfão; o check de transição admite apenas `ABERTO → EM_ATENDIMENTO`, `EM_ATENDIMENTO → RESOLVIDO` e `RESOLVIDO → EM_ATENDIMENTO/FECHADO`. Observação é opcional, até 500 caracteres, e não pode ser vazia quando preenchida. A autorização e a exigência de justificativa nas novas operações permanecem no serviço.
+
 ## Limites do que o schema garante
+
+A V5 acrescenta FKs e checks ao histórico específico de status. As transições são autorizadas e validadas por uma máquina de estados centralizada, incluindo a atribuição. Status, datas e evento são gravados em uma única transação com controle de versão. Consulte [Status, prioridade e histórico](status-prioridade.md).
 
 Na AC2, `atribuido_em` registra em UTC o instante da atribuição; chamados legados conservam `NULL` quando não há data comprovada. A atribuição atualiza o responsável, o status, a data e a versão com proteção contra concorrência. O evento `ATRIBUICAO` é persistido em `historico_chamados` na mesma transação. Consulte [Fila e Meus atendimentos](fila-atendimento.md) para os contratos e o roteiro de validação.
 

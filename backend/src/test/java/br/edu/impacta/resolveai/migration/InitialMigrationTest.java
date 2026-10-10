@@ -34,8 +34,8 @@ class InitialMigrationTest {
                 .load();
         MigrateResult migrationResult = flyway.migrate();
 
-        assertThat(migrationResult.migrationsExecuted).isEqualTo(4);
-        assertThat(flyway.info().applied()).hasSize(4);
+        assertThat(migrationResult.migrationsExecuted).isEqualTo(5);
+        assertThat(flyway.info().applied()).hasSize(5);
 
         try (Connection connection = dataSource.getConnection()) {
             DatabaseMetaData metadata = connection.getMetaData();
@@ -46,7 +46,7 @@ class InitialMigrationTest {
                 }
             }
             assertThat(tables).contains(
-                    "usuarios", "categorias", "chamados", "comentarios", "historico_chamados");
+                    "usuarios", "categorias", "chamados", "comentarios", "historico_chamados", "historico_status");
 
             assertColumnSize(metadata, "chamados", "titulo", 120);
             assertColumnSize(metadata, "chamados", "descricao", 2000);
@@ -141,6 +141,47 @@ class InitialMigrationTest {
         try (ResultSet result = metadata.getColumns(null, "public", table, column)) {
             assertThat(result.next()).isTrue();
             assertThat(result.getInt("COLUMN_SIZE")).isEqualTo(expectedSize);
+        }
+    }
+
+    @Test
+    void shouldBackfillOnlyEvidencedTransitionsAndAvoidDuplicateLegacyStatus() throws SQLException {
+        JdbcDataSource dataSource = new JdbcDataSource();
+        dataSource.setURL("jdbc:h2:mem:status_upgrade;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1");
+        dataSource.setUser("sa");
+        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration")
+                .target(MigrationVersion.fromVersion("4")).load().migrate();
+        try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {
+            statement.executeUpdate("""
+                    INSERT INTO usuarios (id,nome,email,senha_hash,perfil) VALUES
+                    (1,'Solicitante ficticio','status-requester@example.com','hash-ficticio','SOLICITANTE'),
+                    (2,'Atendente ficticio','status-attendant@example.com','hash-ficticio','ATENDENTE')
+                    """);
+            statement.executeUpdate("INSERT INTO categorias (id,nome) VALUES (1,'Categoria')");
+            statement.executeUpdate("""
+                    INSERT INTO chamados (id,protocolo,titulo,descricao,solicitante_id,categoria_id)
+                    VALUES (1,'RA-LEGADO','Chamado legado','Descricao suficientemente longa',1,1)
+                    """);
+            statement.executeUpdate("""
+                    INSERT INTO historico_chamados (chamado_id,autor_id,tipo_evento,status_anterior,status_novo,criado_em,justificativa)
+                    VALUES
+                    (1,2,'ATRIBUICAO','ABERTO','EM_ATENDIMENTO',TIMESTAMP WITH TIME ZONE '2026-01-01 12:00:00+00',NULL),
+                    (1,2,'STATUS','ABERTO','EM_ATENDIMENTO',TIMESTAMP WITH TIME ZONE '2026-01-01 12:00:00+00',NULL),
+                    (1,2,'STATUS','EM_ATENDIMENTO','RESOLVIDO',TIMESTAMP WITH TIME ZONE '2026-01-02 12:00:00+00','  Solucao legada  '),
+                    (1,2,'ATRIBUICAO',NULL,NULL,TIMESTAMP WITH TIME ZONE '2026-01-03 12:00:00+00',NULL)
+                    """);
+        }
+        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load().migrate();
+        try (Connection connection = dataSource.getConnection(); ResultSet result = connection.createStatement()
+                .executeQuery("SELECT * FROM historico_status ORDER BY criado_em,id")) {
+            assertThat(result.next()).isTrue();
+            assertThat(result.getString("status_anterior")).isEqualTo("ABERTO");
+            assertThat(result.getLong("autor_id")).isEqualTo(2);
+            assertThat(result.getString("observacao")).isNull();
+            assertThat(result.next()).isTrue();
+            assertThat(result.getString("status_novo")).isEqualTo("RESOLVIDO");
+            assertThat(result.getString("observacao")).isEqualTo("Solucao legada");
+            assertThat(result.next()).isFalse();
         }
     }
 

@@ -16,6 +16,7 @@ import { ActivatedRoute, ParamMap, Router, RouterLink, RouterLinkActive } from '
 import { BehaviorSubject, catchError, combineLatest, EMPTY, switchMap, tap } from 'rxjs';
 
 import { apiErrorMessage } from '../../core/http/api-error';
+import { AuthService } from '../../core/auth/auth.service';
 import type { Categoria, Prioridade, StatusChamado } from '../chamados/chamado.model';
 import type { AtendimentoResumo, FiltrosAtendimento, PaginaAtendimento } from './atendimento.model';
 import { AtendimentoService } from './atendimento.service';
@@ -36,6 +37,7 @@ export class AtendimentoComponent implements OnInit {
   private readonly reload = new BehaviorSubject(0);
   private trigger: HTMLElement | null = null;
   protected readonly carteira = this.route.snapshot.data['carteira'] === true;
+  protected readonly auth = inject(AuthService);
   protected readonly prioridades: readonly Prioridade[] = ['BAIXA', 'MEDIA', 'ALTA'];
   protected readonly statuses: readonly StatusChamado[] = [
     'ABERTO',

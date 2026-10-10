@@ -29,4 +29,11 @@ describe('app routes for requester tickets', () => {
       expect(route?.data?.['carteira']).toBe(path.endsWith('/me'));
     }
   });
+
+  it('protege detalhe operacional e configura retorno à carteira', () => {
+    const route = routes.find((candidate) => candidate.path === 'atendimento/chamados/:id');
+    expect(route?.canActivate).toEqual([authGuard, roleGuard]);
+    expect(route?.data?.['roles']).toEqual(['ATENDENTE', 'ADMIN']);
+    expect(route?.data?.['backRoute']).toBe('/atendimento/me');
+  });
 });

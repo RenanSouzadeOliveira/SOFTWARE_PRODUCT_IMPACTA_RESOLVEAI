@@ -12,6 +12,8 @@ import br.edu.impacta.resolveai.chamado.Chamado;
 import br.edu.impacta.resolveai.chamado.ChamadoRepository;
 import br.edu.impacta.resolveai.chamado.PrioridadeChamado;
 import br.edu.impacta.resolveai.chamado.StatusChamado;
+import br.edu.impacta.resolveai.chamado.HistoricoStatus;
+import br.edu.impacta.resolveai.chamado.HistoricoStatusRepository;
 import br.edu.impacta.resolveai.security.UsuarioPrincipal;
 import br.edu.impacta.resolveai.shared.error.DadosInvalidosException;
 import br.edu.impacta.resolveai.shared.error.NaoAutorizadoException;
@@ -39,14 +41,17 @@ public class AtendimentoService {
     private final HistoricoAtribuicaoRepository historico;
     private final Clock clock;
     private final CategoriaRepository categorias;
+    private final HistoricoStatusRepository historicoStatus;
 
     public AtendimentoService(ChamadoRepository chamados, UsuarioRepository usuarios,
-            HistoricoAtribuicaoRepository historico, Clock clock, CategoriaRepository categorias) {
+            HistoricoAtribuicaoRepository historico, Clock clock, CategoriaRepository categorias,
+            HistoricoStatusRepository historicoStatus) {
         this.chamados = chamados;
         this.usuarios = usuarios;
         this.historico = historico;
         this.clock = clock;
         this.categorias = categorias;
+        this.historicoStatus = historicoStatus;
     }
 
     @Transactional(readOnly = true)
@@ -85,6 +90,7 @@ public class AtendimentoService {
         // Flush verifica @Version antes de registrar o evento; conflito reverte toda a transacao.
         chamados.saveAndFlush(chamado);
         historico.save(HistoricoAtribuicao.registrar(chamado, usuario, agora));
+        historicoStatus.save(HistoricoStatus.registrar(chamado, StatusChamado.ABERTO, usuario, agora, null));
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {

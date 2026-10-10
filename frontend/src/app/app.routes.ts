@@ -64,6 +64,20 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'atendimento/chamados/:id',
+    title: 'Detalhes do atendimento | ResolveAí',
+    canActivate: [authGuard, roleGuard],
+    data: {
+      roles: ['ATENDENTE', 'ADMIN'],
+      backRoute: '/atendimento/me',
+      backLabel: 'Voltar para meus atendimentos',
+    },
+    loadComponent: () =>
+      import('./features/chamados/detalhe-chamado.component').then(
+        (component) => component.DetalheChamadoComponent,
+      ),
+  },
+  {
     path: 'atendimento',
     title: 'Atendimento | ResolveAí',
     canActivate: [authGuard, roleGuard],

@@ -4,6 +4,8 @@ import java.net.URI;
 import java.util.List;
 
 import br.edu.impacta.resolveai.chamado.dto.AbrirChamadoRequest;
+import br.edu.impacta.resolveai.chamado.dto.AlterarStatusRequest;
+import br.edu.impacta.resolveai.chamado.dto.AlterarPrioridadeRequest;
 import br.edu.impacta.resolveai.chamado.dto.ChamadoDetalheResponse;
 import br.edu.impacta.resolveai.chamado.dto.ChamadoResponse;
 import br.edu.impacta.resolveai.chamado.dto.ChamadoResumoResponse;
@@ -21,6 +23,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,9 +35,11 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 public class ChamadoController {
 
     private final ChamadoService chamadoService;
+    private final CicloChamadoService ciclo;
 
-    public ChamadoController(ChamadoService chamadoService) {
+    public ChamadoController(ChamadoService chamadoService, CicloChamadoService ciclo) {
         this.chamadoService = chamadoService;
+        this.ciclo = ciclo;
     }
 
     @PostMapping
@@ -82,21 +87,54 @@ public class ChamadoController {
 
     @GetMapping("/{id}")
     @Operation(
-            summary = "Consultar meu chamado",
-            description = "Retorna o detalhe somente quando o chamado pertence ao solicitante autenticado. "
-                    + "Chamados ausentes e de outro solicitante produzem a mesma resposta 404.")
+            summary = "Consultar detalhe do chamado",
+            description = "Solicitante consulta o proprio chamado, atendente consulta o atribuido e ADMIN consulta qualquer chamado. "
+                    + "Sem visibilidade retorna 404. Inclui acoes autorizadas e historico de status ordenado por data e id.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Detalhe seguro do chamado"),
             @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou de conta inativa",
                     content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "403", description = "Perfil autenticado sem permissao",
                     content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
-            @ApiResponse(responseCode = "404", description = "Chamado inexistente ou pertencente a outro solicitante",
+            @ApiResponse(responseCode = "404", description = "Chamado inexistente ou sem visibilidade para o usuario",
                     content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ChamadoDetalheResponse detalharMeu(
             @PathVariable Long id,
             @AuthenticationPrincipal UsuarioPrincipal principal) {
-        return chamadoService.detalharMeu(id, principal);
+        return ciclo.detalhar(id, principal);
+    }
+
+    @PatchMapping("/{id}/status")
+    @Operation(summary = "Alterar status do chamado", description = "Responsavel ativo ou ADMIN resolve EM_ATENDIMENTO; "
+            + "solicitante proprietario ou ADMIN reabre/fecha RESOLVIDO. Resolver e reabrir exigem justificativa 10..500 apos trim. "
+            + "FECHADO e terminal. ABERTO->EM_ATENDIMENTO exige /assumir. Alteracao e historico sao atomicos.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Detalhe atualizado com acoes e historico"),
+            @ApiResponse(responseCode = "400", description = "Status ou justificativa invalidos", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Autenticacao ausente ou inativa", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Usuario sem permissao para a acao", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Chamado inexistente", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Transicao invalida ou alteracao concorrente", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public ChamadoDetalheResponse alterarStatus(@PathVariable Long id,
+            @AuthenticationPrincipal UsuarioPrincipal principal, @Valid @RequestBody AlterarStatusRequest request) {
+        return ciclo.alterarStatus(id, principal, request);
+    }
+
+    @PatchMapping("/{id}/prioridade")
+    @Operation(summary = "Alterar prioridade do chamado", description = "Responsavel ativo altera somente EM_ATENDIMENTO; "
+            + "ADMIN altera qualquer estado nao terminal. Mesma prioridade retorna 409. Evento PRIORIDADE e atomico com a alteracao.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Detalhe atualizado"),
+            @ApiResponse(responseCode = "400", description = "Prioridade invalida", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Autenticacao ausente ou inativa", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Usuario sem permissao", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Chamado inexistente", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Fechado, mesma prioridade ou conflito concorrente", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public ChamadoDetalheResponse alterarPrioridade(@PathVariable Long id,
+            @AuthenticationPrincipal UsuarioPrincipal principal, @Valid @RequestBody AlterarPrioridadeRequest request) {
+        return ciclo.alterarPrioridade(id, principal, request);
     }
 }

@@ -153,6 +153,13 @@
                   </div>
                 }
               </dl>
+              @if (carteira || auth.hasRole('ADMIN')) {
+                <a
+                  [routerLink]="['/atendimento/chamados', item.id]"
+                  [attr.aria-label]="'Ver detalhes do chamado ' + item.protocolo"
+                  >Ver detalhes</a
+                >
+              }
               @if (!carteira) {
                 <button
                   type="button"

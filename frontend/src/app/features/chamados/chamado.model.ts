@@ -4,6 +4,20 @@ export type StatusChamado = 'ABERTO' | 'EM_ATENDIMENTO' | 'RESOLVIDO' | 'FECHADO
 
 export type Prioridade = 'BAIXA' | 'MEDIA' | 'ALTA';
 
+export type AcaoChamado = 'RESOLVER' | 'REABRIR' | 'FECHAR' | 'ALTERAR_PRIORIDADE';
+export interface AlterarStatusInput {
+  readonly status: 'RESOLVIDO' | 'EM_ATENDIMENTO' | 'FECHADO';
+  readonly justificativa?: string;
+}
+export interface HistoricoStatus {
+  readonly id: number;
+  readonly statusAnterior: StatusChamado | null;
+  readonly statusNovo: StatusChamado;
+  readonly autor: UsuarioChamado;
+  readonly criadoEm: string;
+  readonly observacao: string | null;
+}
+
 export interface Categoria {
   readonly id: number;
   readonly nome: string;
@@ -34,6 +48,9 @@ export interface Chamado {
   readonly resolvidoEm?: string | null;
   readonly fechadoEm?: string | null;
   readonly versao?: number;
+  readonly atribuidoEm?: string | null;
+  readonly acoesPermitidas?: readonly string[];
+  readonly historicoStatus?: readonly HistoricoStatus[];
 }
 
 export interface ChamadoResumo {

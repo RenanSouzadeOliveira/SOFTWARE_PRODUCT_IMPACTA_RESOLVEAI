@@ -3,6 +3,7 @@ package br.edu.impacta.resolveai.atendimento;
 import java.time.Instant;
 
 import br.edu.impacta.resolveai.chamado.Chamado;
+import br.edu.impacta.resolveai.chamado.PrioridadeChamado;
 import br.edu.impacta.resolveai.usuario.Usuario;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -40,6 +41,11 @@ public class HistoricoAtribuicao {
     @Column(name = "status_novo", length = 20)
     private String statusNovo;
 
+    @Column(name = "prioridade_anterior", length = 10)
+    private String prioridadeAnterior;
+    @Column(name = "prioridade_nova", length = 10)
+    private String prioridadeNova;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "atendente_novo_id")
     private Usuario atendenteNovo;
@@ -58,6 +64,18 @@ public class HistoricoAtribuicao {
         evento.statusAnterior = "ABERTO";
         evento.statusNovo = "EM_ATENDIMENTO";
         evento.atendenteNovo = autor;
+        evento.criadoEm = agora;
+        return evento;
+    }
+
+    public static HistoricoAtribuicao registrarPrioridade(Chamado chamado, PrioridadeChamado anterior,
+            Usuario autor, Instant agora) {
+        HistoricoAtribuicao evento = new HistoricoAtribuicao();
+        evento.chamado = chamado;
+        evento.autor = autor;
+        evento.tipoEvento = "PRIORIDADE";
+        evento.prioridadeAnterior = anterior.name();
+        evento.prioridadeNova = chamado.prioridade().name();
         evento.criadoEm = agora;
         return evento;
     }

@@ -9,11 +9,45 @@ describe('ChamadosService', () => {
   const api = {
     get: vi.fn(),
     post: vi.fn(),
+    patch: vi.fn(),
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
     TestBed.configureTestingModule({ providers: [{ provide: ApiService, useValue: api }] });
+  });
+
+  it('envia status e justificativa e preserva detalhe retornado pela API', () => {
+    const updated: Chamado = {
+      id: 10,
+      protocolo: 'RA-10',
+      titulo: 'Sem acesso',
+      descricao: 'Descrição do problema',
+      status: 'RESOLVIDO',
+      prioridade: 'MEDIA',
+      categoria: { id: 1, nome: 'Acesso' },
+      solicitante: { id: 1, nome: 'Ana' },
+      atendente: null,
+      criadoEm: '2026-10-09T12:00:00Z',
+      atualizadoEm: '2026-10-09T12:00:00Z',
+      acoesPermitidas: ['FECHAR'],
+    };
+    api.patch.mockReturnValue(of(updated));
+    let received: Chamado | undefined;
+    TestBed.inject(ChamadosService)
+      .alterarStatus(10, { status: 'RESOLVIDO', justificativa: 'Solução registrada' })
+      .subscribe((value) => (received = value));
+    expect(api.patch).toHaveBeenCalledWith('chamados/10/status', {
+      status: 'RESOLVIDO',
+      justificativa: 'Solução registrada',
+    });
+    expect(received).toBe(updated);
+  });
+
+  it('envia prioridade sem campos de usuário ou status', () => {
+    api.patch.mockReturnValue(of({}));
+    TestBed.inject(ChamadosService).alterarPrioridade(10, 'ALTA').subscribe();
+    expect(api.patch).toHaveBeenCalledWith('chamados/10/prioridade', { prioridade: 'ALTA' });
   });
 
   it('carrega categorias pelo endpoint autenticado', () => {

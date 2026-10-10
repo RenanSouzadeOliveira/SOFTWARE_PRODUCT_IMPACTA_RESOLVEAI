@@ -129,6 +129,12 @@ Os filtros são `prioridade` e `categoriaId`; a carteira também aceita `status`
 
 `PATCH /api/chamados/{id}/assumir` não recebe `atendenteId` nem outro campo de atribuição. O servidor obtém o responsável da autenticação e define status e datas. A resposta é o item atualizado; `409` exige informar o conflito e recarregar a fila. Veja [o contrato e a validação da fila](fila-atendimento.md).
 
+### Operações de status e prioridade implementadas na AC2
+
+O detalhe e as respostas de `PATCH /api/chamados/{id}/status` e `/prioridade` acrescentam `atribuidoEm: IsoUtc | null`, `acoesPermitidas: ('RESOLVER' | 'REABRIR' | 'FECHAR' | 'ALTERAR_PRIORIDADE')[]` e `historicoStatus`. Cada evento contém `id`, `statusAnterior`, `statusNovo`, `autor: { id, nome }`, `criadoEm` e `observacao: string | null`.
+
+O formulário de status envia apenas `{ status, justificativa? }`; resolver/reabrir exigem justificativa de 10 a 500 caracteres após `trim`. O formulário de prioridade envia `{ prioridade }`, sem identificadores de usuários nem timestamps. As ações disponíveis vêm da API; o chamado fechado não oferece ações. Veja [Status, prioridade e histórico](status-prioridade.md).
+
 ### Comentários e histórico exibidos no detalhe
 
 Embora sejam registros próprios no schema, comentários e histórico são normalmente consumidos junto do detalhe do chamado. São somente saída (exceto o conteúdo de novo comentário):

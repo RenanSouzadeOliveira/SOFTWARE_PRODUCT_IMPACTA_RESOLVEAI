@@ -5,6 +5,7 @@ import { BehaviorSubject, of, Subject } from 'rxjs';
 import { AtendimentoComponent } from './atendimento.component';
 import type { AtendimentoResumo, PaginaAtendimento } from './atendimento.model';
 import { AtendimentoService } from './atendimento.service';
+import { AuthService } from '../../core/auth/auth.service';
 
 describe('AtendimentoComponent', () => {
   const item: AtendimentoResumo = {
@@ -31,6 +32,7 @@ describe('AtendimentoComponent', () => {
   let params: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
   let carteira: boolean;
   const service = { listar: vi.fn(), assumir: vi.fn(), listarCategorias: vi.fn() };
+  const auth = { hasRole: vi.fn(() => false) };
   beforeEach(async () => {
     vi.clearAllMocks();
     responses = [];
@@ -54,6 +56,7 @@ describe('AtendimentoComponent', () => {
       providers: [
         provideRouter([]),
         { provide: AtendimentoService, useValue: service },
+        { provide: AuthService, useValue: auth },
         {
           provide: ActivatedRoute,
           useFactory: () => ({ snapshot: { data: { carteira } }, queryParamMap: params }),
@@ -66,6 +69,30 @@ describe('AtendimentoComponent', () => {
     fixture.detectChanges();
     return fixture;
   }
+
+  it('não oferece detalhe de chamado sem responsável na fila do atendente', () => {
+    const fixture = render();
+    responses[0].next(page());
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('a[href="/atendimento/chamados/7"]')).toBeNull();
+  });
+
+  it('permite administrador acessar detalhes na fila', () => {
+    auth.hasRole.mockReturnValue(true);
+    const fixture = render();
+    responses[0].next(page());
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('a[href="/atendimento/chamados/7"]')).not.toBeNull();
+    auth.hasRole.mockReturnValue(false);
+  });
+
+  it('oferece detalhes dos chamados da carteira', () => {
+    carteira = true;
+    const fixture = render();
+    responses[0].next(page([{ ...item, status: 'EM_ATENDIMENTO' }]));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('a[href="/atendimento/chamados/7"]')).not.toBeNull();
+  });
 
   it('oferece categorias inativas no filtro de atendimento', () => {
     const fixture = render();

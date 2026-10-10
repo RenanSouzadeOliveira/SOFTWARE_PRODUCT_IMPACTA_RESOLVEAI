@@ -5,8 +5,6 @@ import java.util.Objects;
 
 import br.edu.impacta.resolveai.categoria.Categoria;
 import br.edu.impacta.resolveai.usuario.Usuario;
-import br.edu.impacta.resolveai.usuario.Perfil;
-import br.edu.impacta.resolveai.shared.error.ConflitoException;
 import jakarta.persistence.Access;
 import jakarta.persistence.AccessType;
 import jakarta.persistence.Column;
@@ -132,13 +130,7 @@ public class Chamado {
 
     public void assumir(Usuario responsavel, Instant agora) {
         Objects.requireNonNull(responsavel, "responsavel nao pode ser nulo");
-        if (!responsavel.ativo()
-                || (responsavel.perfil() != Perfil.ATENDENTE && responsavel.perfil() != Perfil.ADMIN)) {
-            throw new IllegalArgumentException("Responsavel deve ser um atendente ou administrador ativo");
-        }
-        if (status != StatusChamado.ABERTO || atendente != null) {
-            throw new ConflitoException("Chamado nao esta disponivel para atribuicao");
-        }
+        MaquinaEstadosChamado.validarAtribuicao(this, responsavel);
         this.atendente = responsavel;
         this.status = StatusChamado.EM_ATENDIMENTO;
         this.atribuidoEm = Objects.requireNonNull(agora, "agora nao pode ser nulo");
@@ -147,6 +139,30 @@ public class Chamado {
 
     public Instant atribuidoEm() {
         return atribuidoEm;
+    }
+
+    public String alterarStatus(Usuario autor, StatusChamado novo, String justificativa, Instant agora) {
+        String texto = MaquinaEstadosChamado.validarTransicao(this, autor, novo, justificativa);
+        Objects.requireNonNull(agora, "agora nao pode ser nulo");
+        if (novo == StatusChamado.RESOLVIDO) {
+            solucao = texto;
+            resolvidoEm = agora;
+        } else if (novo == StatusChamado.EM_ATENDIMENTO) {
+            solucao = null;
+            resolvidoEm = null;
+            fechadoEm = null;
+        } else if (novo == StatusChamado.FECHADO) {
+            fechadoEm = agora;
+        }
+        status = novo;
+        atualizadoEm = agora;
+        return texto;
+    }
+
+    public void alterarPrioridade(Usuario autor, PrioridadeChamado nova, Instant agora) {
+        MaquinaEstadosChamado.validarPrioridade(this, autor, nova);
+        atualizadoEm = Objects.requireNonNull(agora, "agora nao pode ser nulo");
+        prioridade = nova;
     }
 
     public String protocolo() {

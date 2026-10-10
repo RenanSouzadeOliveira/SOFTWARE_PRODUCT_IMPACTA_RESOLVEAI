@@ -2,7 +2,14 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ApiService } from '../../core/http/api.service';
-import { Categoria, Chamado, ChamadoResumo, CriarChamadoInput } from './chamado.model';
+import {
+  AlterarStatusInput,
+  Categoria,
+  Chamado,
+  ChamadoResumo,
+  CriarChamadoInput,
+  Prioridade,
+} from './chamado.model';
 
 @Injectable({ providedIn: 'root' })
 export class ChamadosService {
@@ -22,5 +29,15 @@ export class ChamadosService {
 
   buscarPorId(id: number): Observable<Chamado> {
     return this.api.get<Chamado>(`chamados/${encodeURIComponent(String(id))}`);
+  }
+
+  alterarStatus(id: number, input: AlterarStatusInput): Observable<Chamado> {
+    return this.api.patch<Chamado, AlterarStatusInput>(`chamados/${id}/status`, input);
+  }
+
+  alterarPrioridade(id: number, prioridade: Prioridade): Observable<Chamado> {
+    return this.api.patch<Chamado, { prioridade: Prioridade }>(`chamados/${id}/prioridade`, {
+      prioridade,
+    });
   }
 }
