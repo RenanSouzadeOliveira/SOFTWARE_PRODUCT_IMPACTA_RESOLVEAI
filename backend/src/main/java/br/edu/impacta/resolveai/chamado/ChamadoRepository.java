@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.Lock;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +19,11 @@ public interface ChamadoRepository extends Repository<Chamado, Long> {
     Chamado saveAndFlush(Chamado chamado);
 
     Optional<Chamado> findById(Long id);
+
+    // No fetch joins: PostgreSQL cannot FOR UPDATE the nullable side of an outer join.
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select c from Chamado c where c.id = :id")
+    Optional<Chamado> findByIdForComment(@Param("id") Long id);
 
     Optional<Chamado> findByProtocolo(String protocolo);
 

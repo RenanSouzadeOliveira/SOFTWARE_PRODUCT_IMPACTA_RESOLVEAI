@@ -54,7 +54,7 @@ erDiagram
         BIGINT id PK "identity, NOT NULL"
         BIGINT chamado_id FK "NOT NULL"
         BIGINT autor_id FK "NOT NULL"
-        TEXT conteudo "NOT NULL"
+        TEXT conteudo "NOT NULL, trim 1 a 2000 na V6"
         TIMESTAMPTZ criado_em "NOT NULL, default CURRENT_TIMESTAMP"
     }
 
@@ -152,6 +152,8 @@ Os índices anteriores continuam apoiando filtros por prioridade, status e categ
 A V5 cria `idx_historico_status_chamado_data_id (chamado_id, criado_em, id)` para a linha do tempo ordenada. As FKs impedem histórico órfão; o check de transição admite apenas `ABERTO → EM_ATENDIMENTO`, `EM_ATENDIMENTO → RESOLVIDO` e `RESOLVIDO → EM_ATENDIMENTO/FECHADO`. Observação é opcional, até 500 caracteres, e não pode ser vazia quando preenchida. A autorização e a exigência de justificativa nas novas operações permanecem no serviço.
 
 ## Limites do que o schema garante
+
+A V6 normaliza comentários legados válidos, exige conteúdo normalizado de 1 a 2.000 caracteres e substitui o índice de comentários por `(chamado_id, criado_em, id)`. As FKs originais continuam protegendo chamado e autor. Participação e proibição de envio após fechamento são verificadas transacionalmente pela API. Consulte [Comunicação por comentários](comentarios-chamados.md).
 
 A V5 acrescenta FKs e checks ao histórico específico de status. As transições são autorizadas e validadas por uma máquina de estados centralizada, incluindo a atribuição. Status, datas e evento são gravados em uma única transação com controle de versão. Consulte [Status, prioridade e histórico](status-prioridade.md).
 

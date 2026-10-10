@@ -191,6 +191,12 @@
               }
             </ol>
           </section>
+          <app-comentarios-chamado
+            [chamadoId]="item.id"
+            [status]="item.status"
+            [refreshKey]="commentsRefresh()"
+            (conflito)="load()"
+          />
         </article>
       }
     }

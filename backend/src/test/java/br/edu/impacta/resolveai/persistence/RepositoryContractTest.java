@@ -7,6 +7,7 @@ import java.util.List;
 
 import br.edu.impacta.resolveai.categoria.CategoriaRepository;
 import br.edu.impacta.resolveai.chamado.ChamadoRepository;
+import br.edu.impacta.resolveai.comentario.ComentarioRepository;
 import br.edu.impacta.resolveai.usuario.UsuarioRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.repository.CrudRepository;
@@ -19,7 +20,8 @@ class RepositoryContractTest {
         List<Class<?>> repositories = List.of(
                 UsuarioRepository.class,
                 CategoriaRepository.class,
-                ChamadoRepository.class);
+                ChamadoRepository.class,
+                ComentarioRepository.class);
 
         repositories.forEach(repository -> {
             assertThat(repository.getInterfaces()).containsExactly(Repository.class);

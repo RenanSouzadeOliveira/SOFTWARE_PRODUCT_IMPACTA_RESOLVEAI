@@ -1,7 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
-import { Subject } from 'rxjs';
+import { of, Subject } from 'rxjs';
+import { ComentariosChamadoService } from './comentarios-chamado.service';
 
 import { Chamado } from './chamado.model';
 import { ChamadosService } from './chamados.service';
@@ -27,6 +28,10 @@ describe('DetalheChamadoComponent', () => {
       providers: [
         provideRouter([]),
         { provide: ChamadosService, useValue: chamadosService },
+        {
+          provide: ComentariosChamadoService,
+          useValue: { listar: vi.fn(() => of({ content: [], podeComentar: false })) },
+        },
         {
           provide: ActivatedRoute,
           useValue: { paramMap: new Subject() },

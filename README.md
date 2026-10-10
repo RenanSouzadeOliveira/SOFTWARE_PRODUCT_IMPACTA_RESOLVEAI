@@ -185,6 +185,15 @@ O detalhe mostra as ações autorizadas para cada perfil e estado: resolver como
 
 A migration V5 acrescenta o histórico de status. Alteração e evento são transacionais e protegidos por versão otimista. Consulte [Status, prioridade e histórico](docs/status-prioridade.md) para contratos, permissões e validação.
 
+## Comentários no chamado — AC2
+
+O detalhe permite uma conversa persistente entre solicitante proprietário, atendente atribuído e ADMIN. A conversa tem ordenação cronológica estável, autor, perfil e data. Chamados fechados são somente leitura; comentários não alteram o status e não podem ser editados ou excluídos pela API.
+
+- `GET /api/chamados/{id}/comentarios`: conversa e permissão atual de envio.
+- `POST /api/chamados/{id}/comentarios`: comentário com autor obtido da autenticação.
+
+A migration V6 evolui a tabela existente. Consulte [Comunicação por comentários](docs/comentarios-chamados.md) para contratos, persistência e validação.
+
 ## Modelo de dados
 
 - [Diagrama de casos de uso](docs/diagrama-casos-de-uso.md): visão completa por ator, com separação entre AC1 implementada e funcionalidades planejadas.

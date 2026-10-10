@@ -1,6 +1,6 @@
 # Diagrama de casos de uso do ResolveAí
 
-Este documento apresenta a visão funcional completa planejada para o ResolveAí. O diagrama foi elaborado na AC1; a legenda original da AC2 representa a etapa planejada, não sua entrega integral. Na AC2, **consulta da fila, filtros, atribuição e Meus atendimentos** estão implementados, conforme [o contrato da fila](fila-atendimento.md). Também estão implementadas **alteração de prioridade, resolução, reabertura, fechamento e histórico de status**, conforme [as transições de estado](status-prioridade.md). Os demais casos planejados ainda não estão disponíveis.
+Este documento apresenta a visão funcional completa planejada para o ResolveAí. O diagrama foi elaborado na AC1; a legenda original da AC2 representa a etapa planejada, não sua entrega integral. Na AC2, **consulta da fila, filtros, atribuição e Meus atendimentos** estão implementados, conforme [o contrato da fila](fila-atendimento.md). Também estão implementadas **alteração de prioridade, resolução, reabertura, fechamento e histórico de status**, conforme [as transições de estado](status-prioridade.md), e a **comunicação por comentários**, conforme [seu contrato](comentarios-chamados.md). Os demais casos planejados ainda não estão disponíveis.
 
 ![Diagrama completo de casos de uso do ResolveAí](diagrama-casos-de-uso.svg)
 

@@ -1,0 +1,66 @@
+<section aria-labelledby="comments-title" class="comments">
+  <h2 id="comments-title">Comentários</h2>
+  @if (notice()) {
+    <p role="status">{{ notice() }}</p>
+  }
+  @switch (state()) {
+    @case ('loading') {
+      <p role="status">Carregando comentários…</p>
+    }
+    @case ('error') {
+      <p role="alert">{{ error() }}</p>
+      <button type="button" (click)="refresh()">Recarregar comentários</button>
+    }
+    @case ('success') {
+      @if (pagina(); as page) {
+        <ol class="timeline" aria-label="Comentários em ordem cronológica">
+          @for (comment of page.content; track comment.id) {
+            <li data-testid="comment">
+              <p class="author">{{ comment.autor.nome }} · {{ roles[comment.autor.perfil] }}</p>
+              <time [attr.datetime]="comment.criadoEm">{{
+                comment.criadoEm | date: 'dd/MM/yyyy HH:mm'
+              }}</time>
+              <p class="content">{{ comment.conteudo }}</p>
+            </li>
+          } @empty {
+            <li>Nenhum comentário registrado.</li>
+          }
+        </ol>
+        @if (page.podeComentar) {
+          <form [formGroup]="form" (ngSubmit)="submit()">
+            <label for="comment-content">Novo comentário</label>
+            <textarea
+              id="comment-content"
+              formControlName="conteudo"
+              rows="5"
+              aria-describedby="comment-help"
+              [readOnly]="submitting()"
+              [attr.aria-invalid]="form.controls.conteudo.touched && form.controls.conteudo.invalid"
+            ></textarea>
+            <p id="comment-help">
+              Escreva de 1 a 2000 caracteres, desconsiderando espaços nas extremidades. Comentários
+              publicados não podem ser editados ou excluídos.
+            </p>
+            @if (form.controls.conteudo.touched && form.controls.conteudo.invalid) {
+              <p role="alert">Informe um comentário de 1 a 2000 caracteres.</p>
+            }
+            @if (postError()) {
+              <p role="alert">{{ postError() }}</p>
+            }
+            <button type="submit" id="publish-comment" [disabled]="submitting() || form.invalid">
+              {{ submitting() ? 'Publicando…' : 'Publicar comentário' }}
+            </button>
+          </form>
+        } @else {
+          <p>
+            {{
+              status === 'FECHADO'
+                ? 'Chamado fechado: os comentários estão disponíveis apenas para leitura.'
+                : 'Você pode consultar os comentários, mas não possui permissão para publicar.'
+            }}
+          </p>
+        }
+      }
+    }
+  }
+</section>

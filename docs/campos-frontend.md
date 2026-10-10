@@ -137,13 +137,14 @@ O formulário de status envia apenas `{ status, justificativa? }`; resolver/reab
 
 ### Comentários e histórico exibidos no detalhe
 
-Embora sejam registros próprios no schema, comentários e histórico são normalmente consumidos junto do detalhe do chamado. São somente saída (exceto o conteúdo de novo comentário):
+Comentários são carregados por `GET /api/chamados/{id}/comentarios`, que retorna `{ content: ComentarioDto[], podeComentar: boolean }`. `POST` no mesmo caminho recebe `{ conteudo }` e retorna um item criado. Texto deve ter de 1 a 2.000 caracteres após `trim`; autor e data não são campos de entrada. O detalhe renderiza a conversa separadamente, com carregamento e falha próprios. Veja [Comunicação por comentários](comentarios-chamados.md).
+
+O comentário abaixo está implementado; o histórico genérico seguinte permanece planejado (o histórico de status já foi descrito acima):
 
 ```ts
 interface ComentarioDto {
   id: Id;
-  chamadoId: Id;
-  autor: UsuarioResumoDto;
+  autor: { id: Id; nome: string; perfil: Perfil };
   conteudo: string;
   criadoEm: IsoUtc;
 }
@@ -164,7 +165,7 @@ interface HistoricoChamadoDto {
 }
 ```
 
-`chamadoId` é somente leitura nessas respostas. Os campos de atendente no histórico são opcionais exatamente como as FKs da V1; a API deve preservar `null` quando não houver valor. O histórico não tem entrada de edição no Angular.
+`chamadoId` é somente leitura no histórico planejado; comentários usam o ID do chamado no caminho da requisição. Os campos de atendente no histórico são opcionais exatamente como as FKs da V1; a API deve preservar `null` quando não houver valor. Não há entrada de edição de comentários ou histórico no Angular.
 
 ## Regras de integração e escopo
 

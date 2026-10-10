@@ -34,8 +34,8 @@ class InitialMigrationTest {
                 .load();
         MigrateResult migrationResult = flyway.migrate();
 
-        assertThat(migrationResult.migrationsExecuted).isEqualTo(5);
-        assertThat(flyway.info().applied()).hasSize(5);
+        assertThat(migrationResult.migrationsExecuted).isEqualTo(6);
+        assertThat(flyway.info().applied()).hasSize(6);
 
         try (Connection connection = dataSource.getConnection()) {
             DatabaseMetaData metadata = connection.getMetaData();

@@ -37,6 +37,10 @@ class ChamadoServiceTest {
         };
         ChamadoRepository repository = new ChamadoRepository() {
             @Override
+            public Optional<Chamado> findByIdForComment(Long id) {
+                return Optional.empty();
+            }
+            @Override
             public Chamado save(Chamado chamado) {
                 throw new UnsupportedOperationException();
             }

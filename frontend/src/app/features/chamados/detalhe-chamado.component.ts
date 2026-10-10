@@ -29,6 +29,7 @@ import {
   StatusChamado,
 } from './chamado.model';
 import { ChamadosService } from './chamados.service';
+import { ComentariosChamadoComponent } from './comentarios-chamado.component';
 
 type DetalheChamadoState = 'loading' | 'success' | 'error';
 
@@ -47,7 +48,7 @@ const PRIORIDADE_LABELS: Readonly<Record<Prioridade, string>> = {
 
 @Component({
   selector: 'app-detalhe-chamado',
-  imports: [DatePipe, RouterLink, ReactiveFormsModule],
+  imports: [DatePipe, RouterLink, ReactiveFormsModule, ComentariosChamadoComponent],
   templateUrl: './detalhe-chamado.component.html',
   styleUrl: './detalhe-chamado.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -62,6 +63,7 @@ export class DetalheChamadoComponent implements OnInit {
   protected readonly state = signal<DetalheChamadoState>('loading');
   protected readonly chamado = signal<Chamado | null>(null);
   protected readonly errorMessage = signal<string | null>(null);
+  protected readonly commentsRefresh = signal(0);
   private readonly injector = inject(Injector);
   private trigger: HTMLElement | null = null;
   protected readonly backRoute = this.route.snapshot?.data['backRoute'] ?? '/chamados';
@@ -144,6 +146,7 @@ export class DetalheChamadoComponent implements OnInit {
         this.submitting.set(false);
         if (this.chamadoId !== item.id) return;
         this.chamado.set(updated);
+        this.commentsRefresh.update((value) => value + 1);
         this.selectedAction.set(null);
         this.notice.set('Chamado atualizado com sucesso.');
         afterNextRender(() => document.getElementById('operation-notice')?.focus(), {
