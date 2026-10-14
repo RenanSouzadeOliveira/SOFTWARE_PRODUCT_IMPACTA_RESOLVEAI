@@ -6,6 +6,8 @@ A V5 acrescenta `HISTORICO_STATUS`, com um registro imutável por transição, r
 
 ## Diagrama
 
+O incremento consolidado da AC2 usa seis tabelas funcionais: usuários, categorias, chamados, comentários, histórico de atribuição/prioridade e histórico de status. O diagrama abaixo corresponde às migrations V1–V6; `flyway_schema_history` é uma tabela de infraestrutura e não integra o domínio. Na demonstração, responsáveis e autores são FKs, sem cópia de nome/e-mail no chamado.
+
 ```mermaid
 erDiagram
     %% Entidades centrais em foco: USUARIOS, CATEGORIAS e CHAMADOS.
