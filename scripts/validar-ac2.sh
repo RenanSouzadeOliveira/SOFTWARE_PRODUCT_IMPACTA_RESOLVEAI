@@ -24,6 +24,11 @@ done
 for program in docker java node curl openssl; do
   command -v "$program" >/dev/null || { echo "Pré-requisito ausente: $program" >&2; exit 1; }
 done
+if [[ "$keep" == 1 ]]; then
+  for program in setsid nohup; do
+    command -v "$program" >/dev/null || { echo "Pré-requisito do modo mantido ausente: $program" >&2; exit 1; }
+  done
+fi
 cd -- "$repo_dir"
 if [[ "$skip_build" == 0 ]]; then
   (cd backend && mvn clean verify)
@@ -63,6 +68,8 @@ web_port=${AC2_WEB_PORT:-4200}
 for port in "$db_port" "$api_port" "$web_port"; do
   [[ "$port" =~ ^[0-9]+$ ]] && (( port > 0 && port < 65536 )) || { echo 'Porta inválida.' >&2; exit 2; }
 done
+[[ "$db_port" != "$api_port" && "$db_port" != "$web_port" && "$api_port" != "$web_port" ]] \
+  || { echo 'Banco, API e interface precisam de portas diferentes.' >&2; exit 2; }
 # Refuse occupied ports instead of probing an unrelated application already running.
 node --input-type=module - "$db_port" "$api_port" "$web_port" <<'JS'
 import net from 'node:net';
@@ -98,7 +105,12 @@ for attempt in {1..60}; do
 done
 [[ "$ready" == 1 ]] || { echo 'PostgreSQL não iniciou.' >&2; exit 1; }
 cp -- "$jar" "$artifacts/resolveai-api.jar"
-java -jar "$artifacts/resolveai-api.jar" --server.address=127.0.0.1 --server.port="$api_port" >"$artifacts/api.log" 2>&1 &
+if [[ "$keep" == 1 ]]; then
+  nohup setsid java -jar "$artifacts/resolveai-api.jar" --server.address=127.0.0.1 --server.port="$api_port" \
+    >"$artifacts/api.log" 2>&1 </dev/null &
+else
+  java -jar "$artifacts/resolveai-api.jar" --server.address=127.0.0.1 --server.port="$api_port" >"$artifacts/api.log" 2>&1 &
+fi
 api_pid=$!
 ready=0
 for attempt in {1..90}; do
@@ -114,8 +126,13 @@ node scripts/ac2-api.mjs --fixtures "$artifacts/fixtures.json" | tee "$artifacts
 if [[ "$browser" == 1 || "$keep" == 1 ]]; then
   [[ -d frontend/node_modules ]] || { echo 'Execute npm ci no frontend.' >&2; exit 1; }
   # Execute directly: the tracked PID owns the Angular server, rather than an npm wrapper.
-  (cd frontend && exec node node_modules/@angular/cli/bin/ng.js serve --host 127.0.0.1 --port "$web_port") \
-    >"$artifacts/frontend.log" 2>&1 &
+  if [[ "$keep" == 1 ]]; then
+    nohup setsid bash -c 'cd -- "$1" && exec node node_modules/@angular/cli/bin/ng.js serve --host 127.0.0.1 --port "$2"' \
+      bash "$repo_dir/frontend" "$web_port" >"$artifacts/frontend.log" 2>&1 </dev/null &
+  else
+    (cd frontend && exec node node_modules/@angular/cli/bin/ng.js serve --host 127.0.0.1 --port "$web_port") \
+      >"$artifacts/frontend.log" 2>&1 &
+  fi
   web_pid=$!
   if ! kill -0 "$web_pid" 2>/dev/null; then echo "Angular não iniciou; confira $artifacts/frontend.log" >&2; exit 1; fi
   ready=0

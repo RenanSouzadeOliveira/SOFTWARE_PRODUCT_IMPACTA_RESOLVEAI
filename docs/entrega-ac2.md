@@ -37,7 +37,7 @@ Para praticar a apresentação com o ambiente ainda funcionando:
 bash scripts/validar-ac2.sh --com-navegador --manter
 ```
 
-Neste modo, a API utiliza `8080`, coerente com o Angular de desenvolvimento; se essa porta já estiver ocupada, o comando recusa a execução sem encerrar seu serviço. `--manter` não permite sobrescrever a porta da API por outra. A reescrita para uma porta diferente existe apenas na automação do navegador, não na apresentação manual.
+Neste modo, a API utiliza `8080`, coerente com o Angular de desenvolvimento; se essa porta já estiver ocupada, o comando recusa a execução sem encerrar seu serviço. `--manter` não permite sobrescrever a porta da API por outra. No Linux, exige `nohup` e `setsid` para manter os processos independentes da sessão que executou o comando. A reescrita para uma porta diferente existe apenas na automação do navegador, não na apresentação manual.
 
 Depois de sucesso, consulte o arquivo privado `ambiente.txt` indicado pelo comando. Ele informa URLs e como encerrar exatamente aquele ambiente. Contas e senha estão em `fixtures.json`, com acesso privado, e devem permanecer locais. Por padrão, o ambiente é removido e os relatórios são preservados em `/tmp`.
 
@@ -74,6 +74,7 @@ O PostgreSQL arredonda timestamps para microssegundos; verificações de não al
 - Roteiro API: 55 requisições reais aprovadas, quatro estados preparados, disputa de atribuição `200/409`, um responsável/versão/evento, falha real de histórico com rollback do chamado e de ambos os históricos.
 - Roteiro navegador: 14 checkpoints aprovados, ciclo completo e três perfis, persistência de comentários, recuperação de falhas controladas, prevenção de envio duplicado, texto HTML não executado e detalhe em 360 px.
 - Vídeo silencioso e capturas gerados localmente, revisados no ambiente de execução. Não contêm fixtures nem tokens; a publicação continua sendo uma etapa independente.
+- Modo `--manter` conferido após o encerramento do roteiro: API e Angular permaneceram disponíveis e o login funcionou no navegador sem reescrita de requisições.
 
 Nenhum código de produção precisou ser alterado nesta consolidação. O incremento acrescenta roteiro executável, dados fictícios seguros, verificações e documentação de entrega. O ambiente de validação foi removido ao terminar; o PostgreSQL habitual permaneceu intacto.
 
