@@ -12,7 +12,15 @@
           <a routerLink="/chamados/novo" routerLinkActive="active">Abrir chamado</a>
         }
         @if (user.perfil === 'ATENDENTE' || user.perfil === 'ADMIN') {
-          <a routerLink="/atendimento" routerLinkActive="active">Atendimento</a>
+          <a
+            routerLink="/atendimento"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+            >Atendimento</a
+          >
+        }
+        @if (user.perfil === 'ADMIN') {
+          <a routerLink="/atendimento/todos" routerLinkActive="active">Todos os chamados</a>
         }
         <a routerLink="/minha-conta" routerLinkActive="active">Minha conta</a>
         <button type="button" class="nav-button" (click)="logout()">Sair</button>

@@ -53,4 +53,14 @@ public interface ChamadoRepository extends Repository<Chamado, Long> {
     Page<Chamado> findCarteira(@Param("atendenteId") Long atendenteId,
             @Param("status") StatusChamado status, @Param("prioridade") PrioridadeChamado prioridade,
             @Param("categoriaId") Long categoriaId, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"categoria", "atendente"})
+    @Query("""
+            select c from Chamado c where (:status is null or c.status = :status)
+            and (:prioridade is null or c.prioridade = :prioridade)
+            and (:categoriaId is null or c.categoria.id = :categoriaId)
+            """)
+    Page<Chamado> findTodos(@Param("status") StatusChamado status,
+            @Param("prioridade") PrioridadeChamado prioridade, @Param("categoriaId") Long categoriaId,
+            Pageable pageable);
 }

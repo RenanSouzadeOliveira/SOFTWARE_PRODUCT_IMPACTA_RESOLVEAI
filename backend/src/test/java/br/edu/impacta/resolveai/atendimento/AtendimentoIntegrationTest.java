@@ -63,6 +63,7 @@ class AtendimentoIntegrationTest {
     @Autowired private JdbcTemplate jdbc;
     @Autowired private JwtService jwt;
     @Autowired private AssignmentClock clock;
+    @Autowired private br.edu.impacta.resolveai.chamado.CicloChamadoService ciclo;
 
     private Usuario solicitante;
     private Usuario atendente;
@@ -104,6 +105,62 @@ class AtendimentoIntegrationTest {
                 .andExpect(status().isUnauthorized());
         assertThatThrownBy(() -> service.assumir(chamado.id(), principal(solicitante)))
                 .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    void shouldRestrictGlobalListingToActiveAdminAndValidateFilters() throws Exception {
+        String url = "/api/atendimento/todos";
+        mvc.perform(get(url)).andExpect(status().isUnauthorized());
+        for (Usuario user : List.of(solicitante, atendente, outroAtendente)) {
+            mvc.perform(get(url).header("Authorization", token(user))).andExpect(status().isForbidden());
+            assertThatThrownBy(() -> service.todos(principal(user), 0, 10, null, null, null))
+                    .isInstanceOf(AccessDeniedException.class);
+        }
+        for (String filter : List.of("page=-1", "size=0", "size=51", "categoriaId=0",
+                "status=INVALIDO", "prioridade=URGENTE"))
+            mvc.perform(get(url + "?" + filter).header("Authorization", token(admin)))
+                    .andExpect(status().isBadRequest());
+        String token = token(admin);
+        admin.desativar(Instant.now());
+        usuarios.save(admin);
+        mvc.perform(get(url).header("Authorization", token)).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldListAllOwnersAndStatusesWithStablePaginationAndCombinedFilters() throws Exception {
+        Instant date = Instant.parse("2026-10-01T12:00:00Z");
+        Chamado aberto = abrir(categoria, PrioridadeChamado.BAIXA, date);
+        Usuario outroSolicitante = usuario(Perfil.SOLICITANTE);
+        Chamado emAtendimento = chamados.saveAndFlush(Chamado.abrir("RA-" + UUID.randomUUID().toString().substring(0, 22),
+                "Outro solicitante", "Descricao do chamado de outro solicitante", PrioridadeChamado.ALTA,
+                outroSolicitante, categoria, date));
+        Chamado resolvido = abrir(categoria, PrioridadeChamado.MEDIA, date);
+        Chamado fechado = abrir(categoria, PrioridadeChamado.ALTA, date);
+        for (Chamado ticket : List.of(emAtendimento, resolvido, fechado)) service.assumir(ticket.id(), principal(atendente));
+        for (Chamado ticket : List.of(resolvido, fechado)) ciclo.alterarStatus(ticket.id(), principal(atendente),
+                new br.edu.impacta.resolveai.chamado.dto.AlterarStatusRequest(StatusChamado.RESOLVIDO, "Resolucao para demonstracao"));
+        ciclo.alterarStatus(fechado.id(), principal(solicitante),
+                new br.edu.impacta.resolveai.chamado.dto.AlterarStatusRequest(StatusChamado.FECHADO, null));
+        String url = "/api/atendimento/todos?categoriaId=" + categoria.id();
+        JsonNode result = json.readTree(mvc.perform(get(url).header("Authorization", token(admin)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.totalElements").value(4))
+                .andReturn().getResponse().getContentAsString());
+        assertThat(result.get("content").findValuesAsText("status"))
+                .containsExactly("FECHADO", "RESOLVIDO", "EM_ATENDIMENTO", "ABERTO");
+        assertThat(result.get("content").toString()).doesNotContain("senha", "email", "hash-ficticio");
+        mvc.perform(get(url + "&size=1&page=1").header("Authorization", token(admin)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.content[0].id").value(resolvido.id()))
+                .andExpect(jsonPath("$.totalPages").value(4));
+        mvc.perform(get(url + "&status=EM_ATENDIMENTO&prioridade=ALTA").header("Authorization", token(admin)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.content[0].id").value(emAtendimento.id()));
+        mvc.perform(get(url + "&status=ABERTO&prioridade=ALTA").header("Authorization", token(admin)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.content").isEmpty());
+        mvc.perform(get("/api/atendimento/me?categoriaId=" + categoria.id()).header("Authorization", token(admin)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.content").isEmpty());
+        mvc.perform(get("/api/atendimento/fila?categoriaId=" + categoria.id()).header("Authorization", token(admin)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.content[0].id").value(aberto.id()));
     }
 
     @Test

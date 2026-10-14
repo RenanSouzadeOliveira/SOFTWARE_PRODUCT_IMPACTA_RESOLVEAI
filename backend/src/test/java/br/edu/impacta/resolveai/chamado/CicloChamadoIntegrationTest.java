@@ -17,6 +17,9 @@ import br.edu.impacta.resolveai.usuario.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.*;
@@ -28,6 +31,7 @@ import org.springframework.test.web.servlet.*;
 
 @SpringBootTest @AutoConfigureMockMvc @ActiveProfiles("test")
 @Import(CicloChamadoIntegrationTest.ConcurrencyConfiguration.class)
+@ExtendWith(OutputCaptureExtension.class)
 class CicloChamadoIntegrationTest {
     @Autowired private MockMvc mvc;
     @Autowired private ObjectMapper json;
@@ -52,7 +56,7 @@ class CicloChamadoIntegrationTest {
                 "Falha de acesso", "Nao consigo acessar o recurso solicitado", solicitante, categoria, Instant.now()));
     }
 
-    @Test void shouldRunFullLifecycleWithExactlyOneOrderedEventPerTransition() throws Exception {
+    @Test void shouldRunFullLifecycleWithExactlyOneOrderedEventPerTransition(CapturedOutput output) throws Exception {
         atribuicao.assumir(chamado.id(), principal(atendente));
         JsonNode resolved = alterarStatus(atendente, "RESOLVIDO", "  Acesso foi restabelecido  ", 200);
         assertThat(resolved.at("/solucao").asText()).isEqualTo("Acesso foi restabelecido");
@@ -82,6 +86,13 @@ class CicloChamadoIntegrationTest {
         assertThat(closed.at("/historicoStatus/0/observacao").isNull()).isTrue();
         assertThat(closed.at("/historicoStatus/1/observacao").asText()).isEqualTo("Acesso foi restabelecido");
         assertThat(statusCount()).isEqualTo(5);
+        assertThat(output.getOut().lines().filter(line -> line.contains("AUDITORIA evento=CHAMADO_RESOLVIDO")).count()).isEqualTo(2);
+        assertThat(output.getOut()).contains("evento=CHAMADO_REABERTO chamadoId=" + chamado.id(),
+                "evento=CHAMADO_FECHADO chamadoId=" + chamado.id(),
+                "perfil=ATENDENTE statusAnterior=EM_ATENDIMENTO statusNovo=RESOLVIDO",
+                "perfil=SOLICITANTE statusAnterior=RESOLVIDO statusNovo=FECHADO");
+        assertThat(output.getOut().lines().filter(line -> line.contains("AUDITORIA")).toList())
+                .noneMatch(line -> line.contains("Acesso foi restabelecido") || line.contains("Ainda nao consigo acessar"));
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM historico_chamados WHERE chamado_id=? AND tipo_evento='STATUS'",
                 Long.class, chamado.id())).isZero();
         alterarStatus(admin, "EM_ATENDIMENTO", "Reabrir apos fechamento", 409);
@@ -142,7 +153,7 @@ class CicloChamadoIntegrationTest {
         assertThat(statusCount()).isEqualTo(5);
     }
 
-    @Test void shouldAuditPriorityAndAllowOnlyResponsibleWhileServingOrAdminUntilClosed() throws Exception {
+    @Test void shouldAuditPriorityAndAllowOnlyResponsibleWhileServingOrAdminUntilClosed(CapturedOutput output) throws Exception {
         prioridade(solicitante, "ALTA", 403);
         prioridade(outroAtendente, "ALTA", 403);
         prioridade(admin, "ALTA", 200);
@@ -162,9 +173,11 @@ class CicloChamadoIntegrationTest {
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM historico_chamados WHERE chamado_id=? AND tipo_evento='PRIORIDADE' "
                 + "AND prioridade_anterior='ALTA' AND prioridade_nova='BAIXA' AND autor_id=?", Long.class,
                 chamado.id(), atendente.id())).isEqualTo(1);
+        assertThat(output.getOut().lines().filter(line -> line.contains("evento=CHAMADO_PRIORIDADE ")).count()).isEqualTo(3);
+        assertThat(output.getOut()).contains("perfil=ATENDENTE prioridadeAnterior=ALTA prioridadeNova=BAIXA");
     }
 
-    @Test void shouldRollbackStatusWhenHistoryFailsAndAssignmentWhenStatusHistoryFails() throws Exception {
+    @Test void shouldRollbackStatusWhenHistoryFailsAndAssignmentWhenStatusHistoryFails(CapturedOutput output) throws Exception {
         jdbc.execute("ALTER TABLE historico_status ADD CONSTRAINT test_status_failure CHECK (chamado_id <> " + chamado.id() + ")");
         try {
             mvc.perform(patch(url() + "/assumir").header("Authorization", token(atendente)))
@@ -183,10 +196,11 @@ class CicloChamadoIntegrationTest {
             assertThat(persisted.resolvidoEm()).isNull();
             assertThat(persisted.versao()).isEqualTo(1);
             assertThat(statusCount()).isEqualTo(1);
+            assertThat(output.getOut()).doesNotContain("AUDITORIA evento=CHAMADO_RESOLVIDO");
         } finally { jdbc.execute("ALTER TABLE historico_status DROP CONSTRAINT test_status_failure"); }
     }
 
-    @Test void shouldAllowExactlyOneConcurrentResolutionAndItsHistory() throws Exception {
+    @Test void shouldAllowExactlyOneConcurrentResolutionAndItsHistory(CapturedOutput output) throws Exception {
         atribuicao.assumir(chamado.id(), principal(atendente));
         String token = token(atendente);
         clock.barrier = new CyclicBarrier(2);
@@ -200,10 +214,11 @@ class CicloChamadoIntegrationTest {
             assertThat(List.of(a.get(20, TimeUnit.SECONDS), b.get(20, TimeUnit.SECONDS))).containsExactlyInAnyOrder(200, 409);
             assertThat(statusCount()).isEqualTo(2);
             assertThat(chamados.findById(chamado.id()).orElseThrow().versao()).isEqualTo(2);
+            assertThat(output.getOut().lines().filter(line -> line.contains("AUDITORIA evento=CHAMADO_RESOLVIDO")).count()).isEqualTo(1);
         } finally { clock.barrier = null; }
     }
 
-    @Test void shouldRollbackPriorityWhenItsAuditCannotBeWritten() throws Exception {
+    @Test void shouldRollbackPriorityWhenItsAuditCannotBeWritten(CapturedOutput output) throws Exception {
         atribuicao.assumir(chamado.id(), principal(atendente));
         jdbc.execute("ALTER TABLE historico_chamados ADD CONSTRAINT test_priority_failure CHECK (chamado_id <> "
                 + chamado.id() + " OR tipo_evento <> 'PRIORIDADE')");
@@ -215,6 +230,7 @@ class CicloChamadoIntegrationTest {
             assertThat(statusCount()).isEqualTo(1);
             assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM historico_chamados WHERE chamado_id=? AND tipo_evento='PRIORIDADE'",
                     Long.class, chamado.id())).isZero();
+            assertThat(output.getOut()).doesNotContain("AUDITORIA evento=CHAMADO_PRIORIDADE");
         } finally { jdbc.execute("ALTER TABLE historico_chamados DROP CONSTRAINT test_priority_failure"); }
     }
 

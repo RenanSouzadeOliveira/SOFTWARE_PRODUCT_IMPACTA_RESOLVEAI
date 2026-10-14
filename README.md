@@ -99,7 +99,14 @@ AUDITORIA evento=LOGIN_REALIZADO usuarioId=1 perfil=SOLICITANTE
 AUDITORIA evento=CONTA_ATUALIZADA usuarioId=1 campos=nome
 AUDITORIA evento=CHAMADO_ABERTO chamadoId=10 protocolo=RA-... solicitanteId=1 status=ABERTO atendenteId=null
 HTTP metodo=POST caminho=/api/chamados status=201 duracaoMs=35
+AUDITORIA evento=CHAMADO_PRIORIDADE chamadoId=10 protocolo=RA-... autorId=2 perfil=ATENDENTE prioridadeAnterior=MEDIA prioridadeNova=ALTA
+AUDITORIA evento=COMENTARIO_CRIADO comentarioId=1 chamadoId=10 protocolo=RA-... autorId=2 perfil=ATENDENTE
+AUDITORIA evento=CHAMADO_RESOLVIDO chamadoId=10 protocolo=RA-... autorId=2 perfil=ATENDENTE statusAnterior=EM_ATENDIMENTO statusNovo=RESOLVIDO
+AUDITORIA evento=CHAMADO_REABERTO chamadoId=10 protocolo=RA-... autorId=1 perfil=SOLICITANTE statusAnterior=RESOLVIDO statusNovo=EM_ATENDIMENTO
+AUDITORIA evento=CHAMADO_FECHADO chamadoId=10 protocolo=RA-... autorId=1 perfil=SOLICITANTE statusAnterior=RESOLVIDO statusNovo=FECHADO
 ```
+
+Os eventos de alteração da AC2 são emitidos somente após a confirmação da transação no banco: uma falha ou rollback não gera log de sucesso. Comentários e justificativas não aparecem nos logs. Requisições recusadas podem ser identificadas na linha HTTP pelo código 400, 403 ou 409.
 
 Os valores variam em cada execução. Para usar como evidência, mantenha o terminal em uma área visível durante o fluxo e não mostre o arquivo `.env`.
 
@@ -169,8 +176,11 @@ O contrato, a decisão de segurança e o roteiro com dois solicitantes estão em
 
 A área `/atendimento` permite que `ATENDENTE` e `ADMIN` encontrem chamados `ABERTO` sem responsável, filtrem por prioridade/categoria e assumam um atendimento com confirmação. Em `/atendimento/me`, cada usuário consulta sua própria carteira, com filtros e paginação no servidor.
 
+O menu e a aba **Todos os chamados** (`/atendimento/todos`) são exclusivos de `ADMIN`. Essa visão reúne todos os solicitantes, responsáveis e estados, com filtros por status, prioridade e categoria. Cada item abre o detalhe diretamente, com retorno à listagem administrativa. Ela não muda o escopo da fila nem da carteira pessoal e não permite alterar chamados fechados.
+
 - `GET /api/atendimento/fila`: fila paginada de chamados disponíveis.
 - `GET /api/atendimento/me`: carteira paginada do usuário autenticado.
+- `GET /api/atendimento/todos`: listagem global paginada exclusiva de ADMIN ativo; outros perfis recebem `403`.
 - `GET /api/atendimento/categorias`: categorias do filtro, incluindo inativas para consultar chamados existentes.
 - `PATCH /api/chamados/{id}/assumir`: registra responsável e data de atribuição, muda o status para `EM_ATENDIMENTO` e impede sobrescrita concorrente com resposta `409`.
 

@@ -80,6 +80,12 @@ class ChamadoServiceTest {
                     PrioridadeChamado prioridade, Long categoriaId, Pageable pageable) {
                 return Page.empty(pageable);
             }
+
+            @Override
+            public Page<Chamado> findTodos(StatusChamado status, PrioridadeChamado prioridade,
+                    Long categoriaId, Pageable pageable) {
+                return Page.empty(pageable);
+            }
         };
         ProtocoloChamadoGenerator generator = new ProtocoloChamadoGenerator() {
             @Override

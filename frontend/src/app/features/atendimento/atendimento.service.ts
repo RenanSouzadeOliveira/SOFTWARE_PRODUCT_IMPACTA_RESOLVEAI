@@ -15,11 +15,22 @@ export class AtendimentoService {
   }
 
   listar(carteira: boolean, filtros: FiltrosAtendimento): Observable<PaginaAtendimento> {
+    return this.consultar(carteira ? 'me' : 'fila', filtros);
+  }
+
+  listarTodos(filtros: FiltrosAtendimento): Observable<PaginaAtendimento> {
+    return this.consultar('todos', filtros);
+  }
+
+  private consultar(
+    area: 'fila' | 'me' | 'todos',
+    filtros: FiltrosAtendimento,
+  ): Observable<PaginaAtendimento> {
     let params = new HttpParams().set('page', filtros.page).set('size', filtros.size);
     if (filtros.prioridade) params = params.set('prioridade', filtros.prioridade);
     if (filtros.categoriaId) params = params.set('categoriaId', filtros.categoriaId);
-    if (carteira && filtros.status) params = params.set('status', filtros.status);
-    return this.api.get<PaginaAtendimento>(`atendimento/${carteira ? 'me' : 'fila'}`, { params });
+    if (area !== 'fila' && filtros.status) params = params.set('status', filtros.status);
+    return this.api.get<PaginaAtendimento>(`atendimento/${area}`, { params });
   }
 
   assumir(id: number): Observable<AtendimentoResumo> {

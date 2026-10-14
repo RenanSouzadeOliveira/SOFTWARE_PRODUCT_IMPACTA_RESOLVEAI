@@ -18,6 +18,7 @@ A especificação executável é gerada pelo código em `/v3/api-docs`; a interf
 | `GET /api/atendimento/acesso` | ATENDENTE/ADMIN: verificação de acesso |
 | `GET /api/atendimento/fila` | ATENDENTE/ADMIN: ABERTO sem responsável, filtros e paginação |
 | `GET /api/atendimento/me` | ATENDENTE/ADMIN: sua carteira, filtros e paginação |
+| `GET /api/atendimento/todos` | Somente ADMIN ativo: todos os chamados, filtros e paginação |
 | `GET /api/atendimento/categorias` | ATENDENTE/ADMIN: categorias ativas e inativas para consulta |
 | `PATCH /api/chamados/{id}/assumir` | ATENDENTE/ADMIN: responsável atual e EM_ATENDIMENTO |
 | `PATCH /api/chamados/{id}/prioridade` | Responsável em atendimento ou ADMIN em estado não terminal |
@@ -43,7 +44,9 @@ O solicitante proprietário confirma ou reabre a resolução; o responsável res
 
 ## Contratos e erros
 
-Fila/carteira retornam `{ content, page, size, totalElements, totalPages }`, com ordenação por criação e ID decrescentes. `page` inicia em zero; `size` padrão 10, máximo 50. Filtros: `prioridade`, `categoriaId` e, na carteira, `status`.
+Fila/carteira/listagem global retornam `{ content, page, size, totalElements, totalPages }`, com ordenação por criação e ID decrescentes. `page` inicia em zero; `size` padrão 10, máximo 50. Filtros: `prioridade`, `categoriaId` e, na carteira e listagem global, `status`.
+
+A listagem global não filtra por proprietário ou responsável e inclui todos os estados, inclusive FECHADO. Exemplo: `GET /api/atendimento/todos?page=0&size=10&status=EM_ATENDIMENTO&prioridade=ALTA&categoriaId=1`. Sem token ou com conta inativa retorna `401`; ATENDENTE e SOLICITANTE recebem `403`; filtros ou paginação inválidos retornam `400`. A resposta usa o mesmo DTO seguro da carteira, sem credenciais, e-mail ou entidades JPA. Os detalhes e ações continuam em `/api/chamados/{id}`, respeitando a máquina de estados.
 
 Detalhe inclui `acoesPermitidas` e `historicoStatus`. Comentários retornam `{ content, podeComentar }`, com data/ID crescentes. Datas são ISO 8601 UTC. DTOs não expõem entidades JPA, senha, hash ou dados desnecessários de usuários.
 

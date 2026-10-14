@@ -101,6 +101,16 @@ public class AtendimentoService {
         return ChamadoAtendimentoResponse.from(chamado);
     }
 
+    @Transactional(readOnly = true)
+    public PaginaAtendimentoResponse todos(UsuarioPrincipal principal, int page, int size,
+            PrioridadeChamado prioridade, Long categoriaId, StatusChamado status) {
+        Usuario usuario = usuarioAutorizado(principal);
+        if (usuario.perfil() != Perfil.ADMIN)
+            throw new AccessDeniedException("Consulta de todos os chamados exige perfil ADMIN");
+        return PaginaAtendimentoResponse.from(chamados.findTodos(status, prioridade, categoriaId,
+                pagina(page, size, categoriaId)));
+    }
+
     private Usuario usuarioAutorizado(UsuarioPrincipal principal) {
         if (principal == null) {
             throw new NaoAutorizadoException("Autenticacao necessaria");

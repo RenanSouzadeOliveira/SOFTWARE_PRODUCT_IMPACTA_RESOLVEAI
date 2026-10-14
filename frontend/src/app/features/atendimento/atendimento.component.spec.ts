@@ -31,7 +31,13 @@ describe('AtendimentoComponent', () => {
   let assignment: Subject<AtendimentoResumo>;
   let params: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
   let carteira: boolean;
-  const service = { listar: vi.fn(), assumir: vi.fn(), listarCategorias: vi.fn() };
+  let todos: boolean;
+  const service = {
+    listar: vi.fn(),
+    listarTodos: vi.fn(),
+    assumir: vi.fn(),
+    listarCategorias: vi.fn(),
+  };
   const auth = { hasRole: vi.fn(() => false) };
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -39,7 +45,14 @@ describe('AtendimentoComponent', () => {
     assignment = new Subject();
     params = new BehaviorSubject(convertToParamMap({}));
     carteira = false;
+    todos = false;
+    auth.hasRole.mockReturnValue(false);
     service.listar.mockImplementation(() => {
+      const response = new Subject<PaginaAtendimento>();
+      responses.push(response);
+      return response;
+    });
+    service.listarTodos.mockImplementation(() => {
       const response = new Subject<PaginaAtendimento>();
       responses.push(response);
       return response;
@@ -59,7 +72,7 @@ describe('AtendimentoComponent', () => {
         { provide: AuthService, useValue: auth },
         {
           provide: ActivatedRoute,
-          useFactory: () => ({ snapshot: { data: { carteira } }, queryParamMap: params }),
+          useFactory: () => ({ snapshot: { data: { carteira, todos } }, queryParamMap: params }),
         },
       ],
     }).compileComponents();
@@ -69,6 +82,56 @@ describe('AtendimentoComponent', () => {
     fixture.detectChanges();
     return fixture;
   }
+
+  it('mostra a aba global somente para ADMIN', () => {
+    const fixture = render();
+    expect(fixture.nativeElement.querySelector('a[href="/atendimento/todos"]')).toBeNull();
+    fixture.destroy();
+    auth.hasRole.mockReturnValue(true);
+    const adminFixture = render();
+    expect(adminFixture.nativeElement.querySelector('a[href="/atendimento/todos"]')).not.toBeNull();
+  });
+
+  it('lista todos os estados, filtra e abre detalhes com retorno à visão global', () => {
+    todos = true;
+    auth.hasRole.mockReturnValue(true);
+    params.next(convertToParamMap({ status: 'FECHADO', prioridade: 'ALTA', categoriaId: '1' }));
+    const fixture = render();
+    expect(service.listar).not.toHaveBeenCalled();
+    expect(service.listarTodos).toHaveBeenLastCalledWith({
+      page: 0,
+      size: 10,
+      status: 'FECHADO',
+      prioridade: 'ALTA',
+      categoriaId: 1,
+    });
+    expect(fixture.nativeElement.textContent).toContain('Carregando chamados');
+    responses[0].next(
+      page([{ ...item, status: 'FECHADO', atendente: { id: 3, nome: 'Atendente responsável' } }]),
+    );
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('h1').textContent).toContain('Todos os chamados');
+    expect(fixture.nativeElement.querySelector('#status').value).toBe('FECHADO');
+    expect(fixture.nativeElement.querySelector('a[href="/atendimento/todos/7"]')).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Atendente responsável');
+    expect(fixture.nativeElement.querySelector('article button')).toBeNull();
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    fixture.componentInstance.applyFilters();
+    expect(navigate).toHaveBeenLastCalledWith(
+      [],
+      expect.objectContaining({
+        queryParams: { page: 0, status: 'FECHADO', prioridade: 'ALTA', categoriaId: '1' },
+      }),
+    );
+    fixture.componentInstance.refresh();
+    responses[1].error(new Error('offline'));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Não foi possível carregar');
+    fixture.componentInstance.refresh();
+    responses[2].next(page([]));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Nenhum chamado encontrado');
+  });
 
   it('não oferece detalhe de chamado sem responsável na fila do atendente', () => {
     const fixture = render();

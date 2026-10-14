@@ -37,6 +37,7 @@ export class AtendimentoComponent implements OnInit {
   private readonly reload = new BehaviorSubject(0);
   private trigger: HTMLElement | null = null;
   protected readonly carteira = this.route.snapshot.data['carteira'] === true;
+  protected readonly todos = this.route.snapshot.data['todos'] === true;
   protected readonly auth = inject(AuthService);
   protected readonly prioridades: readonly Prioridade[] = ['BAIXA', 'MEDIA', 'ALTA'];
   protected readonly statuses: readonly StatusChamado[] = [
@@ -75,7 +76,10 @@ export class AtendimentoComponent implements OnInit {
           this.error.set(null);
         }),
         switchMap(([params]) =>
-          this.service.listar(this.carteira, this.filters(params)).pipe(
+          (this.todos
+            ? this.service.listarTodos(this.filters(params))
+            : this.service.listar(this.carteira, this.filters(params))
+          ).pipe(
             tap((pagina) => {
               if (pagina.page >= Math.max(pagina.totalPages, 1)) {
                 this.goToPage(Math.max(pagina.totalPages - 1, 0));
@@ -117,7 +121,7 @@ export class AtendimentoComponent implements OnInit {
         page: 0,
         prioridade: values.prioridade || null,
         categoriaId: values.categoriaId || null,
-        status: this.carteira ? values.status || null : null,
+        status: this.carteira || this.todos ? values.status || null : null,
       },
     });
   }
@@ -210,7 +214,7 @@ export class AtendimentoComponent implements OnInit {
       size: 10,
       prioridade: this.prioridades.includes(prioridade) ? prioridade : undefined,
       categoriaId: Number.isSafeInteger(categoria) && categoria > 0 ? categoria : undefined,
-      status: this.carteira && this.statuses.includes(status) ? status : undefined,
+      status: (this.carteira || this.todos) && this.statuses.includes(status) ? status : undefined,
     };
   }
 }

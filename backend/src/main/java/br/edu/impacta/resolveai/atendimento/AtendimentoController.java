@@ -113,4 +113,26 @@ public class AtendimentoController {
             @RequestParam(required = false) StatusChamado status) {
         return atendimentoService.carteira(principal, page, size, prioridade, categoriaId, status);
     }
+
+    @GetMapping("/todos")
+    @Operation(summary = "Consultar todos os chamados como administrador",
+            description = "Exclusivo de ADMIN ativo. Inclui todos os solicitantes, responsaveis e estados, "
+                    + "com filtros combinaveis de status, prioridade e categoriaId. Ordem criadoEm DESC, id DESC.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Pagina de todos os chamados, inclusive vazia"),
+            @ApiResponse(responseCode = "400", description = "Pagina, tamanho ou filtros invalidos",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou conta inativa",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Perfil diferente de ADMIN",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public PaginaAtendimentoResponse todos(@AuthenticationPrincipal UsuarioPrincipal principal,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) PrioridadeChamado prioridade,
+            @RequestParam(required = false) Long categoriaId,
+            @RequestParam(required = false) StatusChamado status) {
+        return atendimentoService.todos(principal, page, size, prioridade, categoriaId, status);
+    }
 }

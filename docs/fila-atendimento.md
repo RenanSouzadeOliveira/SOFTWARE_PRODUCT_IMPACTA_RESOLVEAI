@@ -21,7 +21,15 @@ GET /api/atendimento/categorias
 PATCH /api/chamados/{id}/assumir
 ```
 
-`page` começa em zero, `size` tem padrão 10 e limite 50. `prioridade` e `categoriaId` são filtros opcionais; `status` é opcional apenas na carteira. Os resultados têm ordenação estável por `criadoEm DESC, id DESC`. Filtros e paginação são aplicados no banco.
+`page` começa em zero, `size` tem padrão 10 e limite 50. `prioridade` e `categoriaId` são filtros opcionais; `status` é opcional na carteira e na visão global administrativa. Os resultados têm ordenação estável por `criadoEm DESC, id DESC`. Filtros e paginação são aplicados no banco.
+
+## Todos os chamados — ADMIN
+
+O ADMIN tem acesso pelo menu e pelas abas a `/atendimento/todos`, uma listagem global com todos os estados e responsáveis. O endpoint `GET /api/atendimento/todos` aceita os mesmos parâmetros da carteira, mas não restringe ao usuário logado. Usa o DTO seguro mostrado abaixo e não acrescenta dados ao banco.
+
+A interface apresenta carregamento, vazio, erro com nova tentativa, filtros, paginação e responsável (ou “Sem responsável”). **Ver detalhes** abre `/atendimento/todos/{id}`, com **Voltar para todos os chamados**. A atribuição continua na Fila, e as ações no detalhe continuam limitadas pelo perfil e estado: fechado é somente leitura. A carteira pessoal não se transforma em uma listagem global.
+
+ATENDENTE e SOLICITANTE não veem essa aba e recebem `403` ao consultar diretamente a API; conta inativa ou ausência de token retorna `401`. A autorização é verificada no filtro de segurança e novamente no serviço, consultando o perfil ativo no banco.
 
 O seletor de atendimento inclui categorias ativas e inativas para permitir localizar chamados já registrados. Essa consulta não altera a regra de abertura, que exige categoria ativa.
 

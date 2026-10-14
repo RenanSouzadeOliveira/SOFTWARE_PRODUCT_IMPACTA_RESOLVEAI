@@ -49,4 +49,18 @@ describe('AtendimentoService', () => {
     expect(assignment.request.body).toEqual({});
     assignment.flush({ id: 42 });
   });
+
+  it('consulta todos os chamados com paginação e filtros combinados', () => {
+    service
+      .listarTodos({ page: 1, size: 10, status: 'FECHADO', prioridade: 'ALTA', categoriaId: 2 })
+      .subscribe();
+    const req = http.expectOne((r) => r.url === `${environment.apiUrl}/atendimento/todos`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.params.get('page')).toBe('1');
+    expect(req.request.params.get('size')).toBe('10');
+    expect(req.request.params.get('status')).toBe('FECHADO');
+    expect(req.request.params.get('prioridade')).toBe('ALTA');
+    expect(req.request.params.get('categoriaId')).toBe('2');
+    req.flush({ content: [], page: 1, size: 10, totalPages: 0, totalElements: 0 });
+  });
 });

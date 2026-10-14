@@ -57,7 +57,19 @@ public class CicloChamadoService {
         String texto = chamado.alterarStatus(usuario, request.status(), request.justificativa(), agora);
         chamados.saveAndFlush(chamado);
         historicoStatus.save(HistoricoStatus.registrar(chamado, anterior, usuario, agora, texto));
-        auditar("STATUS", chamado.id(), usuario.id());
+        String evento = switch (chamado.status()) {
+            case RESOLVIDO -> "CHAMADO_RESOLVIDO";
+            case EM_ATENDIMENTO -> "CHAMADO_REABERTO";
+            case FECHADO -> "CHAMADO_FECHADO";
+            default -> throw new IllegalStateException("Transicao sem evento de auditoria");
+        };
+        Long chamadoId = chamado.id();
+        String protocolo = chamado.protocolo();
+        Long autorId = usuario.id();
+        var perfil = usuario.perfil();
+        StatusChamado novo = chamado.status();
+        auditar(() -> LOGGER.info("AUDITORIA evento={} chamadoId={} protocolo={} autorId={} perfil={} statusAnterior={} statusNovo={}",
+                evento, chamadoId, protocolo, autorId, perfil, anterior, novo));
         return resposta(chamado, usuario);
     }
 
@@ -70,7 +82,13 @@ public class CicloChamadoService {
         chamado.alterarPrioridade(usuario, request.prioridade(), agora);
         chamados.saveAndFlush(chamado);
         historicoAlteracoes.save(HistoricoAtribuicao.registrarPrioridade(chamado, anterior, usuario, agora));
-        auditar("PRIORIDADE", chamado.id(), usuario.id());
+        Long chamadoId = chamado.id();
+        String protocolo = chamado.protocolo();
+        Long autorId = usuario.id();
+        var perfil = usuario.perfil();
+        PrioridadeChamado nova = chamado.prioridade();
+        auditar(() -> LOGGER.info("AUDITORIA evento=CHAMADO_PRIORIDADE chamadoId={} protocolo={} autorId={} perfil={} prioridadeAnterior={} prioridadeNova={}",
+                chamadoId, protocolo, autorId, perfil, anterior, nova));
         return resposta(chamado, usuario);
     }
 
@@ -91,10 +109,10 @@ public class CicloChamadoService {
                 .orElseThrow(() -> new NaoAutorizadoException("Conta inexistente ou inativa"));
     }
 
-    private void auditar(String evento, Long chamadoId, Long autorId) {
+    private void auditar(Runnable registro) {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override public void afterCommit() {
-                LOGGER.info("AUDITORIA evento=CHAMADO_{} chamadoId={} autorId={}", evento, chamadoId, autorId);
+                registro.run();
             }
         });
     }

@@ -29,6 +29,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -40,6 +43,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 @SpringBootTest @AutoConfigureMockMvc @ActiveProfiles("test")
+@ExtendWith(OutputCaptureExtension.class)
 class ComentarioIntegrationTest {
     @Autowired private MockMvc mvc;
     @Autowired private ObjectMapper json;
@@ -64,6 +68,20 @@ class ComentarioIntegrationTest {
         Categoria category = categorias.save(Categoria.nova("Categoria " + UUID.randomUUID(), null, Instant.now()));
         ticket = chamados.saveAndFlush(Chamado.abrir("RA-" + UUID.randomUUID().toString().substring(0, 22),
                 "Falha de acesso", "Descricao suficientemente longa para o chamado", owner, category, Instant.now()));
+    }
+
+    @Test void shouldLogCommittedCommentsWithoutContentAndNeverLogRolledBackComments(CapturedOutput output) throws Exception {
+        new TransactionTemplate(transactions).executeWithoutResult(transaction -> {
+            service.criar(ticket.id(), principal(owner), new CriarComentarioRequest("Mensagem revertida e privada"));
+            transaction.setRollbackOnly();
+        });
+        assertThat(count()).isZero();
+        assertThat(output.getOut()).doesNotContain("AUDITORIA evento=COMENTARIO_CRIADO");
+        long id = criar(owner, "Mensagem persistida e privada", 201).get("id").asLong();
+        assertThat(output.getOut()).contains("evento=COMENTARIO_CRIADO comentarioId=" + id + " chamadoId=" + ticket.id()
+                + " protocolo=" + ticket.protocolo() + " autorId=" + owner.id() + " perfil=SOLICITANTE");
+        assertThat(output.getOut().lines().filter(line -> line.contains("AUDITORIA evento=COMENTARIO_CRIADO")).toList())
+                .hasSize(1).noneMatch(line -> line.contains("Mensagem persistida") || line.contains("Mensagem revertida"));
     }
 
     @Test void shouldRestrictVisibilityAndWritingBeforeAndAfterAssignment() throws Exception {

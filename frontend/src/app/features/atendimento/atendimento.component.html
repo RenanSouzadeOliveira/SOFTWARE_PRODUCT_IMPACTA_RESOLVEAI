@@ -1,11 +1,15 @@
 <section class="atendimento-page" aria-labelledby="atendimento-title">
   <p class="eyebrow">Atendimento</p>
-  <h1 id="atendimento-title">{{ carteira ? 'Meus atendimentos' : 'Fila de chamados' }}</h1>
+  <h1 id="atendimento-title">
+    {{ todos ? 'Todos os chamados' : carteira ? 'Meus atendimentos' : 'Fila de chamados' }}
+  </h1>
   <p>
     {{
-      carteira
-        ? 'Chamados sob sua responsabilidade, do mais recente ao mais antigo.'
-        : 'Chamados abertos disponíveis para assumir, do mais recente ao mais antigo.'
+      todos
+        ? 'Visão administrativa de todos os chamados, independentemente do solicitante ou responsável.'
+        : carteira
+          ? 'Chamados sob sua responsabilidade, do mais recente ao mais antigo.'
+          : 'Chamados abertos disponíveis para assumir, do mais recente ao mais antigo.'
     }}
   </p>
   <nav class="tabs" aria-label="Áreas de atendimento">
@@ -19,6 +23,11 @@
     <a routerLink="/atendimento/me" routerLinkActive="active" ariaCurrentWhenActive="page"
       >Meus atendimentos</a
     >
+    @if (auth.hasRole('ADMIN')) {
+      <a routerLink="/atendimento/todos" routerLinkActive="active" ariaCurrentWhenActive="page"
+        >Todos os chamados</a
+      >
+    }
   </nav>
   <form [formGroup]="form" (ngSubmit)="applyFilters()" class="filters">
     <div>
@@ -39,7 +48,7 @@
         }
       </select>
     </div>
-    @if (carteira) {
+    @if (carteira || todos) {
       <div>
         <label for="status">Status</label
         ><select id="status" formControlName="status">
@@ -114,9 +123,11 @@
         @if (result.content.length === 0) {
           <p class="empty" role="status">
             {{
-              carteira
-                ? 'Nenhum atendimento encontrado para estes filtros.'
-                : 'Nenhum chamado disponível para estes filtros.'
+              todos
+                ? 'Nenhum chamado encontrado para estes filtros.'
+                : carteira
+                  ? 'Nenhum atendimento encontrado para estes filtros.'
+                  : 'Nenhum chamado disponível para estes filtros.'
             }}
           </p>
         }
@@ -142,25 +153,25 @@
                   <dt>Aberto em</dt>
                   <dd>{{ item.criadoEm | date: 'dd/MM/yyyy HH:mm' }}</dd>
                 </div>
-                @if (carteira) {
+                @if (carteira || todos) {
                   <div>
                     <dt>Atribuído em</dt>
                     <dd>{{ (item.atribuidoEm | date: 'dd/MM/yyyy HH:mm') ?? 'Não registrada' }}</dd>
                   </div>
                   <div>
                     <dt>Responsável</dt>
-                    <dd>{{ item.atendente?.nome }}</dd>
+                    <dd>{{ item.atendente?.nome ?? 'Sem responsável' }}</dd>
                   </div>
                 }
               </dl>
               @if (carteira || auth.hasRole('ADMIN')) {
                 <a
-                  [routerLink]="['/atendimento/chamados', item.id]"
+                  [routerLink]="[todos ? '/atendimento/todos' : '/atendimento/chamados', item.id]"
                   [attr.aria-label]="'Ver detalhes do chamado ' + item.protocolo"
                   >Ver detalhes</a
                 >
               }
-              @if (!carteira) {
+              @if (!carteira && !todos) {
                 <button
                   type="button"
                   class="primary-button"

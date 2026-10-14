@@ -98,6 +98,30 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'atendimento/todos',
+    title: 'Todos os chamados | ResolveAí',
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'ADMIN', todos: true },
+    loadComponent: () =>
+      import('./features/atendimento/atendimento.component').then(
+        (component) => component.AtendimentoComponent,
+      ),
+  },
+  {
+    path: 'atendimento/todos/:id',
+    title: 'Detalhes do chamado | ResolveAí',
+    canActivate: [authGuard, roleGuard],
+    data: {
+      role: 'ADMIN',
+      backRoute: '/atendimento/todos',
+      backLabel: 'Voltar para todos os chamados',
+    },
+    loadComponent: () =>
+      import('./features/chamados/detalhe-chamado.component').then(
+        (component) => component.DetalheChamadoComponent,
+      ),
+  },
+  {
     path: '**',
     title: 'Página não encontrada | ResolveAí',
     loadComponent: () =>
