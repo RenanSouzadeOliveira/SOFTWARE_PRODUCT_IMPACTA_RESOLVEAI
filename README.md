@@ -17,6 +17,10 @@ O Angular concentra a interface e os contratos tipados; o Spring Boot aplica val
 
 O [histórico completo de chamados AC3](docs/historico-chamados.md) reúne contrato HTTP, migration V9, timeline, evidências de testes e roteiro reproduzível do vídeo.
 
+## Validação integrada e entrega AC3
+
+O [relatório de release AC3](docs/ac3-release.md) registra a revisão validada, os resultados consolidados, os limites e os passos de reprodução. O [roteiro de gravação](docs/ac3-video.md) contém a narração em português e as pendências de publicação. Os scripts `scripts/ac3-release-browser.mjs` e `scripts/ac3-serve.mjs` apoiam a captura local do build padrão, usando Playwright instalado separadamente.
+
 ## Pré-requisitos
 
 - Node.js 22.12 ou superior na linha 22 e npm 10+

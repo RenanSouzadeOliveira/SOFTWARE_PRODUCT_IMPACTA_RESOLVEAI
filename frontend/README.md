@@ -41,7 +41,7 @@ As rotas `/atendimento` (fila) e `/atendimento/me` (carteira) são acessíveis a
 consulta exclusivamente os chamados atribuídos à conta autenticada.
 
 As listagens usam `GET /api/atendimento/fila` e `GET /api/atendimento/me`, com páginas
-de 10 registros e filtros opcionais `prioridade` e `categoriaId`; a carteira também
+de 20 registros e filtros opcionais `prioridade` e `categoriaId`; a carteira também
 aceita `status`. Filtros e página ficam na URL. A resposta contém `content`, `page`,
 `size`, `totalElements` e `totalPages`.
 

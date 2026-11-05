@@ -1,0 +1,39 @@
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Front-end
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/coverage/
+
+# Back-end
+backend/target/
+backend/.classpath
+backend/.project
+backend/.settings/
+
+# IDE and operating system
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+.codex/
+.agents/
+
+# Logs and temporary files
+*.log
+tmp/
+frontend/.gitignore
+AGENTS.md
+backend/.gitignore
+
+# Instruções e planejamento locais de agentes
+AGENTS.override.md
+docs/ACADEMIC_DELIVERY_PLAN.md
+
+# Exemplo antigo da raiz; o modelo oficial é backend/.env.example
+/.env.example

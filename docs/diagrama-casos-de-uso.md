@@ -1,6 +1,6 @@
 # Diagrama de casos de uso do ResolveAí
 
-Este documento apresenta a visão funcional completa planejada para o ResolveAí. O diagrama foi elaborado na AC1; a legenda original da AC2 representa a etapa planejada, não sua entrega integral. Na AC2, **consulta da fila, filtros, atribuição e Meus atendimentos** estão implementados, conforme [o contrato da fila](fila-atendimento.md). Também estão implementadas **alteração de prioridade, resolução, reabertura, fechamento e histórico de status**, conforme [as transições de estado](status-prioridade.md), e a **comunicação por comentários**, conforme [seu contrato](comentarios-chamados.md). Os demais casos planejados ainda não estão disponíveis.
+Este documento apresenta a visão funcional completa planejada para o ResolveAí. O diagrama foi elaborado na AC1; a legenda original da AC2 representa a etapa planejada, não sua entrega integral. Na AC2, **consulta da fila, filtros, atribuição e Meus atendimentos** estão implementados, conforme [o contrato da fila](fila-atendimento.md). Também estão implementadas **alteração de prioridade, resolução, reabertura, fechamento e histórico de status**, conforme [as transições de estado](status-prioridade.md), e a **comunicação por comentários**, conforme [seu contrato](comentarios-chamados.md). Na AC3, **paginação, ordenação, pesquisa com filtros combinados e histórico completo** também estão implementados, conforme [o relatório integrado](ac3-release.md). A imagem e o DOT preservam a legenda histórica de planejamento da AC1; ela não representa o estado atual da implementação. Dashboard e administração de usuários/categorias continuam planejados.
 
 ![Diagrama completo de casos de uso do ResolveAí](diagrama-casos-de-uso.svg)
 
@@ -15,8 +15,8 @@ Arquivos para apresentação:
 | Cor | Etapa | Situação |
 | --- | --- | --- |
 | Verde | AC1 | Implementada e validada |
-| Azul | AC2 | Planejada: operação de atendimento |
-| Laranja | AC3 | Planejada: consulta avançada e auditoria |
+| Azul | AC2 | Implementada: fila, atribuição, ciclo, prioridade e comentários |
+| Laranja | AC3 | Implementada e validada tecnicamente: consulta avançada e auditoria; publicação pendente |
 | Roxo | Entrega final | Planejada: gestão e visão operacional |
 
 ## Atores e responsabilidades
