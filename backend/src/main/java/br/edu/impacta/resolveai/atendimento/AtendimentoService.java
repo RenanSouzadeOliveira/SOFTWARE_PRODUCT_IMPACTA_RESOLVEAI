@@ -109,6 +109,15 @@ public class AtendimentoService {
         return ChamadoAtendimentoResponse.from(chamado);
     }
 
+    @Transactional(readOnly = true)
+    public PaginaAtendimentoResponse todos(UsuarioPrincipal principal, Pageable pageable,
+            br.edu.impacta.resolveai.chamado.FiltrosChamados filtros) {
+        Usuario usuario = usuarioAutorizado(principal);
+        if (usuario.perfil() != Perfil.ADMIN)
+            throw new AccessDeniedException("Consulta de todos os chamados exige perfil ADMIN");
+        return PaginaAtendimentoResponse.from(chamados.findAll(filtros.specification(), pageable));
+    }
+
     private Usuario usuarioAutorizado(UsuarioPrincipal principal) {
         if (principal == null) {
             throw new NaoAutorizadoException("Autenticacao necessaria");

@@ -93,11 +93,10 @@ const adminUser=await api('auth/register','POST',adminCredentials);assert.ok(Num
 const admin=await api('auth/login','POST',{email:adminCredentials.email,senha:adminCredentials.senha});
 const global=await api('chamados','GET',undefined,admin.accessToken);
 
- for(const [role,session] of [['ATENDENTE',agentSession],['ADMIN',admin]]) {
+ for(const [role,session,target] of [['ATENDENTE',agentSession,'/atendimento/me'],['ADMIN',admin,'/consulta-chamados'],['ADMIN',admin,'/atendimento/todos']]) {
   const context=await browser.newContext({viewport:{width:360,height:800},locale:'pt-BR',recordVideo:{dir:output+'/video-perfis',size:{width:360,height:800}}});
   await context.addInitScript(session=>sessionStorage.setItem('resolveai.auth.session',JSON.stringify({...session,expiresAt:Date.now()+session.expiresIn*1000})),session);
   const page=await context.newPage(); const errors=[]; page.on('pageerror',e=>errors.push(e.message));
-  const target=role==='ADMIN'?'/consulta-chamados':'/atendimento/me';
   await page.goto(webBase+target);
   const nav=page.getByRole('navigation',{name:'Paginação de chamados'});
   const expectTotal=n=>nav.filter({hasText:`${n} chamado(s)`}).waitFor({timeout:10000});
@@ -106,6 +105,8 @@ const global=await api('chamados','GET',undefined,admin.accessToken);
   if(role==='ADMIN') await page.getByLabel('Responsável',{exact:true}).selectOption(String(agent.id));
   await page.waitForURL(url=>url.searchParams.get('search')==='portal');
   await expectTotal(25);
+  await page.getByRole('combobox',{name:'Ordenar por',exact:true}).selectOption('titulo,asc');
+  await page.waitForURL(url=>url.searchParams.get('sort')==='titulo,asc');
   await page.getByRole('button',{name:'Próxima',exact:true}).click();await nav.filter({hasText:'Página 2 de 2'}).waitFor();
   await page.reload();await nav.filter({hasText:'Página 2 de 2'}).waitFor();assert.equal(await page.getByLabel('Buscar por protocolo ou texto').inputValue(),'portal');
   await page.getByRole('button',{name:'Limpar filtros',exact:true}).click();await expectTotal(role==='ADMIN'?global.totalElements:25);
@@ -115,7 +116,7 @@ const global=await api('chamados','GET',undefined,admin.accessToken);
    await page.getByLabel('Buscar por protocolo ou texto').fill('inexistente-ficticio');await expectTotal(0);
   }
   assert.deepEqual(errors,[]);await context.close();
-  console.log(role+': PASS filtros/paginação/refresh/limpeza/360px');
+  console.log(role+' '+target+': PASS filtros/paginação/sort/refresh/limpeza/360px');
  }
 
 } finally {await context.close();await browser.close()}

@@ -121,4 +121,35 @@ public class AtendimentoController {
             @RequestParam(required = false) StatusChamado status) {
         return atendimentoService.listarFiltrados(principal, PaginacaoChamados.parse(parameters), br.edu.impacta.resolveai.chamado.FiltrosChamados.parse(parameters), true);
     }
+
+    @GetMapping("/todos")
+    @Operation(summary = "Consultar todos os chamados como administrador",
+            description = "Exclusivo de ADMIN ativo. Inclui todos os solicitantes, responsaveis e estados, "
+                    + "com busca e filtros AND de status, prioridade, categoriaId, responsavel e datas UTC. Paginação AC3: page=0, size=20, máximo 100; sort=criadoEm,desc com desempate id DESC.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Pagina de todos os chamados, inclusive vazia"),
+            @ApiResponse(responseCode = "400", description = "Pagina, tamanho ou filtros invalidos",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou conta inativa",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Perfil diferente de ADMIN",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    @Parameters({
+            @Parameter(name = "page", in = ParameterIn.QUERY, schema = @Schema(defaultValue = "0", minimum = "0")),
+            @Parameter(name = "size", in = ParameterIn.QUERY, schema = @Schema(defaultValue = "20", minimum = "1", maximum = "100")),
+            @Parameter(name = "sort", in = ParameterIn.QUERY, schema = @Schema(defaultValue = "criadoEm,desc")),
+            @Parameter(name = "search", in = ParameterIn.QUERY),
+            @Parameter(name = "responsavel", in = ParameterIn.QUERY),
+            @Parameter(name = "dataInicial", in = ParameterIn.QUERY),
+            @Parameter(name = "dataFinal", in = ParameterIn.QUERY)
+    })
+    public PaginaAtendimentoResponse todos(@AuthenticationPrincipal UsuarioPrincipal principal,
+            @Parameter(hidden = true) @RequestParam MultiValueMap<String, String> parameters,
+            @RequestParam(required = false) PrioridadeChamado prioridade,
+            @RequestParam(required = false) Long categoriaId,
+            @RequestParam(required = false) StatusChamado status) {
+        return atendimentoService.todos(principal, PaginacaoChamados.parse(parameters),
+                br.edu.impacta.resolveai.chamado.FiltrosChamados.parse(parameters));
+    }
 }

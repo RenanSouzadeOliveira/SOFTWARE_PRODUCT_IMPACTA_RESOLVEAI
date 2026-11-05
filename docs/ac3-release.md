@@ -1,5 +1,7 @@
 # ResolveAí — validação integrada e release acadêmica AC3
 
+Registro histórico da validação anterior à sincronização dos branches. Os números e HTTP abaixo pertencem exclusivamente à revisão `facf63d`; a integração posterior é descrita em [Sincronização Git](ac3-sincronizacao.md).
+
 Data: 05/11/2026. Estado geral: **PARTIALLY VERIFIED**. A implementação passou na validação técnica descrita abaixo; a entrega pública acadêmica permanece pendente. Nenhum push, tag, release, publicação de vídeo ou alteração no Trello foi realizado.
 
 ## Revisão e auditoria Git

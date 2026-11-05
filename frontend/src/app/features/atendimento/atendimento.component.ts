@@ -50,6 +50,7 @@ export class AtendimentoComponent implements OnInit {
   private readonly reload = new BehaviorSubject(0);
   private trigger: HTMLElement | null = null;
   protected readonly carteira = this.route.snapshot.data['carteira'] === true;
+  protected readonly todos = this.route.snapshot.data['todos'] === true;
   protected readonly auth = inject(AuthService);
   protected readonly query = signal<Paginacao>({ page: 0, size: 20, sort: 'criadoEm,desc' });
   protected readonly state = signal<'loading' | 'success' | 'error'>('loading');
@@ -74,7 +75,7 @@ export class AtendimentoComponent implements OnInit {
           this.error.set(null);
         }),
         switchMap(({ filters }) =>
-          this.service.listar(this.carteira, filters).pipe(
+          (this.todos ? this.service.listarTodos(filters) : this.service.listar(this.carteira, filters)).pipe(
             tap((pagina) => {
               if (pagina.page >= Math.max(pagina.totalPages, 1)) {
                 this.navigateToPage(Math.max(pagina.totalPages - 1, 0));

@@ -62,10 +62,14 @@ public class ComentarioService {
         if (chamado.status() == StatusChamado.FECHADO)
             throw new ConflitoException("Chamado fechado nao permite novos comentarios");
         Comentario comentario = comentarios.save(Comentario.criar(chamado, usuario, request.conteudo(), Instant.now(clock)));
+        Long comentarioId = comentario.id();
+        String protocolo = chamado.protocolo();
+        Long autorId = usuario.id();
+        var perfil = usuario.perfil();
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override public void afterCommit() {
-                LOGGER.info("AUDITORIA evento=COMENTARIO_CRIADO comentarioId={} chamadoId={} autorId={}",
-                        comentario.id(), chamadoId, usuario.id());
+                LOGGER.info("AUDITORIA evento=COMENTARIO_CRIADO comentarioId={} chamadoId={} protocolo={} autorId={} perfil={}",
+                        comentarioId, chamadoId, protocolo, autorId, perfil);
             }
         });
         return ComentarioResponse.from(comentario);

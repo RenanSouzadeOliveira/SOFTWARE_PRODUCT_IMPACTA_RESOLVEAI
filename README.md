@@ -1,6 +1,6 @@
 # ResolveAí
 
-Fundação executável do ResolveAí, sistema acadêmico de gestão de chamados em três camadas:
+ResolveAí é um sistema acadêmico de gestão de chamados. O incremento da AC2 permite registrar um problema, assumir seu atendimento, trocar comentários, resolver, reabrir e fechar o chamado, com autorização e histórico em três camadas:
 
 - Angular e TypeScript no front-end;
 - Java 21 e Spring Boot no back-end;
@@ -105,7 +105,14 @@ AUDITORIA evento=LOGIN_REALIZADO usuarioId=1 perfil=SOLICITANTE
 AUDITORIA evento=CONTA_ATUALIZADA usuarioId=1 campos=nome
 AUDITORIA evento=CHAMADO_ABERTO chamadoId=10 protocolo=RA-... solicitanteId=1 status=ABERTO atendenteId=null
 HTTP metodo=POST caminho=/api/chamados status=201 duracaoMs=35
+AUDITORIA evento=CHAMADO_PRIORIDADE chamadoId=10 protocolo=RA-... autorId=2 perfil=ATENDENTE prioridadeAnterior=MEDIA prioridadeNova=ALTA
+AUDITORIA evento=COMENTARIO_CRIADO comentarioId=1 chamadoId=10 protocolo=RA-... autorId=2 perfil=ATENDENTE
+AUDITORIA evento=CHAMADO_RESOLVIDO chamadoId=10 protocolo=RA-... autorId=2 perfil=ATENDENTE statusAnterior=EM_ATENDIMENTO statusNovo=RESOLVIDO
+AUDITORIA evento=CHAMADO_REABERTO chamadoId=10 protocolo=RA-... autorId=1 perfil=SOLICITANTE statusAnterior=RESOLVIDO statusNovo=EM_ATENDIMENTO
+AUDITORIA evento=CHAMADO_FECHADO chamadoId=10 protocolo=RA-... autorId=1 perfil=SOLICITANTE statusAnterior=RESOLVIDO statusNovo=FECHADO
 ```
+
+Os eventos de alteração da AC2 são emitidos somente após a confirmação da transação no banco: uma falha ou rollback não gera log de sucesso. Comentários e justificativas não aparecem nos logs. Requisições recusadas podem ser identificadas na linha HTTP pelo código 400, 403 ou 409.
 
 Os valores variam em cada execução. Para usar como evidência, mantenha o terminal em uma área visível durante o fluxo e não mostre o arquivo `.env`.
 
@@ -175,8 +182,11 @@ O contrato, a decisão de segurança e o roteiro com dois solicitantes estão em
 
 A área `/atendimento` permite que `ATENDENTE` e `ADMIN` encontrem chamados `ABERTO` sem responsável, filtrem por prioridade/categoria e assumam um atendimento com confirmação. Em `/atendimento/me`, cada usuário consulta sua própria carteira, com filtros e paginação no servidor.
 
+O menu e a aba **Todos os chamados** (`/atendimento/todos`) são exclusivos de `ADMIN`. Essa visão reúne todos os solicitantes, responsáveis e estados, com filtros por status, prioridade e categoria. Cada item abre o detalhe diretamente, com retorno à listagem administrativa. Ela não muda o escopo da fila nem da carteira pessoal e não permite alterar chamados fechados.
+
 - `GET /api/atendimento/fila`: fila paginada de chamados disponíveis.
 - `GET /api/atendimento/me`: carteira paginada do usuário autenticado.
+- `GET /api/atendimento/todos`: listagem global paginada exclusiva de ADMIN ativo; outros perfis recebem `403`.
 - `GET /api/atendimento/categorias`: categorias do filtro, incluindo inativas para consultar chamados existentes.
 - `PATCH /api/chamados/{id}/assumir`: registra responsável e data de atribuição, muda o status para `EM_ATENDIMENTO` e impede sobrescrita concorrente com resposta `409`.
 
@@ -225,6 +235,24 @@ As entidades `Usuario`, `Categoria` e `Chamado` mapeiam explicitamente o schema 
 
 ## Testes e builds
 
+### Consolidação reproduzível da AC2
+
+```bash
+bash scripts/validar-ac2.sh
+```
+
+O comando executa testes e builds, inicia uma API e um PostgreSQL **isolados e vazios**, aplica V1–V9, prepara contas fictícias dos três perfis e chamados nos quatro estados e verifica ciclo, permissões, concorrência e rollback. Não utiliza seu `.env` nem apaga o volume habitual. Portas padrão: banco `55439`, API `18082` e interface `4200`; portas ocupadas são recusadas.
+
+Para validar a interface e gravar uma demonstração técnica local, usando Playwright configurado:
+
+```bash
+bash scripts/validar-ac2.sh --com-navegador
+```
+
+Relatórios, OpenAPI, capturas e vídeo silencioso são salvos em uma pasta privada `/tmp/resolveai-ac2-*`. O ambiente é removido ao terminar. `--manter` preserva o ambiente de demonstração após sucesso, usando API na porta `8080` para funcionar também fora da automação, com instruções privadas para encerrá-lo. Portas ocupadas são recusadas. **Nunca publique `fixtures.json`: contém senha e tokens fictícios locais.**
+
+Veja [Entrega e evidências da AC2](docs/entrega-ac2.md), [API consolidada](docs/api-ac2.md) e [notas da versão](docs/release-ac2.md). O cartão final não é considerado concluído antes da publicação e vinculação de commit, release e vídeo.
+
 Front-end:
 
 ```bash
@@ -244,19 +272,13 @@ O comando `verify` executa os testes e gera `backend/target/resolveai-api-0.0.1-
 
 ## Validar migrations desde um banco vazio
 
-Use um volume descartável de desenvolvimento e confirme no log da API que o Flyway aplicou todas as migrations pendentes:
+Use o roteiro isolado e confirme em `api.log` que o Flyway aplicou V1–V9 antes da validação do Hibernate:
 
 ```bash
-docker compose down -v
-docker compose up -d postgres
-cd backend
-set -a
-source ../.env
-set +a
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
+bash scripts/validar-ac2.sh
 ```
 
-O comando `docker compose down -v` apaga apenas o volume local declarado neste projeto. Não o execute quando houver dados locais que precisem ser preservados.
+Esse comando cria e remove somente seu próprio container descartável, sem apagar o volume do PostgreSQL habitual. Não use `docker compose down -v` quando houver dados locais a preservar.
 
 Para inspecionar as tabelas e os relacionamentos usados como evidência:
 

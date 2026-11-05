@@ -15,8 +15,16 @@ export class AtendimentoService {
   }
 
   listar(carteira: boolean, filtros: FiltrosAtendimento): Observable<PaginaAtendimento> {
+    return this.consultar(carteira ? 'me' : 'fila', filtros);
+  }
+
+  listarTodos(filtros: FiltrosAtendimento): Observable<PaginaAtendimento> {
+    return this.consultar('todos', filtros);
+  }
+
+  private consultar(area: 'fila' | 'me' | 'todos', filtros: FiltrosAtendimento): Observable<PaginaAtendimento> {
     const params = parametrosConsulta(filtros);
-    return this.api.get<PaginaAtendimento>(`atendimento/${carteira ? 'me' : 'fila'}`, { params });
+    return this.api.get<PaginaAtendimento>(`atendimento/${area}`, { params });
   }
 
   assumir(id: number): Observable<AtendimentoResumo> {
