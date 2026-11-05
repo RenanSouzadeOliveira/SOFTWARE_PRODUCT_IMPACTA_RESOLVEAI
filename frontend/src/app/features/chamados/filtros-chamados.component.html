@@ -1,0 +1,91 @@
+<form
+  [formGroup]="form"
+  (ngSubmit)="apply()"
+  class="ticket-filters"
+  aria-label="Filtros de chamados"
+>
+  <div class="search-field">
+    <label for="ticket-search">Buscar por protocolo ou texto</label
+    ><input
+      id="ticket-search"
+      type="search"
+      formControlName="search"
+      placeholder="Protocolo, título ou descrição"
+    />
+  </div>
+  <div>
+    <label for="ticket-status">Status</label
+    ><select id="ticket-status" formControlName="status" (change)="apply()">
+      <option value="">Todos</option>
+      <option value="ABERTO">Aberto</option>
+      <option value="EM_ATENDIMENTO">Em atendimento</option>
+      <option value="RESOLVIDO">Resolvido</option>
+      <option value="FECHADO">Fechado</option>
+    </select>
+  </div>
+  <div>
+    <label for="ticket-priority">Prioridade</label
+    ><select id="ticket-priority" formControlName="prioridade" (change)="apply()">
+      <option value="">Todas</option>
+      <option value="BAIXA">Baixa</option>
+      <option value="MEDIA">Média</option>
+      <option value="ALTA">Alta</option>
+    </select>
+  </div>
+  <div>
+    <label for="ticket-category">Categoria</label
+    ><select id="ticket-category" formControlName="categoriaId" (change)="apply()">
+      <option value="">Todas</option>
+      @for (c of categorias().length ? categorias() : opcoes().categorias; track c.id) {
+        <option [value]="c.id">{{ c.nome }}{{ c.ativa === false ? ' (inativa)' : '' }}</option>
+      }
+    </select>
+  </div>
+  @if (!fila()) {
+    <div>
+      <label for="ticket-assignee">Responsável</label
+      ><select id="ticket-assignee" formControlName="responsavel" (change)="apply()">
+        <option value="">Todos</option>
+        @for (u of opcoes().responsaveis; track u.id) {
+          <option [value]="u.id">{{ u.nome }}</option>
+        }
+      </select>
+    </div>
+  }
+  <div>
+    <label for="ticket-start">Data inicial (UTC)</label
+    ><input
+      id="ticket-start"
+      type="date"
+      formControlName="dataInicial"
+      (change)="apply()"
+      aria-describedby="ticket-date-help"
+      [attr.aria-invalid]="dateError()"
+    />
+  </div>
+  <div>
+    <label for="ticket-end">Data final (UTC)</label
+    ><input
+      id="ticket-end"
+      type="date"
+      formControlName="dataFinal"
+      (change)="apply()"
+      aria-describedby="ticket-date-help"
+      [attr.aria-invalid]="dateError()"
+    />
+  </div>
+  <div class="filter-actions">
+    <button class="primary-button" type="submit">Filtrar</button
+    ><button class="secondary-button" type="button" (click)="clear()">Limpar filtros</button>
+  </div>
+  <p id="ticket-date-help">Período de criação, incluindo todo o dia final em UTC.</p>
+  @if (dateError()) {
+    <p role="alert">A data inicial deve ser anterior ou igual à data final.</p>
+  }
+  @if (optionsError()) {
+    <p role="alert">
+      Não foi possível carregar as opções.
+      <button type="button" (click)="loadOptions()">Tentar carregar opções</button>
+    </p>
+  }
+</form>

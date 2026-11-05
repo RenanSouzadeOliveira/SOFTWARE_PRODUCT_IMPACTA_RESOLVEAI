@@ -20,11 +20,14 @@ import {
   tap,
 } from 'rxjs';
 import { PaginacaoComponent } from '../../shared/paginacao/paginacao.component';
-import { Pagina, paginacaoDaUrl, Paginacao } from '../../shared/paginacao/paginacao.model';
+import { Pagina, Paginacao } from '../../shared/paginacao/paginacao.model';
 
 import { apiErrorMessage } from '../../core/http/api-error';
 import { ChamadoResumo, Prioridade, StatusChamado } from './chamado.model';
 import { ChamadosService } from './chamados.service';
+
+import { FiltrosChamadosComponent } from './filtros-chamados.component';
+import { consultaDaUrl } from './filtros-chamados.model';
 
 type MeusChamadosState = 'loading' | 'empty' | 'success' | 'error';
 
@@ -43,7 +46,7 @@ const PRIORIDADE_LABELS: Readonly<Record<Prioridade, string>> = {
 
 @Component({
   selector: 'app-meus-chamados',
-  imports: [DatePipe, RouterLink, PaginacaoComponent],
+  imports: [DatePipe, RouterLink, PaginacaoComponent, FiltrosChamadosComponent],
   templateUrl: './meus-chamados.component.html',
   styleUrl: './meus-chamados.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,6 +56,7 @@ export class MeusChamadosComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  protected readonly global = this.route.snapshot?.data?.['global'] === true;
   private readonly reload = new BehaviorSubject(0);
   protected readonly query = signal<Paginacao>({ page: 0, size: 20, sort: 'criadoEm,desc' });
   protected readonly pagina = signal<Pagina<ChamadoResumo> | null>(null);
@@ -64,7 +68,7 @@ export class MeusChamadosComponent implements OnInit {
   ngOnInit(): void {
     combineLatest([this.route.queryParamMap, this.reload])
       .pipe(
-        map(([params, reload]) => ({ query: paginacaoDaUrl(params), reload })),
+        map(([params, reload]) => ({ query: consultaDaUrl(params), reload })),
         distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
         tap(({ query }) => {
           this.query.set(query);
@@ -72,7 +76,10 @@ export class MeusChamadosComponent implements OnInit {
           this.errorMessage.set(null);
         }),
         switchMap(({ query }) =>
-          this.chamadosService.listarMeus(query).pipe(
+          (this.global
+            ? this.chamadosService.listar(query)
+            : this.chamadosService.listarMeus(query)
+          ).pipe(
             tap((pagina) => {
               if (pagina.page >= Math.max(pagina.totalPages, 1)) {
                 this.navigate({ page: Math.max(pagina.totalPages - 1, 0) });
@@ -85,7 +92,7 @@ export class MeusChamadosComponent implements OnInit {
             catchError((error: unknown) => {
               this.state.set('error');
               this.errorMessage.set(
-                apiErrorMessage(error, 'Não foi possível carregar seus chamados. Tente novamente.'),
+                apiErrorMessage(error, 'Não foi possível carregar os chamados. Tente novamente.'),
               );
               return EMPTY;
             }),

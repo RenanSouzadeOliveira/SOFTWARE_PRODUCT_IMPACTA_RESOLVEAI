@@ -41,10 +41,12 @@ public class ChamadoController {
 
     private final ChamadoService chamadoService;
     private final CicloChamadoService ciclo;
+    private final OpcoesFiltrosChamados opcoes;
 
-    public ChamadoController(ChamadoService chamadoService, CicloChamadoService ciclo) {
+    public ChamadoController(ChamadoService chamadoService, CicloChamadoService ciclo, OpcoesFiltrosChamados opcoes) {
         this.chamadoService = chamadoService;
         this.ciclo = ciclo;
+        this.opcoes = opcoes;
     }
 
     @PostMapping
@@ -74,6 +76,35 @@ public class ChamadoController {
         return ResponseEntity.created(location).body(response);
     }
 
+    @GetMapping
+    @Operation(summary = "Pesquisar chamados com filtros combinados",
+            description = "Filtros AND: search (protocolo OU título OU descrição, parcial literal sem distinguir maiúsculas), status, prioridade, categoriaId (alias categoria), responsavel, dataInicial e dataFinal (AAAA-MM-DD, dias inteiros UTC). Solicitante: próprios; atendente: atribuídos; ADMIN: todos. Paginação padrão page=0,size=20,sort=criadoEm,desc; máximo 100 e desempate id DESC.")
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "Página filtrada e autorizada"),
+            @ApiResponse(responseCode = "400", description = "Filtros, paginação ou ordenação inválidos"),
+            @ApiResponse(responseCode = "401", description = "Autenticação necessária")})
+    @Parameters({
+            @Parameter(name = "search", in = ParameterIn.QUERY, description = "Texto literal; espaços externos ignorados"),
+            @Parameter(name = "status", in = ParameterIn.QUERY, schema = @Schema(implementation = StatusChamado.class)),
+            @Parameter(name = "prioridade", in = ParameterIn.QUERY, schema = @Schema(implementation = PrioridadeChamado.class)),
+            @Parameter(name = "categoriaId", in = ParameterIn.QUERY, description = "ID positivo; alias categoria"),
+            @Parameter(name = "responsavel", in = ParameterIn.QUERY, description = "ID positivo do atendente"),
+            @Parameter(name = "dataInicial", in = ParameterIn.QUERY, description = "AAAA-MM-DD, inclusiva UTC"),
+            @Parameter(name = "dataFinal", in = ParameterIn.QUERY, description = "AAAA-MM-DD, inclusiva UTC"),
+            @Parameter(name = "page", in = ParameterIn.QUERY, schema = @Schema(defaultValue = "0")),
+            @Parameter(name = "size", in = ParameterIn.QUERY, schema = @Schema(defaultValue = "20", maximum = "100")),
+            @Parameter(name = "sort", in = ParameterIn.QUERY, schema = @Schema(defaultValue = "criadoEm,desc"))
+    })
+    public PaginaChamadosResponse listar(@AuthenticationPrincipal UsuarioPrincipal principal,
+            @Parameter(hidden = true) @RequestParam MultiValueMap<String, String> parameters) {
+        return chamadoService.listar(principal, PaginacaoChamados.parse(parameters), FiltrosChamados.parse(parameters));
+    }
+
+    @GetMapping("/filtros")
+    @Operation(summary = "Opções dos filtros de chamados", description = "Categorias e responsáveis (somente id e nome) dos chamados visíveis ao usuário, incluindo referências inativas. Não revela usuários sem chamados visíveis.")
+    public OpcoesFiltrosChamados.Response filtros(@AuthenticationPrincipal UsuarioPrincipal principal) {
+        return opcoes.listar(principal);
+    }
+
     @GetMapping("/me")
     @Operation(
             summary = "Listar meus chamados",
@@ -95,7 +126,7 @@ public class ChamadoController {
     public PaginaChamadosResponse listarMeus(
             @AuthenticationPrincipal UsuarioPrincipal principal,
             @Parameter(hidden = true) @RequestParam MultiValueMap<String, String> parameters) {
-        return chamadoService.listarMeus(principal, PaginacaoChamados.parse(parameters));
+        return chamadoService.listar(principal, PaginacaoChamados.parse(parameters), FiltrosChamados.parse(parameters));
     }
 
     @GetMapping("/{id}")

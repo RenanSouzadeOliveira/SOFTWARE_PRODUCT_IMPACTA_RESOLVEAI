@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { HttpParams } from '@angular/common/http';
+import { parametrosConsulta } from '../chamados/filtros-chamados.model';
 
 import { ApiService } from '../../core/http/api.service';
 import type { AtendimentoResumo, FiltrosAtendimento, PaginaAtendimento } from './atendimento.model';
@@ -15,13 +15,7 @@ export class AtendimentoService {
   }
 
   listar(carteira: boolean, filtros: FiltrosAtendimento): Observable<PaginaAtendimento> {
-    let params = new HttpParams()
-      .set('page', filtros.page)
-      .set('size', filtros.size)
-      .set('sort', filtros.sort);
-    if (filtros.prioridade) params = params.set('prioridade', filtros.prioridade);
-    if (filtros.categoriaId) params = params.set('categoriaId', filtros.categoriaId);
-    if (carteira && filtros.status) params = params.set('status', filtros.status);
+    const params = parametrosConsulta(filtros);
     return this.api.get<PaginaAtendimento>(`atendimento/${carteira ? 'me' : 'fila'}`, { params });
   }
 

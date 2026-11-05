@@ -194,6 +194,16 @@ O detalhe permite uma conversa persistente entre solicitante proprietário, aten
 
 A migration V6 evolui a tabela existente. Consulte [Comunicação por comentários](docs/comentarios-chamados.md) para contratos, persistência e validação.
 
+## Busca e filtros combinados — AC3
+
+As listagens de solicitante, fila e carteira agora combinam busca por protocolo/título/descrição, status, prioridade, categoria, responsável (quando aplicável) e período de criação. A URL mantém filtros, página, tamanho e ordenação; a busca aguarda 350 ms de pausa e Limpar filtros restaura os padrões AC3. O ADMIN dispõe da consulta global em `/consulta-chamados`.
+
+- `GET /api/chamados`: consulta paginada autorizada; solicitante vê próprios, atendente vê atribuídos e ADMIN vê todos.
+- `GET /api/chamados/filtros`: categorias/responsáveis dos chamados visíveis, somente ID e nome.
+- `/api/chamados/me`, `/api/atendimento/fila` e `/api/atendimento/me`: contratos anteriores preservados, com os novos filtros opcionais.
+
+Parâmetros: `search`, `status`, `prioridade`, `categoriaId` (alias `categoria`), `responsavel`, `dataInicial`, `dataFinal`, além de `page`, `size` e `sort`. Datas no formato `AAAA-MM-DD`, incluindo todo o dia final em UTC. A V8 acrescenta somente o índice de ordenação global, justificado por EXPLAIN. Consulte [Busca e filtros AC3](docs/filtros-chamados.md) para contrato, matriz de aceite, evidências, limitações e roteiro do vídeo.
+
 ## Modelo de dados
 
 - [Diagrama de casos de uso](docs/diagrama-casos-de-uso.md): visão completa por ator, com separação entre AC1 implementada e funcionalidades planejadas.

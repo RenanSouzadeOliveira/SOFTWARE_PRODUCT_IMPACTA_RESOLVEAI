@@ -11,7 +11,6 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, ParamMap, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import {
   BehaviorSubject,
@@ -24,17 +23,20 @@ import {
   tap,
 } from 'rxjs';
 import { PaginacaoComponent } from '../../shared/paginacao/paginacao.component';
-import { paginacaoDaUrl, Paginacao } from '../../shared/paginacao/paginacao.model';
+import { Paginacao } from '../../shared/paginacao/paginacao.model';
 
 import { apiErrorMessage } from '../../core/http/api-error';
 import { AuthService } from '../../core/auth/auth.service';
-import type { Categoria, Prioridade, StatusChamado } from '../chamados/chamado.model';
+import type { Categoria } from '../chamados/chamado.model';
 import type { AtendimentoResumo, FiltrosAtendimento, PaginaAtendimento } from './atendimento.model';
 import { AtendimentoService } from './atendimento.service';
 
+import { FiltrosChamadosComponent } from '../chamados/filtros-chamados.component';
+import { consultaDaUrl } from '../chamados/filtros-chamados.model';
+
 @Component({
   selector: 'app-atendimento',
-  imports: [DatePipe, ReactiveFormsModule, RouterLink, RouterLinkActive, PaginacaoComponent],
+  imports: [DatePipe, RouterLink, RouterLinkActive, PaginacaoComponent, FiltrosChamadosComponent],
   templateUrl: './atendimento.component.html',
   styleUrl: './atendimento.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -49,18 +51,6 @@ export class AtendimentoComponent implements OnInit {
   private trigger: HTMLElement | null = null;
   protected readonly carteira = this.route.snapshot.data['carteira'] === true;
   protected readonly auth = inject(AuthService);
-  protected readonly prioridades: readonly Prioridade[] = ['BAIXA', 'MEDIA', 'ALTA'];
-  protected readonly statuses: readonly StatusChamado[] = [
-    'ABERTO',
-    'EM_ATENDIMENTO',
-    'RESOLVIDO',
-    'FECHADO',
-  ];
-  protected readonly form = inject(NonNullableFormBuilder).group({
-    prioridade: '',
-    categoriaId: '',
-    status: '',
-  });
   protected readonly query = signal<Paginacao>({ page: 0, size: 20, sort: 'criadoEm,desc' });
   protected readonly state = signal<'loading' | 'success' | 'error'>('loading');
   protected readonly pagina = signal<PaginaAtendimento | null>(null);
@@ -80,11 +70,6 @@ export class AtendimentoComponent implements OnInit {
         distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
         tap(({ filters }) => {
           this.query.set(filters);
-          this.form.setValue({
-            prioridade: filters.prioridade ?? '',
-            categoriaId: filters.categoriaId?.toString() ?? '',
-            status: filters.status ?? '',
-          });
           this.state.set('loading');
           this.error.set(null);
         }),
@@ -121,20 +106,6 @@ export class AtendimentoComponent implements OnInit {
         next: (categorias) => this.categorias.set(categorias),
         error: () => this.categoryError.set(true),
       });
-  }
-
-  applyFilters(): void {
-    const values = this.form.getRawValue();
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParamsHandling: 'merge',
-      queryParams: {
-        page: 0,
-        prioridade: values.prioridade || null,
-        categoriaId: values.categoriaId || null,
-        status: this.carteira ? values.status || null : null,
-      },
-    });
   }
 
   changeSettings(settings: Pick<Paginacao, 'size' | 'sort'>): void {
@@ -239,14 +210,6 @@ export class AtendimentoComponent implements OnInit {
   }
 
   private filters(params: ParamMap): FiltrosAtendimento {
-    const categoria = Number(params.get('categoriaId'));
-    const prioridade = params.get('prioridade') as Prioridade;
-    const status = params.get('status') as StatusChamado;
-    return {
-      ...paginacaoDaUrl(params),
-      prioridade: this.prioridades.includes(prioridade) ? prioridade : undefined,
-      categoriaId: Number.isSafeInteger(categoria) && categoria > 0 ? categoria : undefined,
-      status: this.carteira && this.statuses.includes(status) ? status : undefined,
-    };
+    return consultaDaUrl(params);
   }
 }

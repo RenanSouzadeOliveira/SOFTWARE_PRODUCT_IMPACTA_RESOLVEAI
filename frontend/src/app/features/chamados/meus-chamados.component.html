@@ -2,12 +2,21 @@
   <header class="tickets-header">
     <div>
       <p class="eyebrow">Acompanhamento</p>
-      <h1 id="meus-chamados-title">Meus chamados</h1>
-      <p class="intro">Consulte o andamento das solicitações que você registrou.</p>
+      <h1 id="meus-chamados-title">{{ global ? 'Consultar chamados' : 'Meus chamados' }}</h1>
+      <p class="intro">
+        {{
+          global
+            ? 'Consulte todos os chamados autorizados.'
+            : 'Consulte o andamento das solicitações que você registrou.'
+        }}
+      </p>
     </div>
-    <a class="primary-link" routerLink="/chamados/novo">Abrir chamado</a>
+    @if (!global) {
+      <a class="primary-link" routerLink="/chamados/novo">Abrir chamado</a>
+    }
   </header>
 
+  <app-filtros-chamados />
   @switch (state()) {
     @case ('loading') {
       <p class="loading-state" role="status" aria-live="polite" data-testid="chamados-loading">
@@ -18,8 +27,10 @@
     @case ('empty') {
       <div class="state-panel" role="status" data-testid="chamados-empty">
         <h2>Nenhum chamado encontrado</h2>
-        <p>Quando você abrir uma solicitação, ela aparecerá nesta lista.</p>
-        <a class="secondary-link" routerLink="/chamados/novo">Abrir meu primeiro chamado</a>
+        <p>Nenhum chamado corresponde à consulta. Ajuste os filtros ou use Limpar filtros.</p>
+        @if (!global) {
+          <a class="secondary-link" routerLink="/chamados/novo">Abrir meu primeiro chamado</a>
+        }
       </div>
     }
 
@@ -37,7 +48,7 @@
           <li>
             <a
               class="ticket-card"
-              [routerLink]="['/chamados', chamado.id]"
+              [routerLink]="[global ? '/atendimento/chamados' : '/chamados', chamado.id]"
               [attr.data-testid]="'chamado-' + chamado.id"
               [attr.aria-label]="'Consultar chamado ' + chamado.protocolo"
             >

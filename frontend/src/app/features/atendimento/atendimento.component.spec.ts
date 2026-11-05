@@ -1,3 +1,4 @@
+import { FiltrosChamadosService } from '../chamados/filtros-chamados.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
@@ -55,6 +56,10 @@ describe('AtendimentoComponent', () => {
       imports: [AtendimentoComponent],
       providers: [
         provideRouter([]),
+        {
+          provide: FiltrosChamadosService,
+          useValue: { listar: () => of({ categorias: [], responsaveis: [] }) },
+        },
         { provide: AtendimentoService, useValue: service },
         { provide: AuthService, useValue: auth },
         {
@@ -96,7 +101,7 @@ describe('AtendimentoComponent', () => {
 
   it('oferece categorias inativas no filtro de atendimento', () => {
     const fixture = render();
-    const option = fixture.nativeElement.querySelector('#category option[value="2"]');
+    const option = fixture.nativeElement.querySelector('#ticket-category option[value="2"]');
     expect(option.textContent).toContain('Legado (inativa)');
     expect(service.listarCategorias).toHaveBeenCalledOnce();
   });
@@ -122,24 +127,32 @@ describe('AtendimentoComponent', () => {
       sort: 'criadoEm,desc',
       prioridade: 'ALTA',
       categoriaId: 1,
-      status: undefined,
     });
     params.next(convertToParamMap({ prioridade: 'MEDIA' }));
     expect(responses[0].observed).toBe(false);
     responses[1].next(page());
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('#priority').value).toBe('MEDIA');
+    expect(fixture.nativeElement.querySelector('#ticket-priority').value).toBe('MEDIA');
     expect(fixture.nativeElement.textContent).toContain('RA-7');
   });
 
   it('reinicia página ao filtrar e preserva filtros na paginação', () => {
     const fixture = render();
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
-    fixture.componentInstance.applyFilters();
+    const search = fixture.nativeElement.querySelector('#ticket-search');
+    search.value = 'teste';
+    search.dispatchEvent(new Event('input'));
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
     expect(navigate).toHaveBeenLastCalledWith(
       [],
       expect.objectContaining({
-        queryParams: { page: 0, prioridade: null, categoriaId: null, status: null },
+        queryParams: expect.objectContaining({
+          page: 0,
+          search: 'teste',
+          prioridade: null,
+          categoriaId: null,
+          status: null,
+        }),
       }),
     );
     responses[0].next(page());
@@ -210,7 +223,7 @@ describe('AtendimentoComponent', () => {
       true,
       expect.objectContaining({ status: 'RESOLVIDO' }),
     );
-    expect(fixture.nativeElement.querySelector('#status')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('#ticket-status')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('article button')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('Não registrada');
   });
@@ -258,11 +271,20 @@ describe('AtendimentoComponent', () => {
         queryParamsHandling: 'merge',
       }),
     );
-    fixture.componentInstance.applyFilters();
+    const search = fixture.nativeElement.querySelector('#ticket-search');
+    search.value = 'teste';
+    search.dispatchEvent(new Event('input'));
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
     expect(navigate).toHaveBeenLastCalledWith(
       [],
       expect.objectContaining({
-        queryParams: { page: 0, prioridade: 'ALTA', categoriaId: '1', status: null },
+        queryParams: expect.objectContaining({
+          page: 0,
+          search: 'teste',
+          prioridade: 'ALTA',
+          categoriaId: '1',
+          status: null,
+        }),
         queryParamsHandling: 'merge',
       }),
     );

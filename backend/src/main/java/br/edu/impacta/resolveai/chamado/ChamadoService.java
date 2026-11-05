@@ -63,6 +63,12 @@ public class ChamadoService {
     }
 
     @Transactional(readOnly = true)
+    public PaginaChamadosResponse listar(UsuarioPrincipal principal, Pageable pageable, FiltrosChamados filtros) {
+        return PaginaChamadosResponse.from(chamadoRepository.findAll(
+                VisibilidadeChamados.doUsuario(principal).and(filtros.specification()), pageable));
+    }
+
+    @Transactional(readOnly = true)
     public PaginaChamadosResponse listarMeus(UsuarioPrincipal principal, Pageable pageable) {
         return PaginaChamadosResponse.from(chamadoRepository.findAllBySolicitanteId(principal.id(), pageable));
     }

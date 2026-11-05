@@ -18,40 +18,7 @@
       >Meus atendimentos</a
     >
   </nav>
-  <form [formGroup]="form" (ngSubmit)="applyFilters()" class="filters">
-    <div>
-      <label for="priority">Prioridade</label
-      ><select id="priority" formControlName="prioridade">
-        <option value="">Todas</option>
-        @for (p of prioridades; track p) {
-          <option [value]="p">{{ label(p) }}</option>
-        }
-      </select>
-    </div>
-    <div>
-      <label for="category">Categoria</label
-      ><select id="category" formControlName="categoriaId">
-        <option value="">Todas</option>
-        @for (c of categorias(); track c.id) {
-          <option [value]="c.id">{{ c.nome }}{{ c.ativa === false ? ' (inativa)' : '' }}</option>
-        }
-      </select>
-    </div>
-    @if (carteira) {
-      <div>
-        <label for="status">Status</label
-        ><select id="status" formControlName="status">
-          <option value="">Todos</option>
-          @for (s of statuses; track s) {
-            <option [value]="s">{{ label(s) }}</option>
-          }
-        </select>
-      </div>
-    }
-    <button type="submit" class="primary-button" [disabled]="submitting() || state() === 'loading'">
-      Filtrar
-    </button>
-  </form>
+  <app-filtros-chamados [categorias]="categorias()" [fila]="!carteira" />
   @if (categoryError()) {
     <p role="alert">
       Não foi possível carregar as categorias.

@@ -36,6 +36,12 @@ class ChamadoServiceTest {
         };
         ChamadoRepository repository = new ChamadoRepository() {
             @Override
+            public Page<Chamado> findAll(org.springframework.data.jpa.domain.Specification<Chamado> spec,
+                    Pageable pageable) {
+                return Page.empty(pageable);
+            }
+
+            @Override
             public Optional<Chamado> findByIdForComment(Long id) {
                 return Optional.empty();
             }

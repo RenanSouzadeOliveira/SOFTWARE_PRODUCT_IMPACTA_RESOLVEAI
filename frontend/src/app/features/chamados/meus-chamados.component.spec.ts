@@ -1,6 +1,7 @@
+import { FiltrosChamadosService } from './filtros-chamados.service';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, Router, provideRouter } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
+import { of, BehaviorSubject } from 'rxjs';
 import { Pagina } from '../../shared/paginacao/paginacao.model';
 import { Subject } from 'rxjs';
 
@@ -27,6 +28,10 @@ describe('MeusChamadosComponent', () => {
       imports: [MeusChamadosComponent],
       providers: [
         provideRouter([]),
+        {
+          provide: FiltrosChamadosService,
+          useValue: { listar: () => of({ categorias: [], responsaveis: [] }) },
+        },
         { provide: ActivatedRoute, useValue: { queryParamMap: params } },
         { provide: ChamadosService, useValue: chamadosService },
       ],
@@ -78,7 +83,7 @@ describe('MeusChamadosComponent', () => {
     ).not.toBeNull();
 
     (fixture.nativeElement as HTMLElement)
-      .querySelector<HTMLButtonElement>('.secondary-button')
+      .querySelector<HTMLButtonElement>('[data-testid="chamados-error"] .secondary-button')
       ?.click();
     expect(chamadosService.listarMeus).toHaveBeenCalledTimes(2);
     second.next(page([ticket]));

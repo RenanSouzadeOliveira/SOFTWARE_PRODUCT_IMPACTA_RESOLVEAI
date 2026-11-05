@@ -76,6 +76,15 @@ public class AtendimentoService {
                 categoriaId, pagina(pageable, categoriaId)));
     }
 
+    @Transactional(readOnly = true)
+    public PaginaAtendimentoResponse listarFiltrados(UsuarioPrincipal principal, Pageable pageable,
+            br.edu.impacta.resolveai.chamado.FiltrosChamados filtros, boolean carteira) {
+        Usuario usuario = usuarioAutorizado(principal);
+        var visibilidade = carteira ? br.edu.impacta.resolveai.chamado.VisibilidadeChamados.carteira(usuario.id())
+                : br.edu.impacta.resolveai.chamado.VisibilidadeChamados.fila();
+        return PaginaAtendimentoResponse.from(chamados.findAll(visibilidade.and(filtros.specification()), pageable));
+    }
+
     @Transactional
     public ChamadoAtendimentoResponse assumir(Long id, UsuarioPrincipal principal) {
         Usuario usuario = usuarioAutorizado(principal);

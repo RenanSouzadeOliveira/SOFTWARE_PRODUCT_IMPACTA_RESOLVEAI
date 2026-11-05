@@ -54,6 +54,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'consulta-chamados',
+    title: 'Consultar chamados | ResolveAí',
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'ADMIN', global: true },
+    loadComponent: () =>
+      import('./features/chamados/meus-chamados.component').then((c) => c.MeusChamadosComponent),
+  },
+  {
     path: 'chamados/:id',
     title: 'Detalhes do chamado | ResolveAí',
     canActivate: [authGuard, roleGuard],

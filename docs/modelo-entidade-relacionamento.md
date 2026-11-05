@@ -164,3 +164,7 @@ O banco garante tipos, nulabilidade, unicidade, valores enumerados, relações e
 ## AC3 — índices de paginação (V7)
 
 Sem mudanças em entidades ou relacionamentos. `idx_chamados_solicitante_criado_id (solicitante_id, criado_em DESC, id DESC)` substitui o índice da V1, incluindo o desempate. `idx_chamados_fila_ordem (status, criado_em DESC, id DESC, atendente_id)` substitui o índice da fila da V4: a coluna nullable deixa de anteceder a ordenação. Reutiliza-se `idx_chamados_carteira_criado_id (atendente_id, criado_em DESC, id DESC)`, além dos índices existentes para status/prioridade, categoria e protocolo. Os planos e limites estão em [Paginação de chamados](paginacao-chamados.md).
+
+## AC3 — busca e filtros combinados (V8)
+
+Sem alteração de entidades, campos ou relacionamentos. A V8 acrescenta `idx_chamados_criado_id (criado_em DESC, id DESC)` para a nova consulta global do ADMIN, cuja ordenação não dispõe das igualdades iniciais dos índices de solicitante, fila e carteira. Os demais índices de V1/V4/V7 são reutilizados. A busca parcial literal com `lower(...) LIKE '%texto%'` não é acelerada por B-tree de protocolo; nenhum índice redundante ou extensão foi introduzido. Consulte [Busca e filtros AC3](filtros-chamados.md) e `scripts/ac3-filtros-query-plans.sql` para a medição com dados fictícios.

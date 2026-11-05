@@ -92,7 +92,7 @@ public class AtendimentoController {
             @RequestParam(required = false) PrioridadeChamado prioridade,
             @Parameter(description = "Identificador positivo da categoria")
             @RequestParam(required = false) Long categoriaId) {
-        return atendimentoService.fila(principal, PaginacaoChamados.parse(parameters), prioridade, categoriaId);
+        return atendimentoService.listarFiltrados(principal, PaginacaoChamados.parse(parameters), br.edu.impacta.resolveai.chamado.FiltrosChamados.parse(parameters), false);
     }
 
     @GetMapping("/me")
@@ -119,6 +119,6 @@ public class AtendimentoController {
             @Parameter(description = "Identificador positivo da categoria")
             @RequestParam(required = false) Long categoriaId,
             @RequestParam(required = false) StatusChamado status) {
-        return atendimentoService.carteira(principal, PaginacaoChamados.parse(parameters), prioridade, categoriaId, status);
+        return atendimentoService.listarFiltrados(principal, PaginacaoChamados.parse(parameters), br.edu.impacta.resolveai.chamado.FiltrosChamados.parse(parameters), true);
     }
 }

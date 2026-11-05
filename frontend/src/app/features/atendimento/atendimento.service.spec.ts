@@ -24,7 +24,7 @@ describe('AtendimentoService', () => {
     expect(categories[0].ativa).toBe(false);
   });
 
-  it('envia paginação e filtros da fila sem filtro de status', () => {
+  it('envia paginação e filtros combinados para restringir a fila', () => {
     service
       .listar(false, {
         page: 2,
@@ -42,7 +42,7 @@ describe('AtendimentoService', () => {
     expect(req.request.params.get('size')).toBe('20');
     expect(req.request.params.get('prioridade')).toBe('ALTA');
     expect(req.request.params.get('categoriaId')).toBe('3');
-    expect(req.request.params.has('status')).toBe(false);
+    expect(req.request.params.get('status')).toBe('FECHADO');
     req.flush({
       content: [],
       page: 2,

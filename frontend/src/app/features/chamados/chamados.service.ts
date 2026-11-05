@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { HttpParams } from '@angular/common/http';
-import { Pagina, Paginacao } from '../../shared/paginacao/paginacao.model';
+import { ConsultaChamados, parametrosConsulta } from './filtros-chamados.model';
+import { Pagina } from '../../shared/paginacao/paginacao.model';
 
 import { ApiService } from '../../core/http/api.service';
 import {
@@ -26,13 +26,14 @@ export class ChamadosService {
   }
 
   listarMeus(
-    query: Paginacao = { page: 0, size: 20, sort: 'criadoEm,desc' },
+    query: ConsultaChamados = { page: 0, size: 20, sort: 'criadoEm,desc' },
   ): Observable<Pagina<ChamadoResumo>> {
-    const params = new HttpParams()
-      .set('page', query.page)
-      .set('size', query.size)
-      .set('sort', query.sort);
+    const params = parametrosConsulta(query);
     return this.api.get<Pagina<ChamadoResumo>>('chamados/me', { params });
+  }
+
+  listar(query: ConsultaChamados): Observable<Pagina<ChamadoResumo>> {
+    return this.api.get<Pagina<ChamadoResumo>>('chamados', { params: parametrosConsulta(query) });
   }
 
   buscarPorId(id: number): Observable<Chamado> {

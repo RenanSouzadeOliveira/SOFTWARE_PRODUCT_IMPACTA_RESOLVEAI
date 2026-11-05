@@ -13,6 +13,10 @@ import org.springframework.data.repository.query.Param;
 
 public interface ChamadoRepository extends Repository<Chamado, Long> {
 
+    // Expõe apenas a operação paginada do executor padrão, sem operações de exclusão.
+    @EntityGraph(attributePaths = {"categoria", "atendente"})
+    Page<Chamado> findAll(org.springframework.data.jpa.domain.Specification<Chamado> spec, Pageable pageable);
+
     Chamado save(Chamado chamado);
 
     Chamado saveAndFlush(Chamado chamado);

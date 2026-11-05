@@ -19,7 +19,7 @@ class PaginacaoMigrationTest {
             s.execute("INSERT INTO categorias (id,nome) VALUES (1,'Categoria AC3')");
             s.execute("INSERT INTO chamados (protocolo,titulo,descricao,status,prioridade,solicitante_id,categoria_id) VALUES ('AC3-001','Título fictício','Descrição fictícia suficiente','ABERTO','MEDIA',1,1)");
         }
-        var flyway = Flyway.configure().dataSource(ds).locations("classpath:db/migration").load();
+        var flyway = Flyway.configure().dataSource(ds).locations("classpath:db/migration").target("7").load();
         assertThat(flyway.migrate().migrationsExecuted).isEqualTo(1);
         flyway.validate();
         try (Connection c = ds.getConnection(); var s = c.createStatement()) {
