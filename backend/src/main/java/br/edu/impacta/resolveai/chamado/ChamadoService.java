@@ -1,10 +1,10 @@
 package br.edu.impacta.resolveai.chamado;
 
-import java.util.List;
+import org.springframework.data.domain.Pageable;
+import br.edu.impacta.resolveai.chamado.dto.PaginaChamadosResponse;
 
 import br.edu.impacta.resolveai.chamado.dto.AbrirChamadoRequest;
 import br.edu.impacta.resolveai.chamado.dto.ChamadoResponse;
-import br.edu.impacta.resolveai.chamado.dto.ChamadoResumoResponse;
 import br.edu.impacta.resolveai.security.UsuarioPrincipal;
 import br.edu.impacta.resolveai.shared.error.ConflitoException;
 import org.slf4j.Logger;
@@ -63,10 +63,8 @@ public class ChamadoService {
     }
 
     @Transactional(readOnly = true)
-    public List<ChamadoResumoResponse> listarMeus(UsuarioPrincipal principal) {
-        return chamadoRepository.findAllBySolicitanteIdOrderByCriadoEmDesc(principal.id()).stream()
-                .map(ChamadoResumoResponse::from)
-                .toList();
+    public PaginaChamadosResponse listarMeus(UsuarioPrincipal principal, Pageable pageable) {
+        return PaginaChamadosResponse.from(chamadoRepository.findAllBySolicitanteId(principal.id(), pageable));
     }
 
 }

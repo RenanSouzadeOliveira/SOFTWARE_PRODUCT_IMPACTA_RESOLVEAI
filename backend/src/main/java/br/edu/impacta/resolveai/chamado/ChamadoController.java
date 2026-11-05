@@ -1,14 +1,19 @@
 package br.edu.impacta.resolveai.chamado;
 
 import java.net.URI;
-import java.util.List;
+import br.edu.impacta.resolveai.chamado.dto.PaginaChamadosResponse;
+import br.edu.impacta.resolveai.shared.pagination.PaginacaoChamados;
+import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import org.springframework.util.MultiValueMap;
 
 import br.edu.impacta.resolveai.chamado.dto.AbrirChamadoRequest;
 import br.edu.impacta.resolveai.chamado.dto.AlterarStatusRequest;
 import br.edu.impacta.resolveai.chamado.dto.AlterarPrioridadeRequest;
 import br.edu.impacta.resolveai.chamado.dto.ChamadoDetalheResponse;
 import br.edu.impacta.resolveai.chamado.dto.ChamadoResponse;
-import br.edu.impacta.resolveai.chamado.dto.ChamadoResumoResponse;
 import br.edu.impacta.resolveai.security.UsuarioPrincipal;
 import br.edu.impacta.resolveai.shared.error.ApiErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -72,17 +77,25 @@ public class ChamadoController {
     @GetMapping("/me")
     @Operation(
             summary = "Listar meus chamados",
-            description = "Lista apenas os chamados do solicitante autenticado, do mais recente para o mais antigo.")
+            description = "Página dos chamados do solicitante autenticado. page começa em 0; size padrão 20, máximo 100. Sort: criadoEm, atualizadoEm, titulo, status, prioridade ou id, seguido de asc ou desc. Padrão criadoEm,desc; desempate id DESC.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Chamados do solicitante, ou lista vazia"),
+            @ApiResponse(responseCode = "200", description = "Página do solicitante, inclusive vazia"),
+            @ApiResponse(responseCode = "400", description = "Paginação ou ordenação inválida",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou de conta inativa",
                     content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "403", description = "Perfil autenticado sem permissao",
                     content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
-    public List<ChamadoResumoResponse> listarMeus(
-            @AuthenticationPrincipal UsuarioPrincipal principal) {
-        return chamadoService.listarMeus(principal);
+    @Parameters({
+            @Parameter(name = "page", in = ParameterIn.QUERY, description = "Índice a partir de zero", schema = @Schema(type = "integer", minimum = "0", defaultValue = "0")),
+            @Parameter(name = "size", in = ParameterIn.QUERY, description = "Itens por página", schema = @Schema(type = "integer", minimum = "1", maximum = "100", defaultValue = "20")),
+            @Parameter(name = "sort", in = ParameterIn.QUERY, description = "campo,asc|desc; campos: criadoEm, atualizadoEm, titulo, status, prioridade, id. Desempate id DESC", schema = @Schema(defaultValue = "criadoEm,desc"))
+    })
+    public PaginaChamadosResponse listarMeus(
+            @AuthenticationPrincipal UsuarioPrincipal principal,
+            @Parameter(hidden = true) @RequestParam MultiValueMap<String, String> parameters) {
+        return chamadoService.listarMeus(principal, PaginacaoChamados.parse(parameters));
     }
 
     @GetMapping("/{id}")

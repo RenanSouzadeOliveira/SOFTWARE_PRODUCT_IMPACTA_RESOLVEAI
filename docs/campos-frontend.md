@@ -119,7 +119,7 @@ As entradas de transição não autorizam qualquer mudança arbitrária só por 
 
 Na resposta de detalhe, `solicitante`, `atendente` e `categoria` são projeções pequenas para apresentação, nunca entidades JPA. O resumo omite descrição, solução e usuários relacionados, retornando apenas os dados necessários à lista. `atendente` é `null` na abertura.
 
-`GET /api/chamados/me` não recebe identificador de solicitante e retorna `ChamadoResumoDto[]` em ordem decrescente de `criadoEm`. `GET /api/chamados/{id}` retorna `ChamadoDto` somente quando o chamado pertence ao solicitante autenticado; chamado inexistente ou alheio usa o mesmo `404`.
+`GET /api/chamados/me` não recebe identificador de solicitante e retorna `{ content: ChamadoResumoDto[], page, size, totalElements, totalPages }`. A paginação começa em zero, com tamanho padrão 20 e máximo 100. O padrão é `criadoEm DESC, id DESC`; campos e direções permitidos estão no [contrato AC3](paginacao-chamados.md). `GET /api/chamados/{id}` retorna `ChamadoDto` para o solicitante proprietário, atendente responsável ou ADMIN; chamado inexistente ou sem visibilidade usa o mesmo `404`.
 
 ### Fila e carteira implementadas na AC2
 

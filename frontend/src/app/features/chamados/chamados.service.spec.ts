@@ -1,3 +1,4 @@
+import { Pagina } from '../../shared/paginacao/paginacao.model';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 
@@ -93,15 +94,29 @@ describe('ChamadosService', () => {
         fechadoEm: null,
       },
     ];
-    api.get.mockReturnValue(of(chamados));
+    const pagina: Pagina<ChamadoResumo> = {
+      content: chamados,
+      page: 0,
+      size: 20,
+      totalElements: 1,
+      totalPages: 1,
+    };
+    api.get.mockReturnValue(of(pagina));
 
-    let received: readonly ChamadoResumo[] | undefined;
+    let received: Pagina<ChamadoResumo> | undefined;
     TestBed.inject(ChamadosService)
       .listarMeus()
       .subscribe((value) => (received = value));
 
-    expect(api.get).toHaveBeenCalledWith('chamados/me');
-    expect(received).toEqual(chamados);
+    expect(api.get).toHaveBeenCalledWith(
+      'chamados/me',
+      expect.objectContaining({ params: expect.anything() }),
+    );
+    const params = api.get.mock.calls[0][1].params;
+    expect(params.get('page')).toBe('0');
+    expect(params.get('size')).toBe('20');
+    expect(params.get('sort')).toBe('criadoEm,desc');
+    expect(received).toEqual(pagina);
   });
 
   it('busca o detalhe pelo identificador do chamado', () => {

@@ -67,4 +67,11 @@
       </ul>
     }
   }
+  <app-paginacao
+    [query]="query()"
+    [result]="pagina()"
+    [disabled]="state() === 'loading'"
+    (pageChange)="goToPage($event)"
+    (settingsChange)="changeSettings($event)"
+  />
 </section>

@@ -1,3 +1,4 @@
+import type { Paginacao } from '../../shared/paginacao/paginacao.model';
 import type { Categoria, Prioridade, StatusChamado } from '../chamados/chamado.model';
 
 export interface AtendimentoResumo {
@@ -21,9 +22,7 @@ export interface PaginaAtendimento {
   readonly totalPages: number;
 }
 
-export interface FiltrosAtendimento {
-  readonly page: number;
-  readonly size: number;
+export interface FiltrosAtendimento extends Paginacao {
   readonly prioridade?: Prioridade;
   readonly categoriaId?: number;
   readonly status?: StatusChamado;

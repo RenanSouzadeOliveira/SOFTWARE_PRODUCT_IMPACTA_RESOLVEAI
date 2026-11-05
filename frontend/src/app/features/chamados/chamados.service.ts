@@ -1,5 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { HttpParams } from '@angular/common/http';
+import { Pagina, Paginacao } from '../../shared/paginacao/paginacao.model';
 
 import { ApiService } from '../../core/http/api.service';
 import {
@@ -23,8 +25,14 @@ export class ChamadosService {
     return this.api.post<Chamado, CriarChamadoInput>('chamados', input);
   }
 
-  listarMeus(): Observable<readonly ChamadoResumo[]> {
-    return this.api.get<readonly ChamadoResumo[]>('chamados/me');
+  listarMeus(
+    query: Paginacao = { page: 0, size: 20, sort: 'criadoEm,desc' },
+  ): Observable<Pagina<ChamadoResumo>> {
+    const params = new HttpParams()
+      .set('page', query.page)
+      .set('size', query.size)
+      .set('sort', query.sort);
+    return this.api.get<Pagina<ChamadoResumo>>('chamados/me', { params });
   }
 
   buscarPorId(id: number): Observable<Chamado> {

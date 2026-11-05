@@ -1,6 +1,5 @@
 package br.edu.impacta.resolveai.chamado;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -28,7 +27,7 @@ public interface ChamadoRepository extends Repository<Chamado, Long> {
     Optional<Chamado> findByProtocolo(String protocolo);
 
     @EntityGraph(attributePaths = "categoria")
-    List<Chamado> findAllBySolicitanteIdOrderByCriadoEmDesc(Long solicitanteId);
+    Page<Chamado> findAllBySolicitanteId(Long solicitanteId, Pageable pageable);
 
     @EntityGraph(attributePaths = {"categoria", "solicitante", "atendente"})
     Optional<Chamado> findByIdAndSolicitanteId(Long id, Long solicitanteId);

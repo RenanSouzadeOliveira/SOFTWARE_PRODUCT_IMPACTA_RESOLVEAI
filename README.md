@@ -201,6 +201,8 @@ A migration V6 evolui a tabela existente. Consulte [Comunicação por comentári
 - [Catálogo de campos do front-end](docs/campos-frontend.md): DTOs planejados para formulários e telas, sem exposição das entidades JPA.
 - [Autenticação e autorização](docs/autenticacao.md): contratos HTTP, segurança do JWT e roteiro de evidência.
 - [Abertura de chamado](docs/abertura-chamado.md): formulário, contratos, regras protegidas e roteiro de validação.
+- [Limpeza e reprodução dos builds](docs/limpeza-repositorio.md): inventário, backup reversível e verificações padrão aprovadas.
+- [Paginação e ordenação AC3](docs/paginacao-chamados.md): contrato, índices, testes e demonstração reproduzível.
 - [Consulta dos próprios chamados](docs/consulta-chamados.md): listagem, detalhe, isolamento entre solicitantes e roteiro de evidência.
 
 As entidades `Usuario`, `Categoria` e `Chamado` mapeiam explicitamente o schema resultante das migrations. Os relacionamentos JPA são lazy, não possuem cascata de remoção e os repositórios expõem apenas operações de persistência e consulta. Usuários e categorias são desativados logicamente.

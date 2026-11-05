@@ -9,6 +9,10 @@ import br.edu.impacta.resolveai.chamado.PrioridadeChamado;
 import br.edu.impacta.resolveai.chamado.StatusChamado;
 import br.edu.impacta.resolveai.security.UsuarioPrincipal;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import org.springframework.util.MultiValueMap;
+import br.edu.impacta.resolveai.shared.pagination.PaginacaoChamados;
 
 import br.edu.impacta.resolveai.shared.error.ApiErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -67,7 +71,7 @@ public class AtendimentoController {
     @GetMapping("/fila")
     @Operation(summary = "Consultar fila de chamados disponiveis",
             description = "ATENDENTE e ADMIN ativos consultam somente ABERTO sem responsavel. "
-                    + "Filtros combinaveis, paginacao no servidor e ordem criadoEm DESC, id DESC. "
+                    + "Filtros combinaveis, paginacao no servidor e ordem padrão criadoEm DESC, id DESC; sort configurável. "
                     + "Categorias inativas permanecem visiveis nos chamados existentes.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Pagina da fila, inclusive vazia"),
@@ -78,21 +82,23 @@ public class AtendimentoController {
             @ApiResponse(responseCode = "403", description = "Perfil sem permissao",
                     content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
+    @Parameters({
+            @Parameter(name = "page", in = ParameterIn.QUERY, description = "Índice a partir de zero", schema = @Schema(type = "integer", minimum = "0", defaultValue = "0")),
+            @Parameter(name = "size", in = ParameterIn.QUERY, description = "Itens por página", schema = @Schema(type = "integer", minimum = "1", maximum = "100", defaultValue = "20")),
+            @Parameter(name = "sort", in = ParameterIn.QUERY, description = "campo,asc|desc; campos: criadoEm, atualizadoEm, titulo, status, prioridade, id. Desempate id DESC", schema = @Schema(defaultValue = "criadoEm,desc"))
+    })
     public PaginaAtendimentoResponse fila(@AuthenticationPrincipal UsuarioPrincipal principal,
-            @Parameter(description = "Indice da pagina a partir de zero", schema = @Schema(minimum = "0"))
-            @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Itens por pagina (1 a 50)", schema = @Schema(minimum = "1", maximum = "50"))
-            @RequestParam(defaultValue = "10") int size,
+            @Parameter(hidden = true) @RequestParam MultiValueMap<String, String> parameters,
             @RequestParam(required = false) PrioridadeChamado prioridade,
             @Parameter(description = "Identificador positivo da categoria")
             @RequestParam(required = false) Long categoriaId) {
-        return atendimentoService.fila(principal, page, size, prioridade, categoriaId);
+        return atendimentoService.fila(principal, PaginacaoChamados.parse(parameters), prioridade, categoriaId);
     }
 
     @GetMapping("/me")
     @Operation(summary = "Consultar minha carteira de atendimento",
             description = "Somente chamados atribuidos ao ATENDENTE ou ADMIN autenticado. "
-                    + "Permite combinar status, prioridade e categoriaId; ordem criadoEm DESC, id DESC.")
+                    + "Permite combinar status, prioridade e categoriaId; ordem padrão criadoEm DESC, id DESC; sort configurável.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Pagina da carteira, inclusive vazia"),
             @ApiResponse(responseCode = "400", description = "Pagina, tamanho ou filtros invalidos",
@@ -102,15 +108,17 @@ public class AtendimentoController {
             @ApiResponse(responseCode = "403", description = "Perfil sem permissao",
                     content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
+    @Parameters({
+            @Parameter(name = "page", in = ParameterIn.QUERY, description = "Índice a partir de zero", schema = @Schema(type = "integer", minimum = "0", defaultValue = "0")),
+            @Parameter(name = "size", in = ParameterIn.QUERY, description = "Itens por página", schema = @Schema(type = "integer", minimum = "1", maximum = "100", defaultValue = "20")),
+            @Parameter(name = "sort", in = ParameterIn.QUERY, description = "campo,asc|desc; campos: criadoEm, atualizadoEm, titulo, status, prioridade, id. Desempate id DESC", schema = @Schema(defaultValue = "criadoEm,desc"))
+    })
     public PaginaAtendimentoResponse carteira(@AuthenticationPrincipal UsuarioPrincipal principal,
-            @Parameter(description = "Indice da pagina a partir de zero", schema = @Schema(minimum = "0"))
-            @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Itens por pagina (1 a 50)", schema = @Schema(minimum = "1", maximum = "50"))
-            @RequestParam(defaultValue = "10") int size,
+            @Parameter(hidden = true) @RequestParam MultiValueMap<String, String> parameters,
             @RequestParam(required = false) PrioridadeChamado prioridade,
             @Parameter(description = "Identificador positivo da categoria")
             @RequestParam(required = false) Long categoriaId,
             @RequestParam(required = false) StatusChamado status) {
-        return atendimentoService.carteira(principal, page, size, prioridade, categoriaId, status);
+        return atendimentoService.carteira(principal, PaginacaoChamados.parse(parameters), prioridade, categoriaId, status);
     }
 }

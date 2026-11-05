@@ -11,14 +11,15 @@ Na AC2, o detalhe também autoriza o atendente responsável e ADMIN, sem ampliar
 ## Listar meus chamados
 
 ```http
-GET /api/chamados/me
+GET /api/chamados/me?page=0&size=20&sort=criadoEm,desc
 Authorization: Bearer <token>
 ```
 
-Resposta `200 OK`, ordenada do `criadoEm` mais recente para o mais antigo:
+Resposta `200 OK`, com paginação no banco e ordenação padrão `criadoEm DESC, id DESC`:
 
 ```json
-[
+{
+  "content": [
   {
     "id": 18,
     "protocolo": "RA-xN4W9j8vR0uM6zK2bT5cQg",
@@ -31,10 +32,15 @@ Resposta `200 OK`, ordenada do `criadoEm` mais recente para o mais antigo:
     "resolvidoEm": null,
     "fechadoEm": null
   }
-]
+  ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 1,
+  "totalPages": 1
+}
 ```
 
-Uma conta sem chamados recebe `200 OK` com `[]`. A tela apresenta estados próprios de carregamento, lista vazia, sucesso e falha, com nova tentativa após erro.
+Uma conta sem chamados recebe `200 OK` com `content: []`, `totalElements: 0` e `totalPages: 0`. A tela apresenta estados próprios de carregamento, lista vazia, sucesso e falha, com nova tentativa após erro.
 
 ## Consultar detalhe
 
@@ -53,7 +59,7 @@ Respostas relevantes:
 
 ## Persistência e índices
 
-O chamado mantém somente a FK `solicitante_id`; nome e e-mail não são duplicados na tabela `chamados`. O índice criado pela V1 em `(solicitante_id, criado_em)` atende a listagem própria e sua ordenação descendente por varredura reversa. Os índices iniciados por `status` já atendem as filas planejadas. Como este fluxo não filtra por status, nenhuma migration ou índice redundante foi acrescentado.
+O chamado mantém somente a FK `solicitante_id`; nome e e-mail não são duplicados. A V7 substitui o índice da V1 por `(solicitante_id, criado_em DESC, id DESC)`, cobrindo o desempate sem ordenar todo o conjunto com datas repetidas. Categorias são carregadas por entity graph de associação singular; os totais usam o mesmo escopo do solicitante. Veja o [contrato e a evidência AC3](paginacao-chamados.md).
 
 ## Roteiro de evidência da AC1
 
@@ -70,5 +76,5 @@ Consulta de apoio para evidência local:
 ```sql
 SELECT id, protocolo, solicitante_id, status, categoria_id, criado_em
 FROM chamados
-ORDER BY solicitante_id, criado_em DESC;
+ORDER BY solicitante_id, criado_em DESC, id DESC;
 ```

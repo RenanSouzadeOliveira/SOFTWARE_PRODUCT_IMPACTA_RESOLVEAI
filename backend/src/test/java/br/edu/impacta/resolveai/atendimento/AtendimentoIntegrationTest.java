@@ -144,7 +144,7 @@ class AtendimentoIntegrationTest {
                 .andExpect(jsonPath("$.totalElements").value(3));
         mvc.perform(get("/api/atendimento/fila?categoriaId=999999999").header("Authorization", token(admin)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.content.length()").value(0))
-                .andExpect(jsonPath("$.page").value(0)).andExpect(jsonPath("$.size").value(10));
+                .andExpect(jsonPath("$.page").value(0)).andExpect(jsonPath("$.size").value(20));
     }
 
     @Test
@@ -186,7 +186,7 @@ class AtendimentoIntegrationTest {
     @Test
     void shouldRejectInvalidParametersAndMissingTicketsAndDocumentContract() throws Exception {
         for (String url : List.of("/api/atendimento/fila", "/api/atendimento/me")) {
-            for (String param : List.of("page=-1", "size=0", "size=51", "page=x", "page=2147483647&size=50", "categoriaId=0",
+            for (String param : List.of("page=-1", "size=0", "size=101", "page=x", "page=2147483647&size=50", "categoriaId=0",
                     "categoriaId=-1", "prioridade=URGENTE", "categoriaId=x")) {
                 mvc.perform(get(url + "?" + param).header("Authorization", token(atendente)))
                         .andExpect(status().isBadRequest());

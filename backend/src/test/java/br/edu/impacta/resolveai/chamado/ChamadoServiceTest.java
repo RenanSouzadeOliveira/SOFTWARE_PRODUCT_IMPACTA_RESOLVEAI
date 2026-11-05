@@ -2,7 +2,6 @@ package br.edu.impacta.resolveai.chamado;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -61,8 +60,8 @@ class ChamadoServiceTest {
             }
 
             @Override
-            public List<Chamado> findAllBySolicitanteIdOrderByCriadoEmDesc(Long solicitanteId) {
-                return List.of();
+            public Page<Chamado> findAllBySolicitanteId(Long solicitanteId, Pageable pageable) {
+                return Page.empty(pageable);
             }
 
             @Override

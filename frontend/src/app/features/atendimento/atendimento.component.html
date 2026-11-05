@@ -3,9 +3,7 @@
   <h1 id="atendimento-title">{{ carteira ? 'Meus atendimentos' : 'Fila de chamados' }}</h1>
   <p>
     {{
-      carteira
-        ? 'Chamados sob sua responsabilidade, do mais recente ao mais antigo.'
-        : 'Chamados abertos disponíveis para assumir, do mais recente ao mais antigo.'
+      carteira ? 'Chamados sob sua responsabilidade.' : 'Chamados abertos disponíveis para assumir.'
     }}
   </p>
   <nav class="tabs" aria-label="Áreas de atendimento">
@@ -50,7 +48,9 @@
         </select>
       </div>
     }
-    <button type="submit" class="primary-button" [disabled]="submitting()">Filtrar</button>
+    <button type="submit" class="primary-button" [disabled]="submitting() || state() === 'loading'">
+      Filtrar
+    </button>
   </form>
   @if (categoryError()) {
     <p role="alert">
@@ -174,27 +174,14 @@
             </article>
           }
         </div>
-        <nav class="pagination" aria-label="Paginação de chamados">
-          <button
-            type="button"
-            class="secondary-button"
-            [disabled]="result.page === 0 || submitting()"
-            (click)="goToPage(result.page - 1)"
-          >
-            Anterior</button
-          ><span
-            >{{ result.totalElements }} chamado(s) · Página {{ result.page + 1 }} de
-            {{ result.totalPages || 1 }}</span
-          ><button
-            type="button"
-            class="secondary-button"
-            [disabled]="result.page + 1 >= result.totalPages || submitting()"
-            (click)="goToPage(result.page + 1)"
-          >
-            Próxima
-          </button>
-        </nav>
       }
     }
   }
+  <app-paginacao
+    [query]="query()"
+    [result]="pagina()"
+    [disabled]="state() === 'loading' || submitting()"
+    (pageChange)="goToPage($event)"
+    (settingsChange)="changeSettings($event)"
+  />
 </section>

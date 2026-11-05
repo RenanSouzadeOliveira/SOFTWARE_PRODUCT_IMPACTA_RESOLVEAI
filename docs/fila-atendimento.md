@@ -6,7 +6,7 @@ Usuários ativos com perfil `ATENDENTE` ou `ADMIN` acessam a área de atendiment
 
 - `/atendimento`: fila, filtros de prioridade e categoria, paginação e confirmação para assumir.
 - `/atendimento/me`: carteira pessoal, filtros de prioridade, categoria e status, com data da atribuição.
-- Filtros e página permanecem na URL. Alterar um filtro reinicia a paginação.
+- Filtros, página, tamanho e ordenação permanecem na URL. Alterar filtro, tamanho ou ordenação reinicia a página em zero.
 - Carregamento, lista vazia, falha e sucesso possuem feedback. A confirmação impede envio duplicado e permite cancelar.
 - Em conflito, a interface explica que o chamado deixou de estar disponível e atualiza a fila.
 
@@ -15,13 +15,13 @@ Usuários ativos com perfil `ATENDENTE` ou `ADMIN` acessam a área de atendiment
 Todas as operações exigem `Authorization: Bearer <token>`. O cadastro público continua criando somente `SOLICITANTE`.
 
 ```http
-GET /api/atendimento/fila?page=0&size=10&prioridade=ALTA&categoriaId=1
-GET /api/atendimento/me?page=0&size=10&status=EM_ATENDIMENTO
+GET /api/atendimento/fila?page=0&size=20&prioridade=ALTA&categoriaId=1
+GET /api/atendimento/me?page=0&size=20&status=EM_ATENDIMENTO
 GET /api/atendimento/categorias
 PATCH /api/chamados/{id}/assumir
 ```
 
-`page` começa em zero, `size` tem padrão 10 e limite 50. `prioridade` e `categoriaId` são filtros opcionais; `status` é opcional apenas na carteira. Os resultados têm ordenação estável por `criadoEm DESC, id DESC`. Filtros e paginação são aplicados no banco.
+`page` começa em zero, `size` tem padrão 20 e limite 100. `prioridade` e `categoriaId` são filtros opcionais; `status` é opcional apenas na carteira. A ordenação aceita `sort=campo,asc|desc` conforme [contrato AC3](paginacao-chamados.md). Por padrão, os resultados têm ordenação estável por `criadoEm DESC, id DESC`. Filtros e paginação são aplicados no banco.
 
 O seletor de atendimento inclui categorias ativas e inativas para permitir localizar chamados já registrados. Essa consulta não altera a regra de abertura, que exige categoria ativa.
 
@@ -44,7 +44,7 @@ Resposta das consultas:
     }
   ],
   "page": 0,
-  "size": 10,
+  "size": 20,
   "totalElements": 1,
   "totalPages": 1
 }

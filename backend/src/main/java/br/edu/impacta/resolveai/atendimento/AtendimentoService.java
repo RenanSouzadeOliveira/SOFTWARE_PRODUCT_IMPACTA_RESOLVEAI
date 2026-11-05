@@ -21,8 +21,7 @@ import br.edu.impacta.resolveai.shared.error.RecursoNaoEncontradoException;
 import br.edu.impacta.resolveai.usuario.Perfil;
 import br.edu.impacta.resolveai.usuario.Usuario;
 import br.edu.impacta.resolveai.usuario.UsuarioRepository;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,19 +61,19 @@ public class AtendimentoService {
     }
 
     @Transactional(readOnly = true)
-    public PaginaAtendimentoResponse fila(UsuarioPrincipal principal, int page, int size,
+    public PaginaAtendimentoResponse fila(UsuarioPrincipal principal, Pageable pageable,
             PrioridadeChamado prioridade, Long categoriaId) {
         usuarioAutorizado(principal);
         return PaginaAtendimentoResponse.from(chamados.findFila(prioridade, categoriaId,
-                pagina(page, size, categoriaId)));
+                pagina(pageable, categoriaId)));
     }
 
     @Transactional(readOnly = true)
-    public PaginaAtendimentoResponse carteira(UsuarioPrincipal principal, int page, int size,
+    public PaginaAtendimentoResponse carteira(UsuarioPrincipal principal, Pageable pageable,
             PrioridadeChamado prioridade, Long categoriaId, StatusChamado status) {
         Usuario usuario = usuarioAutorizado(principal);
         return PaginaAtendimentoResponse.from(chamados.findCarteira(usuario.id(), status, prioridade,
-                categoriaId, pagina(page, size, categoriaId)));
+                categoriaId, pagina(pageable, categoriaId)));
     }
 
     @Transactional
@@ -113,11 +112,10 @@ public class AtendimentoService {
         return usuario;
     }
 
-    private PageRequest pagina(int page, int size, Long categoriaId) {
-        if (page < 0 || size < 1 || size > 50 || (long) page * size > Integer.MAX_VALUE
-                || (categoriaId != null && categoriaId < 1)) {
-            throw new DadosInvalidosException("Pagina deve ser >= 0, tamanho entre 1 e 50 e categoriaId positivo");
+    private Pageable pagina(Pageable pageable, Long categoriaId) {
+        if (categoriaId != null && categoriaId < 1) {
+            throw new DadosInvalidosException("categoriaId deve ser positivo");
         }
-        return PageRequest.of(page, size, Sort.by(Sort.Order.desc("criadoEm"), Sort.Order.desc("id")));
+        return pageable;
     }
 }

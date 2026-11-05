@@ -274,27 +274,27 @@ class ChamadoIntegrationTest {
         mockMvc.perform(get("/api/chamados/me")
                         .header(HttpHeaders.AUTHORIZATION, bearer(tokenSolicitante)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].id").value(newer.id()))
-                .andExpect(jsonPath("$[1].id").value(older.id()))
-                .andExpect(jsonPath("$[0].protocolo").value("RA-CONSULTA-NOVO"))
-                .andExpect(jsonPath("$[0].categoria.id").value(categoriaAtiva.id()))
-                .andExpect(jsonPath("$[0].prioridade").value("MEDIA"))
-                .andExpect(jsonPath("$[0].status").value("ABERTO"))
-                .andExpect(jsonPath("$[0].descricao").doesNotExist())
-                .andExpect(jsonPath("$[0].solicitante").doesNotExist());
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.content[0].id").value(newer.id()))
+                .andExpect(jsonPath("$.content[1].id").value(older.id()))
+                .andExpect(jsonPath("$.content[0].protocolo").value("RA-CONSULTA-NOVO"))
+                .andExpect(jsonPath("$.content[0].categoria.id").value(categoriaAtiva.id()))
+                .andExpect(jsonPath("$.content[0].prioridade").value("MEDIA"))
+                .andExpect(jsonPath("$.content[0].status").value("ABERTO"))
+                .andExpect(jsonPath("$.content[0].descricao").doesNotExist())
+                .andExpect(jsonPath("$.content[0].solicitante").doesNotExist());
 
         mockMvc.perform(get("/api/chamados/me")
                         .header(HttpHeaders.AUTHORIZATION, bearer(otherToken)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].protocolo").value("RA-CONSULTA-OUTRO"));
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].protocolo").value("RA-CONSULTA-OUTRO"));
 
         String emptyToken = registerAndLogin("vazio-" + UUID.randomUUID() + "@example.com");
         mockMvc.perform(get("/api/chamados/me")
                         .header(HttpHeaders.AUTHORIZATION, bearer(emptyToken)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(0));
+                .andExpect(jsonPath("$.content.length()").value(0));
     }
 
     @Test
@@ -310,9 +310,9 @@ class ChamadoIntegrationTest {
         mockMvc.perform(get("/api/chamados/me")
                         .header(HttpHeaders.AUTHORIZATION, bearer(tokenSolicitante)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].id").value(created.get("id").asLong()))
-                .andExpect(jsonPath("$[0].protocolo").value(created.get("protocolo").asText()));
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].id").value(created.get("id").asLong()))
+                .andExpect(jsonPath("$.content[0].protocolo").value(created.get("protocolo").asText()));
 
         mockMvc.perform(get("/api/chamados/{id}", created.get("id").asLong())
                         .header(HttpHeaders.AUTHORIZATION, bearer(tokenSolicitante)))

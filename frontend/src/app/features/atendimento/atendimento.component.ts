@@ -13,7 +13,18 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, ParamMap, Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { BehaviorSubject, catchError, combineLatest, EMPTY, switchMap, tap } from 'rxjs';
+import {
+  BehaviorSubject,
+  catchError,
+  combineLatest,
+  distinctUntilChanged,
+  EMPTY,
+  map,
+  switchMap,
+  tap,
+} from 'rxjs';
+import { PaginacaoComponent } from '../../shared/paginacao/paginacao.component';
+import { paginacaoDaUrl, Paginacao } from '../../shared/paginacao/paginacao.model';
 
 import { apiErrorMessage } from '../../core/http/api-error';
 import { AuthService } from '../../core/auth/auth.service';
@@ -23,7 +34,7 @@ import { AtendimentoService } from './atendimento.service';
 
 @Component({
   selector: 'app-atendimento',
-  imports: [DatePipe, ReactiveFormsModule, RouterLink, RouterLinkActive],
+  imports: [DatePipe, ReactiveFormsModule, RouterLink, RouterLinkActive, PaginacaoComponent],
   templateUrl: './atendimento.component.html',
   styleUrl: './atendimento.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,6 +61,7 @@ export class AtendimentoComponent implements OnInit {
     categoriaId: '',
     status: '',
   });
+  protected readonly query = signal<Paginacao>({ page: 0, size: 20, sort: 'criadoEm,desc' });
   protected readonly state = signal<'loading' | 'success' | 'error'>('loading');
   protected readonly pagina = signal<PaginaAtendimento | null>(null);
   protected readonly categorias = signal<readonly Categoria[]>([]);
@@ -64,8 +76,10 @@ export class AtendimentoComponent implements OnInit {
     this.loadCategories();
     combineLatest([this.route.queryParamMap, this.reload])
       .pipe(
-        tap(([params]) => {
-          const filters = this.filters(params);
+        map(([params, reload]) => ({ filters: this.filters(params), reload })),
+        distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
+        tap(({ filters }) => {
+          this.query.set(filters);
           this.form.setValue({
             prioridade: filters.prioridade ?? '',
             categoriaId: filters.categoriaId?.toString() ?? '',
@@ -74,11 +88,11 @@ export class AtendimentoComponent implements OnInit {
           this.state.set('loading');
           this.error.set(null);
         }),
-        switchMap(([params]) =>
-          this.service.listar(this.carteira, this.filters(params)).pipe(
+        switchMap(({ filters }) =>
+          this.service.listar(this.carteira, filters).pipe(
             tap((pagina) => {
               if (pagina.page >= Math.max(pagina.totalPages, 1)) {
-                this.goToPage(Math.max(pagina.totalPages - 1, 0));
+                this.navigateToPage(Math.max(pagina.totalPages - 1, 0));
               } else {
                 this.pagina.set(pagina);
                 this.state.set('success');
@@ -113,6 +127,7 @@ export class AtendimentoComponent implements OnInit {
     const values = this.form.getRawValue();
     void this.router.navigate([], {
       relativeTo: this.route,
+      queryParamsHandling: 'merge',
       queryParams: {
         page: 0,
         prioridade: values.prioridade || null,
@@ -122,7 +137,29 @@ export class AtendimentoComponent implements OnInit {
     });
   }
 
+  changeSettings(settings: Pick<Paginacao, 'size' | 'sort'>): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { ...settings, page: 0 },
+      queryParamsHandling: 'merge',
+    });
+  }
+
   goToPage(page: number): void {
+    const result = this.pagina();
+    if (
+      this.state() === 'loading' ||
+      this.submitting() ||
+      !result ||
+      page === result.page ||
+      page < 0 ||
+      page >= result.totalPages
+    )
+      return;
+    this.navigateToPage(page);
+  }
+
+  private navigateToPage(page: number): void {
     void this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { page },
@@ -131,6 +168,7 @@ export class AtendimentoComponent implements OnInit {
   }
 
   refresh(): void {
+    if (this.state() === 'loading') return;
     this.reload.next(this.reload.value + 1);
   }
 
@@ -201,13 +239,11 @@ export class AtendimentoComponent implements OnInit {
   }
 
   private filters(params: ParamMap): FiltrosAtendimento {
-    const page = Number(params.get('page') ?? 0);
     const categoria = Number(params.get('categoriaId'));
     const prioridade = params.get('prioridade') as Prioridade;
     const status = params.get('status') as StatusChamado;
     return {
-      page: Number.isSafeInteger(page) && page >= 0 ? page : 0,
-      size: 10,
+      ...paginacaoDaUrl(params),
       prioridade: this.prioridades.includes(prioridade) ? prioridade : undefined,
       categoriaId: Number.isSafeInteger(categoria) && categoria > 0 ? categoria : undefined,
       status: this.carteira && this.statuses.includes(status) ? status : undefined,

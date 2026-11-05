@@ -23,7 +23,7 @@ describe('AtendimentoComponent', () => {
   const page = (content: readonly AtendimentoResumo[] = [item]): PaginaAtendimento => ({
     content,
     page: 0,
-    size: 10,
+    size: 20,
     totalElements: content.length ? 11 : 0,
     totalPages: content.length ? 2 : 0,
   });
@@ -118,7 +118,8 @@ describe('AtendimentoComponent', () => {
     const fixture = render();
     expect(service.listar).toHaveBeenLastCalledWith(false, {
       page: 2,
-      size: 10,
+      size: 20,
+      sort: 'criadoEm,desc',
       prioridade: 'ALTA',
       categoriaId: 1,
       status: undefined,
@@ -141,6 +142,7 @@ describe('AtendimentoComponent', () => {
         queryParams: { page: 0, prioridade: null, categoriaId: null, status: null },
       }),
     );
+    responses[0].next(page());
     fixture.componentInstance.goToPage(1);
     expect(navigate).toHaveBeenLastCalledWith(
       [],
@@ -211,5 +213,71 @@ describe('AtendimentoComponent', () => {
     expect(fixture.nativeElement.querySelector('#status')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('article button')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('Não registrada');
+  });
+  it('restaura tamanho e ordem, evita requisições repetidas e reinicia página preservando filtros', () => {
+    params.next(
+      convertToParamMap({
+        page: '1',
+        size: '50',
+        sort: 'titulo,asc',
+        prioridade: 'ALTA',
+        categoriaId: '1',
+      }),
+    );
+    const fixture = render();
+    expect(service.listar).toHaveBeenLastCalledWith(
+      false,
+      expect.objectContaining({
+        page: 1,
+        size: 50,
+        sort: 'titulo,asc',
+        prioridade: 'ALTA',
+        categoriaId: 1,
+      }),
+    );
+    params.next(
+      convertToParamMap({
+        page: '1',
+        size: '50',
+        sort: 'titulo,asc',
+        prioridade: 'ALTA',
+        categoriaId: '1',
+      }),
+    );
+    expect(service.listar).toHaveBeenCalledTimes(1);
+    responses[0].next({ ...page(), page: 1, size: 50, totalElements: 75 });
+    fixture.detectChanges();
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    const select = fixture.nativeElement.querySelector('[aria-label="Ordenar por"]');
+    select.value = 'criadoEm,asc';
+    select.dispatchEvent(new Event('change'));
+    expect(navigate).toHaveBeenLastCalledWith(
+      [],
+      expect.objectContaining({
+        queryParams: { page: 0, size: 50, sort: 'criadoEm,asc' },
+        queryParamsHandling: 'merge',
+      }),
+    );
+    fixture.componentInstance.applyFilters();
+    expect(navigate).toHaveBeenLastCalledWith(
+      [],
+      expect.objectContaining({
+        queryParams: { page: 0, prioridade: 'ALTA', categoriaId: '1', status: null },
+        queryParamsHandling: 'merge',
+      }),
+    );
+  });
+
+  it('redireciona página fora dos limites e bloqueia navegação enquanto carrega', () => {
+    params.next(convertToParamMap({ page: '9' }));
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    const fixture = render();
+    fixture.componentInstance.goToPage(1);
+    expect(navigate).not.toHaveBeenCalled();
+    responses[0].next({ ...page(), page: 9, totalPages: 3 });
+    expect(navigate).toHaveBeenLastCalledWith(
+      [],
+      expect.objectContaining({ queryParams: { page: 2 }, queryParamsHandling: 'merge' }),
+    );
   });
 });
