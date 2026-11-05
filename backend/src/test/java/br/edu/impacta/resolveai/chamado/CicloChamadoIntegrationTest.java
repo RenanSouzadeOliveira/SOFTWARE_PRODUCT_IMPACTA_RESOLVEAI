@@ -199,6 +199,8 @@ class CicloChamadoIntegrationTest {
             var b = pool.submit(request);
             assertThat(List.of(a.get(20, TimeUnit.SECONDS), b.get(20, TimeUnit.SECONDS))).containsExactlyInAnyOrder(200, 409);
             assertThat(statusCount()).isEqualTo(2);
+            mvc.perform(get(url() + "/historico").header("Authorization", token(solicitante)))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(3));
             assertThat(chamados.findById(chamado.id()).orElseThrow().versao()).isEqualTo(2);
         } finally { clock.barrier = null; }
     }

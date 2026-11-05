@@ -172,25 +172,7 @@
               </form>
             </section>
           }
-          <section class="detail-section" aria-labelledby="history-title">
-            <h2 id="history-title">Histórico de status</h2>
-            <ol class="history">
-              @for (event of item.historicoStatus ?? []; track event.id) {
-                <li>
-                  <p>
-                    {{ event.statusAnterior ? statusLabel(event.statusAnterior) + ' → ' : ''
-                    }}{{ statusLabel(event.statusNovo) }}
-                  </p>
-                  <p>{{ event.autor.nome }} · {{ event.criadoEm | date: 'dd/MM/yyyy HH:mm' }}</p>
-                  @if (event.observacao) {
-                    <p class="description">{{ event.observacao }}</p>
-                  }
-                </li>
-              } @empty {
-                <li>Nenhuma alteração de status registrada.</li>
-              }
-            </ol>
-          </section>
+          <app-historico-chamado [chamadoId]="item.id" [refreshKey]="commentsRefresh()" />
           <app-comentarios-chamado
             [chamadoId]="item.id"
             [status]="item.status"

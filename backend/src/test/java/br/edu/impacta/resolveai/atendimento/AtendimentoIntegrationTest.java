@@ -161,7 +161,7 @@ class AtendimentoIntegrationTest {
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM historico_chamados WHERE chamado_id = ? "
                 + "AND tipo_evento = 'ATRIBUICAO' AND autor_id = ? AND atendente_novo_id = ? "
                 + "AND status_anterior = 'ABERTO' AND status_novo = 'EM_ATENDIMENTO' "
-                + "AND criado_em = ?", Long.class, chamado.id(), atendente.id(), atendente.id(), persisted.atribuidoEm()))
+                + "AND criado_em = ?", Long.class, chamado.id(), atendente.id(), atendente.id(), java.sql.Timestamp.from(persisted.atribuidoEm())))
                 .isEqualTo(1);
         String carteira = "/api/atendimento/me?categoriaId=" + categoria.id()
                 + "&prioridade=ALTA&status=EM_ATENDIMENTO";
@@ -240,6 +240,8 @@ class AtendimentoIntegrationTest {
                     .isEqualTo(winner.atendente().id());
             assertThat(chamados.findById(chamado.id()).orElseThrow().versao()).isEqualTo(1);
             assertThat(historyCount(chamado.id())).isEqualTo(1);
+            mvc.perform(get("/api/chamados/" + chamado.id() + "/historico").header("Authorization", token(solicitante)))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(2));
         } finally {
             clock.barrier = null;
         }

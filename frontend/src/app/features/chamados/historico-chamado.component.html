@@ -1,0 +1,36 @@
+<section aria-labelledby="history-title" [attr.aria-busy]="state() === 'loading'">
+  <h2 id="history-title">Histórico do chamado</h2>
+  @switch (state()) {
+    @case ('loading') {
+      <p role="status">Carregando histórico…</p>
+    }
+    @case ('error') {
+      <p role="alert">{{ error() }}</p>
+      <button type="button" (click)="refresh()">Tentar carregar histórico novamente</button>
+    }
+    @case ('success') {
+      <ol class="history" aria-label="Eventos do mais recente para o mais antigo">
+        @for (event of eventos(); track event.id) {
+          <li>
+            <h3>{{ labels[event.tipoEvento] }}</h3>
+            <p>
+              {{ event.autor.nome }} ·
+              <time [attr.datetime]="event.criadoEm">{{
+                event.criadoEm | date: 'dd/MM/yyyy HH:mm:ss'
+              }}</time>
+            </p>
+            @if (event.valorAnterior || event.tipoEvento === 'ATRIBUICAO') {
+              <p><strong>Anterior:</strong> {{ valor(event.valorAnterior, event.tipoEvento) }}</p>
+            }
+            <p><strong>Novo:</strong> {{ valor(event.valorNovo, event.tipoEvento) }}</p>
+            @if (event.observacao) {
+              <p class="description">{{ event.observacao }}</p>
+            }
+          </li>
+        } @empty {
+          <li>Nenhum evento registrado para este chamado.</li>
+        }
+      </ol>
+    }
+  }
+</section>

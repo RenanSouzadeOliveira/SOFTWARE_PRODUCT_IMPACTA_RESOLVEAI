@@ -4,6 +4,8 @@ Este documento descreve o schema criado pelas migrations Flyway. A V1 cria o mod
 
 A V5 acrescenta `HISTORICO_STATUS`, com um registro imutável por transição, relacionado ao chamado e ao autor. A atribuição e a prioridade continuam com eventos próprios em `HISTORICO_CHAMADOS`.
 
+A V9 mantém as duas tabelas e todas as linhas AC2, acrescenta desempate por ID ao índice do histórico geral e instala triggers PostgreSQL que rejeitam UPDATE/DELETE/TRUNCATE. A criação passa a registrar CRIACAO na tabela geral. A consulta unificada e o contrato estão em [Histórico completo AC3](historico-chamados.md).
+
 ## Diagrama
 
 ```mermaid

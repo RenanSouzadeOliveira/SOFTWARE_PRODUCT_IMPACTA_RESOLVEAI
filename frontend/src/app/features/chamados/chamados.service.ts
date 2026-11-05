@@ -1,3 +1,4 @@
+import { EventoHistorico } from './historico-chamado.model';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ConsultaChamados, parametrosConsulta } from './filtros-chamados.model';
@@ -38,6 +39,12 @@ export class ChamadosService {
 
   buscarPorId(id: number): Observable<Chamado> {
     return this.api.get<Chamado>(`chamados/${encodeURIComponent(String(id))}`);
+  }
+
+  listarHistorico(id: number): Observable<readonly EventoHistorico[]> {
+    return this.api.get<readonly EventoHistorico[]>(
+      `chamados/${encodeURIComponent(String(id))}/historico`,
+    );
   }
 
   alterarStatus(id: number, input: AlterarStatusInput): Observable<Chamado> {

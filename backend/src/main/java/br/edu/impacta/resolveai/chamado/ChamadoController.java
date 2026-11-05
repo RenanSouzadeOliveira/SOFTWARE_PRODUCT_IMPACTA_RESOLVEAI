@@ -1,6 +1,8 @@
 package br.edu.impacta.resolveai.chamado;
 
 import java.net.URI;
+import java.util.List;
+import br.edu.impacta.resolveai.chamado.dto.EventoHistoricoResponse;
 import br.edu.impacta.resolveai.chamado.dto.PaginaChamadosResponse;
 import br.edu.impacta.resolveai.shared.pagination.PaginacaoChamados;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -147,6 +149,22 @@ public class ChamadoController {
             @PathVariable Long id,
             @AuthenticationPrincipal UsuarioPrincipal principal) {
         return ciclo.detalhar(id, principal);
+    }
+
+    @GetMapping(value = "/{id}/historico", produces = "application/json")
+    @Operation(summary = "Consultar histórico completo do chamado", description = "Mesma visibilidade do detalhe: "
+            + "solicitante proprietário, atendente responsável ou ADMIN ativo. Sem visibilidade retorna 404. "
+            + "Eventos de criação, status, prioridade e atribuição; data DESC, origem DESC e id DESC como desempate. "
+            + "Autores/responsáveis desativados continuam identificáveis por id/nome. Somente leitura.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Eventos do mais recente para o mais antigo; lista vazia para legado sem eventos"),
+            @ApiResponse(responseCode = "400", description = "Identificador inválido", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Autenticação ausente ou conta inativa", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Chamado inexistente ou sem visibilidade", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public List<EventoHistoricoResponse> historico(@PathVariable Long id,
+            @AuthenticationPrincipal UsuarioPrincipal principal) {
+        return ciclo.historico(id, principal);
     }
 
     @PatchMapping("/{id}/status")

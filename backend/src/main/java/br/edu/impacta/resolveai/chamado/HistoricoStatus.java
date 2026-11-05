@@ -15,6 +15,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
+@org.hibernate.annotations.Immutable
 @Table(name = "historico_status")
 public class HistoricoStatus {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

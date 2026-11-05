@@ -2,6 +2,8 @@ package br.edu.impacta.resolveai.chamado;
 
 import java.time.Clock;
 import java.time.Instant;
+import br.edu.impacta.resolveai.atendimento.HistoricoAtribuicao;
+import br.edu.impacta.resolveai.atendimento.HistoricoAtribuicaoRepository;
 
 import br.edu.impacta.resolveai.categoria.Categoria;
 import br.edu.impacta.resolveai.categoria.CategoriaRepository;
@@ -23,16 +25,18 @@ class ChamadoCreationTransaction {
     private final CategoriaRepository categoriaRepository;
     private final UsuarioRepository usuarioRepository;
     private final Clock clock;
+    private final HistoricoAtribuicaoRepository historico;
 
     ChamadoCreationTransaction(
             ChamadoRepository chamadoRepository,
             CategoriaRepository categoriaRepository,
             UsuarioRepository usuarioRepository,
-            Clock clock) {
+            Clock clock, HistoricoAtribuicaoRepository historico) {
         this.chamadoRepository = chamadoRepository;
         this.categoriaRepository = categoriaRepository;
         this.usuarioRepository = usuarioRepository;
         this.clock = clock;
+        this.historico = historico;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -53,6 +57,7 @@ class ChamadoCreationTransaction {
                 categoria,
                 agora);
         Chamado salvo = chamadoRepository.saveAndFlush(chamado);
+        historico.save(HistoricoAtribuicao.registrarCriacao(salvo, solicitante, agora));
         return ChamadoResponse.from(salvo);
     }
 }

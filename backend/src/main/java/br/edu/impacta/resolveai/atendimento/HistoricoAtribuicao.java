@@ -17,6 +17,7 @@ import jakarta.persistence.Table;
 
 /** Evento imutavel escrito na mesma transacao da atribuicao. */
 @Entity
+@org.hibernate.annotations.Immutable
 @Table(name = "historico_chamados")
 public class HistoricoAtribuicao {
 
@@ -64,6 +65,16 @@ public class HistoricoAtribuicao {
         evento.statusAnterior = "ABERTO";
         evento.statusNovo = "EM_ATENDIMENTO";
         evento.atendenteNovo = autor;
+        evento.criadoEm = agora;
+        return evento;
+    }
+
+    public static HistoricoAtribuicao registrarCriacao(Chamado chamado, Usuario autor, Instant agora) {
+        HistoricoAtribuicao evento = new HistoricoAtribuicao();
+        evento.chamado = chamado;
+        evento.autor = autor;
+        evento.tipoEvento = "CRIACAO";
+        evento.statusNovo = chamado.status().name();
         evento.criadoEm = agora;
         return evento;
     }

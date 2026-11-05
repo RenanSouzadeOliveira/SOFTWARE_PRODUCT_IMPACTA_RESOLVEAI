@@ -45,6 +45,14 @@ describe('ChamadosService', () => {
     expect(received).toBe(updated);
   });
 
+  it('consulta histórico pelo endpoint do chamado sem enviar autor', () => {
+    api.get.mockReturnValue(of([]));
+    TestBed.inject(ChamadosService)
+      .listarHistorico(10)
+      .subscribe((value) => expect(value).toEqual([]));
+    expect(api.get).toHaveBeenCalledWith('chamados/10/historico');
+  });
+
   it('envia prioridade sem campos de usuário ou status', () => {
     api.patch.mockReturnValue(of({}));
     TestBed.inject(ChamadosService).alterarPrioridade(10, 'ALTA').subscribe();

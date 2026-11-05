@@ -25,7 +25,7 @@ class ChamadoServiceTest {
                 1L, "RA-protocolo-unico-0000", "Titulo", "Descricao suficientemente longa",
                 StatusChamado.ABERTO, PrioridadeChamado.MEDIA, null, null, null, null,
                 null, null, null, null);
-        ChamadoCreationTransaction transaction = new ChamadoCreationTransaction(null, null, null, null) {
+        ChamadoCreationTransaction transaction = new ChamadoCreationTransaction(null, null, null, null, null) {
             @Override
             public ChamadoResponse criar(Long solicitanteId, AbrirChamadoRequest request, String protocolo) {
                 if (attempts.getAndIncrement() == 0) {

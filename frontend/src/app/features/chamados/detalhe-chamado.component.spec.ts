@@ -4,6 +4,7 @@ import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/route
 import { of, Subject } from 'rxjs';
 import { ComentariosChamadoService } from './comentarios-chamado.service';
 
+import { EventoHistorico } from './historico-chamado.model';
 import { Chamado } from './chamado.model';
 import { ChamadosService } from './chamados.service';
 import { DetalheChamadoComponent } from './detalhe-chamado.component';
@@ -11,6 +12,7 @@ import { DetalheChamadoComponent } from './detalhe-chamado.component';
 describe('DetalheChamadoComponent', () => {
   const responses: Subject<Chamado>[] = [];
   const chamadosService = {
+    listarHistorico: vi.fn(() => of<readonly EventoHistorico[]>([])),
     alterarStatus: vi.fn(),
     alterarPrioridade: vi.fn(),
     buscarPorId: vi.fn(() => {
@@ -67,6 +69,20 @@ describe('DetalheChamadoComponent', () => {
   }
 
   it('não oferece ações ausentes ou desconhecidas e usa histórico como texto seguro', () => {
+    chamadosService.listarHistorico.mockReturnValueOnce(
+      of([
+        {
+          id: 'CHAMADO-1',
+          chamadoId: 10,
+          tipoEvento: 'CRIACAO',
+          autor: { id: 1, nome: 'Ana' },
+          criadoEm: detail.criadoEm,
+          valorAnterior: null,
+          valorNovo: { codigo: 'ABERTO', nome: null },
+          observacao: '<script>malicioso</script>',
+        },
+      ]),
+    );
     const fixture = render({
       ...detail,
       acoesPermitidas: ['UNKNOWN'],
@@ -119,6 +135,7 @@ describe('DetalheChamadoComponent', () => {
     expect(fixture.nativeElement.querySelector('[data-action="FECHAR"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('[data-action="RESOLVER"]')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('atualizado com sucesso');
+    expect(chamadosService.listarHistorico).toHaveBeenCalledTimes(2);
   });
 
   it('fecha sem justificativa e recupera erro sem perder a confirmação', () => {
@@ -174,6 +191,7 @@ describe('DetalheChamadoComponent', () => {
     update.next({ ...detail, prioridade: 'ALTA', acoesPermitidas: [] });
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Alta');
+    expect(chamadosService.listarHistorico).toHaveBeenCalledTimes(2);
     expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
   });
 

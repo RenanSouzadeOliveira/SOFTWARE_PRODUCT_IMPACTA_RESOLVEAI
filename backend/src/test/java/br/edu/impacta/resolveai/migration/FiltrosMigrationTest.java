@@ -15,7 +15,7 @@ class FiltrosMigrationTest {
             s.execute("INSERT INTO categorias (id,nome) VALUES (1,'Filtros fictícios')");
             s.execute("INSERT INTO chamados (protocolo,titulo,descricao,solicitante_id,categoria_id) VALUES ('FILTROS-001','Título fictício','Descrição fictícia suficiente',1,1)");
         }
-        var flyway = Flyway.configure().dataSource(ds).locations("classpath:db/migration").load();
+        var flyway = Flyway.configure().dataSource(ds).locations("classpath:db/migration").target("8").load();
         assertThat(flyway.migrate().migrationsExecuted).isEqualTo(1); flyway.validate();
         try(var c=ds.getConnection();var s=c.createStatement();var rs=s.executeQuery("SELECT COUNT(*) FROM chamados WHERE protocolo='FILTROS-001'")) {
             rs.next();assertThat(rs.getInt(1)).isEqualTo(1);

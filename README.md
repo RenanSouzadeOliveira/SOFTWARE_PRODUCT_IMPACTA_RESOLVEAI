@@ -15,6 +15,8 @@ Angular :4200  ── HTTP /api + JWT ──>  Spring Boot :8080  ── JPA ─
 
 O Angular concentra a interface e os contratos tipados; o Spring Boot aplica validação, autenticação, autorização e regras de negócio; o PostgreSQL garante a integridade relacional. O Flyway é a única ferramenta que cria ou evolui o schema e o Hibernate apenas o valida. As decisões completas estão em [Arquitetura inicial](docs/architecture.md).
 
+O [histórico completo de chamados AC3](docs/historico-chamados.md) reúne contrato HTTP, migration V9, timeline, evidências de testes e roteiro reproduzível do vídeo.
+
 ## Pré-requisitos
 
 - Node.js 22.12 ou superior na linha 22 e npm 10+

@@ -2,6 +2,9 @@ package br.edu.impacta.resolveai.chamado;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.List;
+import br.edu.impacta.resolveai.chamado.dto.EventoHistoricoResponse;
+import org.springframework.transaction.annotation.Isolation;
 import br.edu.impacta.resolveai.atendimento.HistoricoAtribuicao;
 import br.edu.impacta.resolveai.atendimento.HistoricoAtribuicaoRepository;
 import br.edu.impacta.resolveai.chamado.dto.AlterarPrioridadeRequest;
@@ -29,14 +32,16 @@ public class CicloChamadoService {
     private final HistoricoStatusRepository historicoStatus;
     private final HistoricoAtribuicaoRepository historicoAlteracoes;
     private final Clock clock;
+    private final ConsultaHistorico consultaHistorico;
 
     public CicloChamadoService(ChamadoRepository chamados, UsuarioRepository usuarios,
-            HistoricoStatusRepository historicoStatus, HistoricoAtribuicaoRepository historicoAlteracoes, Clock clock) {
+            HistoricoStatusRepository historicoStatus, HistoricoAtribuicaoRepository historicoAlteracoes, Clock clock, ConsultaHistorico consultaHistorico) {
         this.chamados = chamados;
         this.usuarios = usuarios;
         this.historicoStatus = historicoStatus;
         this.historicoAlteracoes = historicoAlteracoes;
         this.clock = clock;
+        this.consultaHistorico = consultaHistorico;
     }
 
     @Transactional(readOnly = true)
@@ -46,6 +51,16 @@ public class CicloChamadoService {
         if (!MaquinaEstadosChamado.podeConsultar(chamado, usuario))
             throw new RecursoNaoEncontradoException("Chamado nao encontrado");
         return resposta(chamado, usuario);
+    }
+
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
+    public List<EventoHistoricoResponse> historico(
+            Long id, UsuarioPrincipal principal) {
+        Usuario usuario = usuarioAtivo(principal);
+        Chamado chamado = buscar(id);
+        if (!MaquinaEstadosChamado.podeConsultar(chamado, usuario))
+            throw new RecursoNaoEncontradoException("Chamado nao encontrado");
+        return consultaHistorico.listar(id);
     }
 
     @Transactional

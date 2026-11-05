@@ -1,3 +1,4 @@
+import { HistoricoChamadoComponent } from './historico-chamado.component';
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
@@ -48,7 +49,13 @@ const PRIORIDADE_LABELS: Readonly<Record<Prioridade, string>> = {
 
 @Component({
   selector: 'app-detalhe-chamado',
-  imports: [DatePipe, RouterLink, ReactiveFormsModule, ComentariosChamadoComponent],
+  imports: [
+    DatePipe,
+    RouterLink,
+    ReactiveFormsModule,
+    ComentariosChamadoComponent,
+    HistoricoChamadoComponent,
+  ],
   templateUrl: './detalhe-chamado.component.html',
   styleUrl: './detalhe-chamado.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
