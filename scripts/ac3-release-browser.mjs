@@ -112,7 +112,7 @@ const global=await api('chamados','GET',undefined,admin.accessToken);
   await page.getByRole('button',{name:'Limpar filtros',exact:true}).click();await expectTotal(role==='ADMIN'?global.totalElements:25);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
   if(role==='ATENDENTE') {
-   await page.getByRole('link',{name:'Fila',exact:true}).click();await page.locator('.tickets').waitFor();assert.equal(await page.locator('#ticket-assignee').count(),0);
+   await page.getByRole('link',{name:'Fila',exact:true}).click();await page.waitForURL(url=>url.pathname==='/atendimento');await page.locator('#ticket-assignee').waitFor({state:'detached'});await page.locator('.tickets').waitFor();
    await page.getByLabel('Buscar por protocolo ou texto').fill('inexistente-ficticio');await expectTotal(0);
   }
   assert.deepEqual(errors,[]);await context.close();
