@@ -210,3 +210,23 @@ h2 {
     grid-template-columns: 1fr;
   }
 }
+
+.exportacao {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+.exportacao p {
+  flex: 1 1 15rem;
+  color: #52606d;
+}
+.secondary-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+.secondary-button:focus-visible {
+  outline: 3px solid #0967d2;
+  outline-offset: 3px;
+}

@@ -44,11 +44,13 @@ public class ChamadoController {
     private final ChamadoService chamadoService;
     private final CicloChamadoService ciclo;
     private final OpcoesFiltrosChamados opcoes;
+    private final ExportacaoChamadosService exportacao;
 
-    public ChamadoController(ChamadoService chamadoService, CicloChamadoService ciclo, OpcoesFiltrosChamados opcoes) {
+    public ChamadoController(ChamadoService chamadoService, CicloChamadoService ciclo, OpcoesFiltrosChamados opcoes, ExportacaoChamadosService exportacao) {
         this.chamadoService = chamadoService;
         this.ciclo = ciclo;
         this.opcoes = opcoes;
+        this.exportacao = exportacao;
     }
 
     @PostMapping
@@ -99,6 +101,40 @@ public class ChamadoController {
     public PaginaChamadosResponse listar(@AuthenticationPrincipal UsuarioPrincipal principal,
             @Parameter(hidden = true) @RequestParam MultiValueMap<String, String> parameters) {
         return chamadoService.listar(principal, PaginacaoChamados.parse(parameters), FiltrosChamados.parse(parameters));
+    }
+
+    @GetMapping("/exportacao")
+    @Operation(summary = "Exportar consulta autorizada para CSV",
+            description = "Mesmos filtros e sort de GET /api/chamados, inclusive desempate por ID. "
+                    + "page e size são validados mas não restringem o arquivo. Máximo configurável, padrão 10000. "
+                    + "CSV UTF-8 com BOM, separador ponto e vírgula, datas ISO-8601 UTC; vazio contém só cabeçalho. "
+                    + "Textos perigosos recebem prefixo visível Texto: . Sem descrição, solicitante ou dados internos.")
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "CSV completo autorizado",
+                    content = @Content(mediaType = "text/csv", schema = @Schema(type = "string", format = "binary"))),
+            @ApiResponse(responseCode = "400", description = "Filtros inválidos ou limite excedido",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Autenticação necessária")})
+    @Parameters({
+            @Parameter(name = "search", in = ParameterIn.QUERY, description = "Texto literal; espaços externos ignorados"),
+            @Parameter(name = "status", in = ParameterIn.QUERY, schema = @Schema(implementation = StatusChamado.class)),
+            @Parameter(name = "prioridade", in = ParameterIn.QUERY, schema = @Schema(implementation = PrioridadeChamado.class)),
+            @Parameter(name = "categoriaId", in = ParameterIn.QUERY, description = "ID positivo; alias categoria"),
+            @Parameter(name = "responsavel", in = ParameterIn.QUERY, description = "ID positivo do atendente"),
+            @Parameter(name = "dataInicial", in = ParameterIn.QUERY, description = "AAAA-MM-DD, inclusiva UTC"),
+            @Parameter(name = "dataFinal", in = ParameterIn.QUERY, description = "AAAA-MM-DD, inclusiva UTC"),
+            @Parameter(name = "page", in = ParameterIn.QUERY, schema = @Schema(defaultValue = "0")),
+            @Parameter(name = "size", in = ParameterIn.QUERY, schema = @Schema(defaultValue = "20", maximum = "100")),
+            @Parameter(name = "sort", in = ParameterIn.QUERY, schema = @Schema(defaultValue = "criadoEm,desc"))
+    })
+    public ResponseEntity<byte[]> exportar(@AuthenticationPrincipal UsuarioPrincipal principal,
+            @Parameter(hidden = true) @RequestParam MultiValueMap<String, String> parameters) {
+        var paginacao = PaginacaoChamados.parse(parameters);
+        var csv = exportacao.exportar(principal, FiltrosChamados.parse(parameters), paginacao.getSort());
+        return ResponseEntity.ok()
+                .header("Content-Type", "text/csv; charset=UTF-8")
+                .header("Content-Disposition", "attachment; filename=\"chamados.csv\"")
+                .header("Cache-Control", "no-store")
+                .body(csv);
     }
 
     @GetMapping("/filtros")

@@ -154,3 +154,7 @@ Sem blockers funcionais identificados na validação executada. Acessibilidade f
 - `frontend/src/app/features/chamados/filtros-chamados.service.ts`
 - `scripts/ac3-filtros-demonstracao.mjs`
 - `scripts/ac3-filtros-query-plans.sql`
+
+## Exportação da consulta
+
+O botão **Exportar CSV** em Meus chamados e Consultar chamados usa os filtros e a ordenação atuais sem limitar o arquivo à página visível. Veja [contrato, segurança, testes e demonstração da exportação](exportacao-csv.md).

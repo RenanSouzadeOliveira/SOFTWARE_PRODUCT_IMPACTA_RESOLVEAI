@@ -40,6 +40,21 @@ describe('ApiService', () => {
     expect(actualResponse).toEqual(expectedResponse);
   });
 
+  it('baixa Blob com a URL e os parâmetros existentes', () => {
+    const csv = new Blob(['CSV'], { type: 'text/csv' });
+    let received: Blob | undefined;
+    service
+      .getBlob('chamados/exportacao', { params: { search: 'ação' } })
+      .subscribe((value) => (received = value));
+    const req = httpController.expectOne(
+      (r) =>
+        r.url === `${environment.apiUrl}/chamados/exportacao` && r.params.get('search') === 'ação',
+    );
+    expect(req.request.responseType).toBe('blob');
+    req.flush(csv);
+    expect(received).toBe(csv);
+  });
+
   it('faz POST e PATCH tipados', () => {
     service.post<{ id: number }, { nome: string }>('recursos', { nome: 'Novo' }).subscribe();
     const post = httpController.expectOne(`${environment.apiUrl}/recursos`);

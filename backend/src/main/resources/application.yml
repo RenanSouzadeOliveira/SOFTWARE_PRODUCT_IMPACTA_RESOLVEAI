@@ -24,6 +24,9 @@ spring:
     time-zone: UTC
 
 app:
+  chamados:
+    exportacao:
+      max-registros: ${CHAMADOS_EXPORTACAO_MAX_REGISTROS:10000}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS}
   jwt:

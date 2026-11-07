@@ -1,6 +1,7 @@
 import { EventoHistorico } from './historico-chamado.model';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Observable, catchError, from, mergeMap, throwError } from 'rxjs';
 import { ConsultaChamados, parametrosConsulta } from './filtros-chamados.model';
 import { Pagina } from '../../shared/paginacao/paginacao.model';
 
@@ -35,6 +36,37 @@ export class ChamadosService {
 
   listar(query: ConsultaChamados): Observable<Pagina<ChamadoResumo>> {
     return this.api.get<Pagina<ChamadoResumo>>('chamados', { params: parametrosConsulta(query) });
+  }
+
+  exportarCsv(query: ConsultaChamados): Observable<Blob> {
+    return this.api.getBlob('chamados/exportacao', { params: parametrosConsulta(query) }).pipe(
+      catchError((error: unknown) => {
+        // HttpClient também entrega erros JSON como Blob em uma requisição binária.
+        if (error instanceof HttpErrorResponse && error.error instanceof Blob) {
+          return from(error.error.text()).pipe(
+            mergeMap((text) => {
+              let body: unknown = null;
+              try {
+                body = JSON.parse(text);
+              } catch {
+                /* Usa mensagem genérica sanitizada. */
+              }
+              return throwError(
+                () =>
+                  new HttpErrorResponse({
+                    error: body,
+                    status: error.status,
+                    statusText: error.statusText,
+                    headers: error.headers,
+                    url: error.url ?? undefined,
+                  }),
+              );
+            }),
+          );
+        }
+        return throwError(() => error);
+      }),
+    );
   }
 
   buscarPorId(id: number): Observable<Chamado> {

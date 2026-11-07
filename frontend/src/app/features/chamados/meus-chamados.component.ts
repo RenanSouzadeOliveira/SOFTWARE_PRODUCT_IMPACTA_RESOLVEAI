@@ -1,4 +1,5 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, DOCUMENT } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -15,6 +16,7 @@ import {
   combineLatest,
   distinctUntilChanged,
   EMPTY,
+  finalize,
   map,
   switchMap,
   tap,
@@ -27,7 +29,7 @@ import { ChamadoResumo, Prioridade, StatusChamado } from './chamado.model';
 import { ChamadosService } from './chamados.service';
 
 import { FiltrosChamadosComponent } from './filtros-chamados.component';
-import { consultaDaUrl } from './filtros-chamados.model';
+import { ConsultaChamados, consultaDaUrl } from './filtros-chamados.model';
 
 type MeusChamadosState = 'loading' | 'empty' | 'success' | 'error';
 
@@ -52,18 +54,55 @@ const PRIORIDADE_LABELS: Readonly<Record<Prioridade, string>> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MeusChamadosComponent implements OnInit {
+  private readonly document = inject(DOCUMENT);
   private readonly chamadosService = inject(ChamadosService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   protected readonly global = this.route.snapshot?.data?.['global'] === true;
   private readonly reload = new BehaviorSubject(0);
-  protected readonly query = signal<Paginacao>({ page: 0, size: 20, sort: 'criadoEm,desc' });
+  protected readonly query = signal<ConsultaChamados>({ page: 0, size: 20, sort: 'criadoEm,desc' });
   protected readonly pagina = signal<Pagina<ChamadoResumo> | null>(null);
 
   protected readonly state = signal<MeusChamadosState>('loading');
   protected readonly chamados = signal<readonly ChamadoResumo[]>([]);
   protected readonly errorMessage = signal<string | null>(null);
+
+  protected readonly exportando = signal(false);
+  protected readonly erroExportacao = signal<string | null>(null);
+
+  protected exportarCsv(): void {
+    if (this.exportando()) return;
+    this.exportando.set(true);
+    this.erroExportacao.set(null);
+    this.chamadosService
+      .exportarCsv(this.query())
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.exportando.set(false)),
+      )
+      .subscribe({
+        next: (blob) => {
+          const url = URL.createObjectURL(blob);
+          const link = this.document.createElement('a');
+          link.href = url;
+          link.download = 'chamados.csv';
+          this.document.body.appendChild(link);
+          link.click();
+          link.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        },
+        error: (error: unknown) => {
+          const fallback =
+            error instanceof HttpErrorResponse && error.status === 401
+              ? 'Sua sessão expirou. Entre novamente para exportar.'
+              : error instanceof HttpErrorResponse && error.status === 0
+                ? 'Sem conexão com o servidor. Verifique sua rede e tente novamente.'
+                : 'Não foi possível exportar os chamados. Tente novamente.';
+          this.erroExportacao.set(apiErrorMessage(error, fallback));
+        },
+      });
+  }
 
   ngOnInit(): void {
     combineLatest([this.route.queryParamMap, this.reload])

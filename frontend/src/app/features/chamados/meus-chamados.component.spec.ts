@@ -1,4 +1,5 @@
 import { FiltrosChamadosService } from './filtros-chamados.service';
+import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, Router, provideRouter } from '@angular/router';
 import { of, BehaviorSubject } from 'rxjs';
@@ -11,7 +12,13 @@ import { MeusChamadosComponent } from './meus-chamados.component';
 
 describe('MeusChamadosComponent', () => {
   const responses: Subject<Pagina<ChamadoResumo>>[] = [];
+  const exports: Subject<Blob>[] = [];
   const chamadosService = {
+    exportarCsv: vi.fn(() => {
+      const result = new Subject<Blob>();
+      exports.push(result);
+      return result.asObservable();
+    }),
     listarMeus: vi.fn(() => {
       const response = new Subject<Pagina<ChamadoResumo>>();
       responses.push(response);
@@ -23,6 +30,7 @@ describe('MeusChamadosComponent', () => {
   beforeEach(async () => {
     params = new BehaviorSubject(convertToParamMap({}));
     responses.length = 0;
+    exports.length = 0;
     vi.clearAllMocks();
     await TestBed.configureTestingModule({
       imports: [MeusChamadosComponent],
@@ -36,6 +44,113 @@ describe('MeusChamadosComponent', () => {
         { provide: ChamadosService, useValue: chamadosService },
       ],
     }).compileComponents();
+  });
+
+  it('exporta filtros ativos, impede duplicatas, baixa arquivo e mantém a URL/página', async () => {
+    vi.useFakeTimers();
+    const create = vi.fn(() => 'blob:csv-test');
+    const revoke = vi.fn();
+    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: create });
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: revoke });
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    params.next(
+      convertToParamMap({
+        page: '2',
+        size: '1',
+        sort: 'titulo,asc',
+        search: 'ação',
+        status: 'ABERTO',
+        prioridade: 'ALTA',
+        dataInicial: '2026-09-01',
+      }),
+    );
+    const fixture = TestBed.createComponent(MeusChamadosComponent);
+    fixture.detectChanges();
+    responses[0].next({ ...page([ticket]), page: 2, size: 1, totalElements: 45, totalPages: 45 });
+    fixture.detectChanges();
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    const button: HTMLButtonElement = fixture.nativeElement.querySelector(
+      '[data-testid="exportar-csv"]',
+    );
+    button.click();
+    fixture.detectChanges();
+    button.click();
+    expect(chamadosService.exportarCsv).toHaveBeenCalledTimes(1);
+    expect(chamadosService.exportarCsv).toHaveBeenCalledWith({
+      page: 2,
+      size: 1,
+      sort: 'titulo,asc',
+      search: 'ação',
+      status: 'ABERTO',
+      prioridade: 'ALTA',
+      dataInicial: '2026-09-01',
+    });
+    expect(button.disabled).toBe(true);
+    expect(button.textContent).toContain('Exportando');
+    const csv = new Blob(['CSV']);
+    exports[0].next(csv);
+    exports[0].complete();
+    fixture.detectChanges();
+    expect(create).toHaveBeenCalledWith(csv);
+    expect(click).toHaveBeenCalledTimes(1);
+    const link = click.mock.instances[0] as HTMLAnchorElement;
+    expect(link.download).toBe('chamados.csv');
+    expect(link.href).toBe('blob:csv-test');
+    expect(button.disabled).toBe(false);
+    expect(navigate).not.toHaveBeenCalled();
+    expect(chamadosService.listarMeus).toHaveBeenCalledTimes(1);
+    vi.runAllTimers();
+    expect(revoke).toHaveBeenCalledWith('blob:csv-test');
+    click.mockRestore();
+    vi.useRealTimers();
+  });
+
+  it.each([
+    [400, { message: 'Filtros inválidos.' }, 'Filtros inválidos.'],
+    [
+      400,
+      { message: 'A exportação permite até 105 chamados.' },
+      'A exportação permite até 105 chamados.',
+    ],
+    [401, null, 'Sua sessão expirou.'],
+    [0, null, 'Sem conexão com o servidor.'],
+    [500, null, 'Não foi possível exportar'],
+  ])(
+    'mostra erro de exportação %s sem perder a lista e permite nova tentativa',
+    (status, error, message) => {
+      const fixture = TestBed.createComponent(MeusChamadosComponent);
+      fixture.detectChanges();
+      responses[0].next(page([ticket]));
+      fixture.detectChanges();
+      const button: HTMLButtonElement = fixture.nativeElement.querySelector(
+        '[data-testid="exportar-csv"]',
+      );
+      button.click();
+      exports[0].error(new HttpErrorResponse({ status, error }));
+      fixture.detectChanges();
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="exportacao-error"]').textContent,
+      ).toContain(message);
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="chamados-success"]'),
+      ).not.toBeNull();
+      expect(button.disabled).toBe(false);
+      button.click();
+      expect(chamadosService.exportarCsv).toHaveBeenCalledTimes(2);
+    },
+  );
+
+  it('permite exportar o estado vazio como arquivo somente com cabeçalho', () => {
+    const fixture = TestBed.createComponent(MeusChamadosComponent);
+    fixture.detectChanges();
+    responses[0].next(page([]));
+    fixture.detectChanges();
+    const button: HTMLButtonElement = fixture.nativeElement.querySelector(
+      '[data-testid="exportar-csv"]',
+    );
+    expect(button.disabled).toBe(false);
+    button.click();
+    expect(chamadosService.exportarCsv).toHaveBeenCalledTimes(1);
   });
 
   it('mostra carregamento e os chamados recebidos com links para os detalhes', () => {

@@ -17,6 +17,26 @@
   </header>
 
   <app-filtros-chamados />
+  <div class="exportacao">
+    <button
+      class="secondary-button"
+      type="button"
+      data-testid="exportar-csv"
+      [disabled]="exportando() || state() === 'loading'"
+      [attr.aria-busy]="exportando()"
+      (click)="exportarCsv()"
+    >
+      {{ exportando() ? 'Exportando…' : 'Exportar CSV' }}
+    </button>
+    <p role="status" aria-live="polite">
+      A exportação inclui todos os resultados autorizados dos filtros atuais.
+    </p>
+  </div>
+  @if (erroExportacao()) {
+    <p class="state-panel state-panel--error" role="alert" data-testid="exportacao-error">
+      {{ erroExportacao() }}
+    </p>
+  }
   @switch (state()) {
     @case ('loading') {
       <p class="loading-state" role="status" aria-live="polite" data-testid="chamados-loading">

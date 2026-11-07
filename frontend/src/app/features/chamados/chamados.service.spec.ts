@@ -1,6 +1,7 @@
 import { Pagina } from '../../shared/paginacao/paginacao.model';
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { firstValueFrom, of, throwError } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { ApiService } from '../../core/http/api.service';
 import { Categoria, Chamado, ChamadoResumo, CriarChamadoInput } from './chamado.model';
@@ -9,6 +10,7 @@ import { ChamadosService } from './chamados.service';
 describe('ChamadosService', () => {
   const api = {
     get: vi.fn(),
+    getBlob: vi.fn(),
     post: vi.fn(),
     patch: vi.fn(),
   };
@@ -125,6 +127,50 @@ describe('ChamadosService', () => {
     expect(params.get('size')).toBe('20');
     expect(params.get('sort')).toBe('criadoEm,desc');
     expect(received).toEqual(pagina);
+  });
+
+  it('exporta todos os filtros, paginação e ordenação pelo serializador existente', () => {
+    const blob = new Blob(['CSV']);
+    api.getBlob.mockReturnValue(of(blob));
+    const query = {
+      page: 2,
+      size: 1,
+      sort: 'titulo,asc',
+      search: 'ação',
+      status: 'ABERTO' as const,
+      prioridade: 'ALTA' as const,
+      categoriaId: 3,
+      responsavel: 7,
+      dataInicial: '2026-09-01',
+      dataFinal: '2026-09-30',
+    };
+    TestBed.inject(ChamadosService)
+      .exportarCsv(query)
+      .subscribe((result) => expect(result).toBe(blob));
+    expect(api.getBlob).toHaveBeenCalledWith('chamados/exportacao', expect.anything());
+    const params = api.getBlob.mock.calls[0][1].params;
+    for (const [key, value] of Object.entries(query)) expect(params.get(key)).toBe(String(value));
+  });
+
+  it('decodifica erro JSON em Blob e preserva status para a interface', async () => {
+    const body = new Blob([JSON.stringify({ message: 'A exportação permite até 105 chamados.' })], {
+      type: 'application/json',
+    });
+    // jsdom pode não oferecer Blob.text; simula a API nativa do navegador neste teste.
+    Object.defineProperty(body, 'text', {
+      value: () => Promise.resolve('{"message":"A exportação permite até 105 chamados."}'),
+    });
+    api.getBlob.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 400, error: body })),
+    );
+    await expect(
+      firstValueFrom(
+        TestBed.inject(ChamadosService).exportarCsv({ page: 0, size: 20, sort: 'id,asc' }),
+      ),
+    ).rejects.toMatchObject({
+      status: 400,
+      error: { message: 'A exportação permite até 105 chamados.' },
+    });
   });
 
   it('busca o detalhe pelo identificador do chamado', () => {
