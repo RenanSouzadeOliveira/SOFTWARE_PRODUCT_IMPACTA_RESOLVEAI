@@ -11,6 +11,11 @@
 .ticket-filters > div {
   min-width: 0;
 }
+.ticket-filters > div:not(.filter-actions) {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
 label {
   display: block;
   font-weight: 600;
