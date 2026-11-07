@@ -1,6 +1,7 @@
 package br.edu.impacta.resolveai.atendimento;
 
 import java.time.Clock;
+import br.edu.impacta.resolveai.shared.logging.OperacoesChamadosLog;
 import java.time.Instant;
 import java.util.List;
 import br.edu.impacta.resolveai.categoria.CategoriaRepository;
@@ -82,7 +83,12 @@ public class AtendimentoService {
         Usuario usuario = usuarioAutorizado(principal);
         var visibilidade = carteira ? br.edu.impacta.resolveai.chamado.VisibilidadeChamados.carteira(usuario.id())
                 : br.edu.impacta.resolveai.chamado.VisibilidadeChamados.fila();
-        return PaginaAtendimentoResponse.from(chamados.findAll(visibilidade.and(filtros.specification()), pageable));
+        long inicio = OperacoesChamadosLog.inicio("CHAMADOS_CONSULTA", filtros, pageable.getSort(),
+                carteira ? "CARTEIRA_PROPRIA" : "FILA_ABERTA_SEM_RESPONSAVEL");
+        var pagina = chamados.findAll(visibilidade.and(filtros.specification()), pageable);
+        var response = PaginaAtendimentoResponse.from(pagina);
+        OperacoesChamadosLog.resultado(pagina, inicio);
+        return response;
     }
 
     @Transactional
@@ -115,7 +121,11 @@ public class AtendimentoService {
         Usuario usuario = usuarioAutorizado(principal);
         if (usuario.perfil() != Perfil.ADMIN)
             throw new AccessDeniedException("Consulta de todos os chamados exige perfil ADMIN");
-        return PaginaAtendimentoResponse.from(chamados.findAll(filtros.specification(), pageable));
+        long inicio = OperacoesChamadosLog.inicio("CHAMADOS_CONSULTA", filtros, pageable.getSort(), "ADMIN_GLOBAL");
+        var pagina = chamados.findAll(filtros.specification(), pageable);
+        var response = PaginaAtendimentoResponse.from(pagina);
+        OperacoesChamadosLog.resultado(pagina, inicio);
+        return response;
     }
 
     private Usuario usuarioAutorizado(UsuarioPrincipal principal) {

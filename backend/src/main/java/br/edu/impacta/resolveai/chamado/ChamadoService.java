@@ -1,6 +1,7 @@
 package br.edu.impacta.resolveai.chamado;
 
 import org.springframework.data.domain.Pageable;
+import br.edu.impacta.resolveai.shared.logging.OperacoesChamadosLog;
 import br.edu.impacta.resolveai.chamado.dto.PaginaChamadosResponse;
 
 import br.edu.impacta.resolveai.chamado.dto.AbrirChamadoRequest;
@@ -64,8 +65,11 @@ public class ChamadoService {
 
     @Transactional(readOnly = true)
     public PaginaChamadosResponse listar(UsuarioPrincipal principal, Pageable pageable, FiltrosChamados filtros) {
-        return PaginaChamadosResponse.from(chamadoRepository.findAll(
-                VisibilidadeChamados.doUsuario(principal).and(filtros.specification()), pageable));
+        long inicio = OperacoesChamadosLog.inicio("CHAMADOS_CONSULTA", filtros, pageable.getSort(), OperacoesChamadosLog.escopo(principal));
+        var pagina = chamadoRepository.findAll(VisibilidadeChamados.doUsuario(principal).and(filtros.specification()), pageable);
+        var response = PaginaChamadosResponse.from(pagina);
+        OperacoesChamadosLog.resultado(pagina, inicio);
+        return response;
     }
 
     @Transactional(readOnly = true)

@@ -1,6 +1,7 @@
 package br.edu.impacta.resolveai.chamado;
 
 import java.io.ByteArrayOutputStream;
+import br.edu.impacta.resolveai.shared.logging.OperacoesChamadosLog;
 import java.nio.charset.StandardCharsets;
 import br.edu.impacta.resolveai.security.UsuarioPrincipal;
 import br.edu.impacta.resolveai.shared.error.DadosInvalidosException;
@@ -30,22 +31,38 @@ public class ExportacaoChamadosService {
 
     @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public byte[] exportar(UsuarioPrincipal principal, FiltrosChamados filtros, Sort ordem) {
-        var spec = VisibilidadeChamados.doUsuario(principal).and(filtros.specification());
-        var pagina = chamados.findAll(spec, PageRequest.of(0, TAMANHO_LOTE, ordem));
-        if (pagina.getTotalElements() > limite)
-            throw new DadosInvalidosException("A exportação permite até " + limite
-                    + " chamados. Refine os filtros e tente novamente.");
-        // Mantém o CSV codificado em memória (com cópia na resposta), sem acumular entidades entre lotes.
-        var csv = new ByteArrayOutputStream();
-        csv.writeBytes(CsvChamados.CABECALHO.getBytes(StandardCharsets.UTF_8));
-        while (true) {
-            for (var chamado : pagina) {
-                csv.writeBytes(CsvChamados.registro(chamado).getBytes(StandardCharsets.UTF_8));
+        long inicio = OperacoesChamadosLog.inicio("CHAMADOS_EXPORTACAO", filtros, ordem, OperacoesChamadosLog.escopo(principal));
+        long total = -1;
+        long gerados = 0;
+        try {
+            var spec = VisibilidadeChamados.doUsuario(principal).and(filtros.specification());
+            var pagina = chamados.findAll(spec, PageRequest.of(0, TAMANHO_LOTE, ordem));
+            total = pagina.getTotalElements();
+            OperacoesChamadosLog.exportacaoContagem(total, limite);
+            if (pagina.getTotalElements() > limite)
+                throw new DadosInvalidosException("A exportação permite até " + limite
+                        + " chamados. Refine os filtros e tente novamente.");
+            // Mantém o CSV codificado em memória (com cópia na resposta), sem acumular entidades entre lotes.
+            var csv = new ByteArrayOutputStream();
+            csv.writeBytes(CsvChamados.CABECALHO.getBytes(StandardCharsets.UTF_8));
+            while (true) {
+                for (var chamado : pagina) {
+                    csv.writeBytes(CsvChamados.registro(chamado).getBytes(StandardCharsets.UTF_8));
+                    gerados++;
+                }
+                entityManager.clear();
+                if (!pagina.hasNext()) break;
+                pagina = chamados.findAll(spec, pagina.nextPageable());
             }
-            entityManager.clear();
-            if (!pagina.hasNext()) break;
-            pagina = chamados.findAll(spec, pagina.nextPageable());
+            byte[] resultado = csv.toByteArray();
+            OperacoesChamadosLog.exportacaoConcluida(total, gerados, inicio);
+            return resultado;
+        } catch (DadosInvalidosException ex) {
+            OperacoesChamadosLog.exportacaoFalha("LIMITE_EXCEDIDO", total, gerados, inicio);
+            throw ex;
+        } catch (RuntimeException ex) {
+            OperacoesChamadosLog.exportacaoFalha("EXECUCAO_FALHOU", total, gerados, inicio);
+            throw ex;
         }
-        return csv.toByteArray();
     }
 }

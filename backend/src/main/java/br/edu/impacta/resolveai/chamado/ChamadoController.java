@@ -128,8 +128,17 @@ public class ChamadoController {
     })
     public ResponseEntity<byte[]> exportar(@AuthenticationPrincipal UsuarioPrincipal principal,
             @Parameter(hidden = true) @RequestParam MultiValueMap<String, String> parameters) {
-        var paginacao = PaginacaoChamados.parse(parameters);
-        var csv = exportacao.exportar(principal, FiltrosChamados.parse(parameters), paginacao.getSort());
+        long inicio = System.nanoTime();
+        org.springframework.data.domain.PageRequest paginacao;
+        FiltrosChamados filtros;
+        try {
+            paginacao = PaginacaoChamados.parse(parameters);
+            filtros = FiltrosChamados.parse(parameters);
+        } catch (br.edu.impacta.resolveai.shared.error.DadosInvalidosException ex) {
+            br.edu.impacta.resolveai.shared.logging.OperacoesChamadosLog.exportacaoFalha("PARAMETROS_INVALIDOS", -1, 0, inicio);
+            throw ex;
+        }
+        var csv = exportacao.exportar(principal, filtros, paginacao.getSort());
         return ResponseEntity.ok()
                 .header("Content-Type", "text/csv; charset=UTF-8")
                 .header("Content-Disposition", "attachment; filename=\"chamados.csv\"")
