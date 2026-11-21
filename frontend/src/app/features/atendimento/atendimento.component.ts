@@ -177,7 +177,8 @@ export class AtendimentoComponent implements OnInit {
         },
         error: (error: unknown) => {
           this.finishAssignment();
-          const conflict = error instanceof HttpErrorResponse && error.status === 409;
+          // 404: o chamado saiu da fila e ficou fora do escopo deste atendente (ocultado pelo servidor).
+          const conflict = error instanceof HttpErrorResponse && (error.status === 409 || error.status === 404);
           this.notice.set(
             conflict
               ? 'Este chamado já foi assumido ou não está mais disponível. A fila foi atualizada.'

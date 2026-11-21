@@ -37,7 +37,7 @@ public class AtribuicaoController {
                     content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "403", description = "Perfil sem permissao",
                     content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
-            @ApiResponse(responseCode = "404", description = "Chamado inexistente",
+            @ApiResponse(responseCode = "404", description = "Chamado inexistente ou ocupado fora do escopo do usuario",
                     content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "409", description = "Chamado indisponivel ou alterado concorrentemente",
                     content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))

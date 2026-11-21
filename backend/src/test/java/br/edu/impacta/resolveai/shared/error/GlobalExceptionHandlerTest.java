@@ -44,12 +44,38 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.violations[0].message").value("nao pode estar em branco"));
     }
 
+    @Test
+    void shouldHideUnexpectedErrorsAndPreserveFramework5xxEvenWithIncompatibleAccept() throws Exception {
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/test-validation/falha")
+                        .accept(MediaType.APPLICATION_XML))
+                .andExpect(status().isInternalServerError())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value("Erro interno inesperado"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                        .string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("jdbc:"))));
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/test-validation/indisponivel")
+                        .accept(MediaType.APPLICATION_XML))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.message").value("Servico temporariamente indisponivel"));
+    }
+
     @RestController
     @RequestMapping("/api/test-validation")
     private static class ValidationController {
 
         @PostMapping
         void validate(@Valid @RequestBody ValidationRequest request) {
+        }
+
+        @org.springframework.web.bind.annotation.GetMapping("/falha")
+        void falha() {
+            throw new IllegalStateException("jdbc:postgresql://segredo-interno");
+        }
+
+        @org.springframework.web.bind.annotation.GetMapping("/indisponivel")
+        void indisponivel() {
+            throw new org.springframework.web.context.request.async.AsyncRequestTimeoutException();
         }
     }
 

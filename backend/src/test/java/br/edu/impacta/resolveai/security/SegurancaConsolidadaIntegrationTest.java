@@ -188,10 +188,52 @@ class SegurancaConsolidadaIntegrationTest {
                 .andExpect(status().isUnsupportedMediaType()).andExpect(jsonPath("$.status").value(415)).andReturn());
         mvc.perform(autenticado(get("/api/chamados/" + chamado.id() + "/historico")
                         .accept(MediaType.APPLICATION_XML), dono))
-                .andExpect(status().isNotAcceptable()).andExpect(content().string(""));
+                .andExpect(status().isNotAcceptable()).andExpect(jsonPath("$.status").value(406));
         semVazamento(mvc.perform(autenticado(delete("/api/chamados/" + chamado.id()), dono))
                 .andExpect(status().isMethodNotAllowed()).andReturn());
         semVazamento(mvc.perform(autenticado(get("/api/inexistente"), dono)).andExpect(status().isNotFound()).andReturn());
+    }
+
+    // F-01 — erros de negocio preservam o status e respondem JSON mesmo com Accept incompativel.
+    @Test void deveResponderErrosEmJsonMesmoComAcceptIncompativel() throws Exception {
+        var xml = MediaType.APPLICATION_XML;
+        var csv = MediaType.parseMediaType("text/csv");
+        erroJson(autenticado(get("/api/chamados/987654321").accept(xml), dono), 404);
+        erroJson(autenticado(get("/api/chamados?status=FOO").accept(xml), dono), 400);
+        erroJson(autenticado(get("/api/chamados/exportacao?status=FOO").accept(csv), dono), 400);
+        erroJson(autenticado(get("/api/chamados/abc").accept(xml), dono), 400);
+        erroJson(autenticado(get("/api/admin/usuarios").accept(xml), dono), 403);
+        erroJson(autenticado(patch("/api/chamados/" + chamado.id() + "/status").accept(xml)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"status\":\"FECHADO\"}"), dono), 409);
+        erroJson(autenticado(post("/api/chamados").accept(xml).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"titulo\":\"ab\"}"), dono), 400)
+                .andExpect(jsonPath("$.violations[?(@.field == 'titulo')]").isNotEmpty());
+        erroJson(post("/api/auth/login").accept(xml).contentType(MediaType.APPLICATION_JSON).content("{\"email\":"), 400);
+        erroJson(post("/api/auth/login").accept(xml).contentType(MediaType.TEXT_PLAIN).content("x"), 415);
+        erroJson(autenticado(delete("/api/chamados/" + chamado.id()).accept(xml), dono), 405);
+        erroJson(get("/api/usuarios/me").accept(xml), 401);
+        // Sucesso com Accept nao suportado continua 406 (corpo JSON seguro); JSON normal segue intacto.
+        erroJson(autenticado(get("/api/chamados/" + chamado.id() + "/historico").accept(xml), dono), 406);
+        mvc.perform(autenticado(get("/api/chamados/" + chamado.id()).accept(MediaType.APPLICATION_JSON), dono))
+                .andExpect(status().isOk()).andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+        mvc.perform(autenticado(get("/api/chamados/exportacao").accept(csv), dono))
+                .andExpect(status().isOk()).andExpect(content().contentTypeCompatibleWith(csv));
+    }
+
+    // F-02 — atendente fora do escopo nao distingue chamado ocupado de inexistente.
+    @Test void deveOcultarChamadoOcupadoAoAssumirForaDoEscopo() throws Exception {
+        mvc.perform(autenticado(patch("/api/chamados/" + chamado.id() + "/assumir"), atendente)).andExpect(status().isOk());
+        for (String id : List.of(chamado.id().toString(), "987654321")) {
+            semVazamento(mvc.perform(autenticado(patch("/api/chamados/" + id + "/assumir"), outroAtendente))
+                    .andExpect(status().isNotFound()).andExpect(jsonPath("$.message").value("Chamado nao encontrado")).andReturn());
+        }
+        // Quem enxerga o chamado (responsavel ou ADMIN) continua recebendo o conflito funcional.
+        mvc.perform(autenticado(patch("/api/chamados/" + chamado.id() + "/assumir"), atendente)).andExpect(status().isConflict());
+        mvc.perform(autenticado(patch("/api/chamados/" + chamado.id() + "/assumir"), admin)).andExpect(status().isConflict());
+        assertThat(jdbc.queryForObject("SELECT atendente_id FROM chamados WHERE id = ?", Long.class, chamado.id()))
+                .isEqualTo(atendente.id());
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM historico_chamados WHERE chamado_id = ?", Long.class, chamado.id()))
+                .isEqualTo(1);
     }
 
     // AC-04 — conflitos conhecidos geram 409 com mensagem funcional.
@@ -231,6 +273,14 @@ class SegurancaConsolidadaIntegrationTest {
         String corpo = mvc.perform(autenticado(get("/api/admin/usuarios"), admin)).andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         assertThat(corpo).doesNotContain("hash-ficticio").doesNotContainIgnoringCase("senha").doesNotContain("versaoSeguranca");
+    }
+
+    private org.springframework.test.web.servlet.ResultActions erroJson(RequestBuilder requisicao, int esperado) throws Exception {
+        var acoes = mvc.perform(requisicao).andExpect(status().is(esperado))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(esperado));
+        semVazamento(acoes.andReturn());
+        return acoes;
     }
 
     private void semVazamento(MvcResult resultado) throws Exception {

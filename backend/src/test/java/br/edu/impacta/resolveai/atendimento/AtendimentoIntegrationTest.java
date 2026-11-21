@@ -235,8 +235,10 @@ class AtendimentoIntegrationTest {
         for (Usuario other : List.of(outroAtendente, admin)) {
             mvc.perform(get(carteira).header("Authorization", token(other)))
                     .andExpect(status().isOk()).andExpect(jsonPath("$.totalElements").value(0));
+            // Fora do escopo o chamado ocupado fica oculto (404); ADMIN o enxerga e recebe o conflito (409).
+            int esperado = other == admin ? 409 : 404;
             mvc.perform(patch(assumirUrl(chamado)).header("Authorization", token(other)))
-                    .andExpect(status().isConflict()).andExpect(jsonPath("$.status").value(409));
+                    .andExpect(status().is(esperado)).andExpect(jsonPath("$.status").value(esperado));
         }
         mvc.perform(get(carteira.replace("EM_ATENDIMENTO", "RESOLVIDO")).header("Authorization", token(atendente)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.totalElements").value(0));
@@ -322,8 +324,9 @@ class AtendimentoIntegrationTest {
                     patch(assumirUrl(chamado)).header("Authorization", firstToken)).andReturn().getResponse().getStatus(); });
             var second = pool.submit(() -> { start.await(10, TimeUnit.SECONDS); return mvc.perform(
                     patch(assumirUrl(chamado)).header("Authorization", secondToken)).andReturn().getResponse().getStatus(); });
-            assertThat(List.of(first.get(15, TimeUnit.SECONDS), second.get(15, TimeUnit.SECONDS)))
-                    .containsExactlyInAnyOrder(200, 409);
+            // O perdedor recebe 409 se leu o chamado ainda na fila, ou 404 se ja o leu ocupado por outro.
+            List<Integer> resultados = List.of(first.get(15, TimeUnit.SECONDS), second.get(15, TimeUnit.SECONDS));
+            assertThat(resultados).containsOnlyOnce(200).allMatch(codigo -> codigo == 200 || codigo == 409 || codigo == 404);
             assertThat(historyCount(chamado.id())).isEqualTo(1);
         }
     }

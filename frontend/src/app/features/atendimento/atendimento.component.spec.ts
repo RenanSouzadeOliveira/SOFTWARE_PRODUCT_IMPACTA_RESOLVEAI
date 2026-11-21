@@ -252,13 +252,13 @@ describe('AtendimentoComponent', () => {
     );
   });
 
-  it('explica conflito e atualiza a fila', () => {
+  it.each([409, 404])('explica conflito (%i) e atualiza a fila', (status) => {
     const fixture = render();
     responses[0].next(page());
     fixture.detectChanges();
     fixture.nativeElement.querySelector('article button').click();
     fixture.componentInstance.assumir();
-    assignment.error(new HttpErrorResponse({ status: 409 }));
+    assignment.error(new HttpErrorResponse({ status }));
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('já foi assumido');
     expect(service.listar).toHaveBeenCalledTimes(2);

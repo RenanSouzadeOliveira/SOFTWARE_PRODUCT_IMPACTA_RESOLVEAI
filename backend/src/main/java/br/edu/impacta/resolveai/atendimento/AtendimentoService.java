@@ -11,6 +11,7 @@ import br.edu.impacta.resolveai.atendimento.dto.ChamadoAtendimentoResponse;
 import br.edu.impacta.resolveai.atendimento.dto.PaginaAtendimentoResponse;
 import br.edu.impacta.resolveai.chamado.Chamado;
 import br.edu.impacta.resolveai.chamado.ChamadoRepository;
+import br.edu.impacta.resolveai.chamado.MaquinaEstadosChamado;
 import br.edu.impacta.resolveai.chamado.PrioridadeChamado;
 import br.edu.impacta.resolveai.chamado.StatusChamado;
 import br.edu.impacta.resolveai.chamado.HistoricoStatus;
@@ -100,6 +101,12 @@ public class AtendimentoService {
         }
         Chamado chamado = chamados.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Chamado nao encontrado"));
+        // Fila compartilhada: todo operador ve chamados ABERTO sem responsavel. Fora dela, so revela o
+        // conflito a quem ja enxerga o chamado; para os demais, responde como inexistente.
+        boolean naFila = chamado.status() == StatusChamado.ABERTO && chamado.atendente() == null;
+        if (!naFila && !MaquinaEstadosChamado.podeConsultar(chamado, usuario)) {
+            throw new RecursoNaoEncontradoException("Chamado nao encontrado");
+        }
         Instant agora = Instant.now(clock);
         chamado.assumir(usuario, agora);
         // Flush verifica @Version antes de registrar o evento; conflito reverte toda a transacao.

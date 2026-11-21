@@ -15,7 +15,8 @@ class HistoricoMigrationTest {
         if(url==null) {
             var h2=new JdbcDataSource();
             h2.setURL("jdbc:h2:mem:history_upgrade;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1");h2.setUser("sa");ds=h2;
-        } else ds=new DriverManagerDataSource(url,"history_test","");
+        } else ds=new DriverManagerDataSource(url, System.getenv().getOrDefault("HISTORY_MIGRATION_USER", "postgres"),
+                System.getenv().getOrDefault("HISTORY_MIGRATION_PASSWORD", ""));
         Flyway.configure().dataSource(ds).locations("classpath:db/migration").target("8").load().migrate();
         try(var c=ds.getConnection();var s=c.createStatement()) {
             s.execute("INSERT INTO usuarios (id,nome,email,senha_hash,perfil) VALUES (1,'Pessoa fictícia','history@example.invalid','ficticio','SOLICITANTE')");

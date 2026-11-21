@@ -12,6 +12,7 @@ import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.ErrorResponse;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
@@ -132,15 +133,22 @@ public class GlobalExceptionHandler {
     ResponseEntity<ApiErrorResponse> handleUnexpectedException(
             Exception exception,
             HttpServletRequest request) {
-        if (exception instanceof ErrorResponse frameworkError && frameworkError.getStatusCode().is4xxClientError()) {
-            HttpStatus status = HttpStatus.valueOf(frameworkError.getStatusCode().value());
-            // Sem formato aceitavel pelo cliente nao ha como serializar corpo de erro.
-            if (status == HttpStatus.NOT_ACCEPTABLE) return ResponseEntity.status(status).build();
-            return build(status, "Requisicao nao suportada", request, List.of());
+        HttpStatus status = exception instanceof ErrorResponse frameworkError
+                ? HttpStatus.resolve(frameworkError.getStatusCode().value()) : null;
+        if (status == null || status.is5xxServerError()) {
+            // Diagnostico apenas no servidor; o cliente recebe mensagem generica.
+            LOGGER.error("Erro inesperado em {} {}", request.getMethod(), request.getRequestURI(), exception);
+            HttpStatus resolved = status == HttpStatus.SERVICE_UNAVAILABLE ? status : HttpStatus.INTERNAL_SERVER_ERROR;
+            return build(resolved, resolved == HttpStatus.SERVICE_UNAVAILABLE
+                    ? "Servico temporariamente indisponivel" : "Erro interno inesperado", request, List.of());
         }
-        // Diagnostico apenas no servidor; o cliente recebe mensagem generica.
-        LOGGER.error("Erro inesperado em {} {}", request.getMethod(), request.getRequestURI(), exception);
-        return build(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno inesperado", request, List.of());
+        String message = switch (status) {
+            case NOT_ACCEPTABLE -> "Formato de resposta nao suportado";
+            case UNSUPPORTED_MEDIA_TYPE -> "Tipo de conteudo nao suportado";
+            case PAYLOAD_TOO_LARGE -> "Requisicao excede o tamanho permitido";
+            default -> "Requisicao invalida";
+        };
+        return build(status, message, request, List.of());
     }
 
     private FieldViolation toViolation(FieldError error) {
@@ -176,6 +184,7 @@ public class GlobalExceptionHandler {
                 message,
                 request.getRequestURI(),
                 violations);
-        return ResponseEntity.status(status).body(body);
+        // Content-Type fixo dispensa a negociacao pelo Accept: um erro de negocio nunca vira 406/500.
+        return ResponseEntity.status(status).contentType(MediaType.APPLICATION_JSON).body(body);
     }
 }
