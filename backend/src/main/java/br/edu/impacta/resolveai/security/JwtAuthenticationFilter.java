@@ -10,6 +10,11 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpStatus;
+import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -24,13 +29,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UsuarioRepository usuarioRepository;
+    private static final Logger LOGGER = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+
     private final RestAuthenticationEntryPoint authenticationEntryPoint;
+    private final ApiSecurityErrorWriter errorWriter;
 
     public JwtAuthenticationFilter(JwtService jwtService, UsuarioRepository usuarioRepository,
-            RestAuthenticationEntryPoint authenticationEntryPoint) {
+            RestAuthenticationEntryPoint authenticationEntryPoint, ApiSecurityErrorWriter errorWriter) {
         this.jwtService = jwtService;
         this.usuarioRepository = usuarioRepository;
         this.authenticationEntryPoint = authenticationEntryPoint;
+        this.errorWriter = errorWriter;
     }
 
     @Override
@@ -60,6 +69,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } catch (JwtException | IllegalArgumentException | InvalidTokenException exception) {
             SecurityContextHolder.clearContext();
             authenticationEntryPoint.commence(request, response, null);
+            return;
+        } catch (DataAccessException | CannotCreateTransactionException exception) {
+            // Banco indisponivel nao e falha de credencial: 503 no contrato ApiErrorResponse.
+            // Log sem token nem mensagem do driver (pode conter URL/credenciais); detalhe so em DEBUG.
+            SecurityContextHolder.clearContext();
+            LOGGER.error("Falha de acesso a dados na autenticacao JWT: {} {} ({})",
+                    request.getMethod(), request.getRequestURI(), exception.getClass().getSimpleName());
+            LOGGER.debug("Detalhe da falha de acesso a dados na autenticacao JWT", exception);
+            errorWriter.write(response, HttpStatus.SERVICE_UNAVAILABLE, "Servico temporariamente indisponivel",
+                    request.getRequestURI());
             return;
         }
         filterChain.doFilter(request, response);

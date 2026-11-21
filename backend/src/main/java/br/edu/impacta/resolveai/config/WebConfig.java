@@ -27,10 +27,13 @@ public class WebConfig implements WebMvcConfigurer {
         if (origem.isEmpty() || origem.contains("*")) return false;
         try {
             URI uri = new URI(origem);
+            int porta = uri.getPort();
+            // Reconstroi a origem canonica: rejeita ":" vazio, zeros a esquerda e portas fora de 1..65535.
+            String canonica = uri.getScheme() + "://" + uri.getHost() + (porta == -1 ? "" : ":" + porta);
             return ("http".equals(uri.getScheme()) || "https".equals(uri.getScheme()))
                     && uri.getHost() != null && uri.getRawUserInfo() == null && uri.getRawPath().isEmpty()
                     && uri.getRawQuery() == null && uri.getRawFragment() == null
-                    && origem.equals(uri.getScheme() + "://" + uri.getRawAuthority());
+                    && (porta == -1 || porta >= 1 && porta <= 65535) && origem.equals(canonica);
         } catch (URISyntaxException exception) {
             return false;
         }
