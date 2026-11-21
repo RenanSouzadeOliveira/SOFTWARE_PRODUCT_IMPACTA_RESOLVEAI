@@ -1,0 +1,69 @@
+<header class="dashboard-heading">
+  <h1>Dashboard operacional</h1>
+  <p>{{ escopo() }}</p>
+</header>
+
+@let tela = estado();
+@switch (tela.tipo) {
+  @case ('carregando') {
+    <p class="surface feedback" role="status">Carregando resumo dos chamados…</p>
+  }
+  @case ('erro') {
+    <div class="surface feedback">
+      <p role="alert">Não foi possível carregar o resumo dos chamados.</p>
+      <button type="button" class="primary-button" (click)="tentarNovamente()">
+        Tentar novamente
+      </button>
+    </div>
+  }
+  @case ('pronto') {
+    @let resumo = tela.resumo;
+    <dl class="kpis" aria-label="Indicadores de chamados">
+      <div class="surface kpi kpi--total">
+        <dt>Total de chamados visíveis</dt>
+        <dd>{{ numeros.format(resumo.total) }}</dd>
+      </div>
+      <div class="surface kpi kpi--abertos">
+        <dt>Chamados abertos</dt>
+        <dd>{{ numeros.format(resumo.abertos) }}</dd>
+      </div>
+      <div class="surface kpi kpi--atendimento">
+        <dt>Chamados em atendimento</dt>
+        <dd>{{ numeros.format(resumo.emAtendimento) }}</dd>
+      </div>
+      <div class="surface kpi kpi--concluidos">
+        <dt>Chamados concluídos</dt>
+        <dd>{{ numeros.format(resumo.concluidos) }}</dd>
+        <dd class="kpi-note">Resolvidos e fechados</dd>
+      </div>
+    </dl>
+
+    @if (resumo.total === 0) {
+      <p class="surface feedback" role="status">Nenhum chamado visível no seu perfil no momento.</p>
+    } @else {
+      <div class="graficos">
+        @for (grafico of graficos(); track grafico.id) {
+          <section class="surface grafico" [attr.aria-labelledby]="grafico.id + '-titulo'">
+            <h2 [id]="grafico.id + '-titulo'">{{ grafico.titulo }}</h2>
+            <ul role="list">
+              @for (grupo of grafico.grupos; track grupo.id) {
+                <li>
+                  <div class="grupo">
+                    <span>{{ grupo.nome }}</span>
+                    <strong>{{ numeros.format(grupo.quantidade) }}</strong>
+                  </div>
+                  <div class="trilho" aria-hidden="true">
+                    <div
+                      class="barra"
+                      [style.width.%]="(grupo.quantidade / resumo.total) * 100"
+                    ></div>
+                  </div>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+      </div>
+    }
+  }
+}

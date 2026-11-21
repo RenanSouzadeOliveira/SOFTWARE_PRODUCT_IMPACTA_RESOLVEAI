@@ -220,6 +220,12 @@ As listagens de solicitante, fila e carteira agora combinam busca por protocolo/
 
 Parâmetros: `search`, `status`, `prioridade`, `categoriaId` (alias `categoria`), `responsavel`, `dataInicial`, `dataFinal`, além de `page`, `size` e `sort`. Datas no formato `AAAA-MM-DD`, incluindo todo o dia final em UTC. A V8 acrescenta somente o índice de ordenação global, justificado por EXPLAIN. Consulte [Busca e filtros AC3](docs/filtros-chamados.md) para contrato, matriz de aceite, evidências, limitações e roteiro do vídeo.
 
+## Dashboard operacional
+
+O menu **Dashboard** abre `/dashboard` para usuários autenticados. O resumo usa a mesma visibilidade de `GET /api/chamados`: chamados próprios para solicitantes, carteira para atendentes e visão global para administradores.
+
+`GET /api/dashboard/resumo` retorna `total`, `abertos`, `emAtendimento`, `concluidos` e as distribuições `porStatus`, `porPrioridade` e `porCategoria`. Concluídos somam `RESOLVIDO` e `FECHADO`. Status, prioridades e categorias ativas aparecem mesmo com quantidade zero. Categorias inativas aparecem se tiverem chamados visíveis. O [Swagger do ambiente local](http://localhost:8080/swagger-ui.html) detalha os campos da resposta.
+
 ## Modelo de dados
 
 - [Diagrama de casos de uso](docs/diagrama-casos-de-uso.md): visão completa por ator, com separação entre AC1 implementada e funcionalidades planejadas.

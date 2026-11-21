@@ -3,6 +3,12 @@ import { authGuard } from './core/auth/auth.guard';
 import { roleGuard } from './core/auth/role.guard';
 
 describe('app routes for requester tickets', () => {
+  it('protege o dashboard para os três perfis de chamados', () => {
+    const route = routes.find((candidate) => candidate.path === 'dashboard');
+    expect(route?.canActivate).toEqual([authGuard, roleGuard]);
+    expect(route?.data?.['roles']).toEqual(['SOLICITANTE', 'ATENDENTE', 'ADMIN']);
+  });
+
   it('protege a listagem global e configura retorno do detalhe exclusivo de ADMIN', () => {
     for (const path of ['atendimento/todos', 'atendimento/todos/:id']) {
       const route = routes.find((candidate) => candidate.path === path);

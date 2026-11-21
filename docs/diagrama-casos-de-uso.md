@@ -1,6 +1,6 @@
 # Diagrama de casos de uso do ResolveAí
 
-Este documento apresenta a visão funcional completa planejada para o ResolveAí. O diagrama foi elaborado na AC1; a legenda original da AC2 representa a etapa planejada, não sua entrega integral. Na AC2, **consulta da fila, filtros, atribuição e Meus atendimentos** estão implementados, conforme [o contrato da fila](fila-atendimento.md). Também estão implementadas **alteração de prioridade, resolução, reabertura, fechamento e histórico de status**, conforme [as transições de estado](status-prioridade.md), e a **comunicação por comentários**, conforme [seu contrato](comentarios-chamados.md). Na AC3, **paginação, ordenação, pesquisa com filtros combinados e histórico completo** também estão implementados, conforme [o relatório integrado](ac3-release.md). A imagem e o DOT preservam a legenda histórica de planejamento da AC1; ela não representa o estado atual da implementação. Dashboard e administração de usuários/categorias continuam planejados.
+Este documento apresenta a visão funcional completa planejada para o ResolveAí. O diagrama foi elaborado na AC1; a legenda original da AC2 representa a etapa planejada, não sua entrega integral. Na AC2, **consulta da fila, filtros, atribuição e Meus atendimentos** estão implementados, conforme [o contrato da fila](fila-atendimento.md). Também estão implementadas **alteração de prioridade, resolução, reabertura, fechamento e histórico de status**, conforme [as transições de estado](status-prioridade.md), e a **comunicação por comentários**, conforme [seu contrato](comentarios-chamados.md). Na AC3, **paginação, ordenação, pesquisa com filtros combinados e histórico completo** também estão implementados, conforme [o relatório integrado](ac3-release.md). A imagem e o DOT preservam a legenda histórica de planejamento da AC1; ela não representa o estado atual da implementação. O dashboard operacional está disponível aos três perfis, de acordo com o escopo da listagem de chamados. A administração de usuários e categorias permanece planejada.
 
 ![Diagrama completo de casos de uso do ResolveAí](diagrama-casos-de-uso.svg)
 
@@ -17,7 +17,7 @@ Arquivos para apresentação:
 | Verde | AC1 | Implementada e validada |
 | Azul | AC2 | Implementada: fila, atribuição, ciclo, prioridade e comentários |
 | Laranja | AC3 | Implementada e validada tecnicamente: consulta avançada e auditoria; publicação pendente |
-| Roxo | Entrega final | Planejada: gestão e visão operacional |
+| Roxo | Entrega final | Dashboard implementado. Gestão planejada |
 
 ## Atores e responsabilidades
 
@@ -28,7 +28,7 @@ Arquivos para apresentação:
 
 ### Usuário autenticado
 
-`Solicitante`, `Atendente` e `Administrador` são especializações deste ator e compartilham os casos de consultar a própria conta, alterar o próprio nome e encerrar a sessão. Autenticação e autorização são pré-condições dos casos protegidos, não casos incluídos repetidamente no diagrama.
+`Solicitante`, `Atendente` e `Administrador` são especializações deste ator e compartilham os casos de consultar a própria conta, alterar o próprio nome e encerrar a sessão. Os três perfis também podem abrir o dashboard operacional. Autenticação e autorização são pré-condições dos casos protegidos, não casos incluídos repetidamente no diagrama.
 
 ### Solicitante
 
@@ -50,7 +50,7 @@ O endpoint de verificação de perfil existente na AC1 é uma prova técnica de 
 
 ### Administrador
 
-- consultar chamados globalmente e acompanhar o dashboard operacional;
+- consultar chamados globalmente;
 - administrar usuários: listar, consultar, alterar nome, e-mail e perfil, ativar e desativar;
 - administrar categorias: listar, criar, alterar, ativar e desativar;
 - consultar histórico dentro da visibilidade administrativa.

@@ -1,0 +1,169 @@
+:host {
+  display: block;
+}
+
+.dashboard-heading {
+  margin-bottom: 1.75rem;
+}
+
+h1,
+h2 {
+  color: #12263a;
+  line-height: 1.15;
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(1.85rem, 4vw, 2.65rem);
+  letter-spacing: -0.035em;
+}
+
+h2 {
+  font-size: 1.15rem;
+}
+
+.dashboard-heading p {
+  color: #52606d;
+  margin: 0.5rem 0 0;
+}
+
+.surface {
+  background: #fff;
+  border: 1px solid #dce3ea;
+  border-radius: 1rem;
+  box-shadow: 0 0.5rem 1.5rem rgb(36 59 83 / 5%);
+  min-width: 0;
+  padding: clamp(1rem, 2vw, 1.4rem);
+}
+
+.kpis,
+.graficos {
+  display: grid;
+  gap: 1rem;
+}
+
+.kpis {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0 0 1.5rem;
+}
+
+.kpi {
+  border-top: 3px solid var(--accent);
+}
+
+.kpi--total {
+  --accent: #0756b3;
+}
+
+.kpi--abertos {
+  --accent: #a84d11;
+}
+
+.kpi--atendimento {
+  --accent: #7146a5;
+}
+
+.kpi--concluidos {
+  --accent: #116b4b;
+}
+
+.kpi dt {
+  color: #334e68;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.kpi dd {
+  color: #12263a;
+  font-size: clamp(1.65rem, 3.5vw, 2.5rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 750;
+  line-height: 1.15;
+  margin: 0.45rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.kpi dd.kpi-note {
+  color: #52606d;
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+.graficos {
+  align-items: start;
+  grid-template-columns: 1fr 1fr 1.2fr;
+}
+
+.grafico ul {
+  display: grid;
+  gap: 1rem;
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+}
+
+.grupo {
+  align-items: baseline;
+  display: flex;
+  font-size: 0.9rem;
+  gap: 0.75rem;
+  justify-content: space-between;
+  margin-bottom: 0.3rem;
+}
+
+.grupo span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.grupo strong {
+  color: #12263a;
+  font-variant-numeric: tabular-nums;
+}
+
+.trilho {
+  background: #e8f1fc;
+  border-radius: 1rem;
+  height: 0.45rem;
+  overflow: hidden;
+}
+
+.barra {
+  background: #0967d2;
+  border-radius: inherit;
+  height: 100%;
+}
+
+.feedback {
+  color: #334e68;
+  margin: 0;
+}
+
+.feedback p {
+  margin: 0 0 0.75rem;
+}
+
+.feedback button:focus-visible {
+  outline: 3px solid #0756b3;
+  outline-offset: 3px;
+}
+
+@media (max-width: 58rem) {
+  .graficos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grafico:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 40rem) {
+  .kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .graficos {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -25,6 +25,16 @@ export const routes: Routes = [
       import('./features/auth/login/login.component').then((component) => component.LoginComponent),
   },
   {
+    path: 'dashboard',
+    title: 'Dashboard operacional | ResolveAí',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['SOLICITANTE', 'ATENDENTE', 'ADMIN'] },
+    loadComponent: () =>
+      import('./features/dashboard/dashboard.component').then(
+        (component) => component.DashboardComponent,
+      ),
+  },
+  {
     path: 'minha-conta',
     title: 'Minha conta | ResolveAí',
     canActivate: [authGuard],
