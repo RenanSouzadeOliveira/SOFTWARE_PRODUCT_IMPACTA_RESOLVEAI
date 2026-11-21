@@ -18,7 +18,7 @@ import {
 } from '@angular/forms';
 import { finalize } from 'rxjs';
 
-import { apiErrorMessage } from '../../core/http/api-error';
+import { apiErrorMessage, readFieldViolations } from '../../core/http/api-error';
 import { ChamadosService } from './chamados.service';
 import { Categoria, Chamado, CriarChamadoInput, FieldViolation, Prioridade } from './chamado.model';
 
@@ -191,34 +191,4 @@ function trimmedLength(minLength: number, maxLength: number): ValidatorFn {
     }
     return null;
   };
-}
-
-function readFieldViolations(error: unknown): readonly FieldViolation[] {
-  if (!(error instanceof HttpErrorResponse) || !isRecord(error.error)) {
-    return [];
-  }
-
-  const candidate = error.error['violations'] ?? error.error['fieldViolations'];
-  if (!Array.isArray(candidate)) {
-    return [];
-  }
-
-  return candidate.flatMap((item): FieldViolation[] => {
-    if (!isRecord(item)) {
-      return [];
-    }
-
-    const field = readString(item, 'field') ?? readString(item, 'campo');
-    const message = readString(item, 'message') ?? readString(item, 'mensagem');
-    return field && message ? [{ field, message }] : [];
-  });
-}
-
-function readString(record: Record<string, unknown>, key: string): string | null {
-  const value = record[key];
-  return typeof value === 'string' && value.trim() ? value : null;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
 }

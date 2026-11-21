@@ -41,12 +41,12 @@ describe('Rotas administrativas', () => {
       const router = TestBed.inject(Router);
       router.resetConfig([
         ...routes.filter((route) => route.path?.startsWith('admin/')),
-        { path: '', component: AdminComponent, data: { administracao: 'categorias' } },
+        { path: 'acesso-negado', component: AdminComponent, data: { administracao: 'categorias' } },
       ]);
       const harness = await RouterTestingHarness.create();
       for (const tipo of ['usuarios', 'categorias']) {
         await harness.navigateByUrl(`/admin/${tipo}`);
-        expect(router.url).toBe('/?acesso=negado');
+        expect(router.url).toBe('/acesso-negado');
       }
     },
   );

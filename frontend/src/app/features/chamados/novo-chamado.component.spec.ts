@@ -75,7 +75,7 @@ describe('NovoChamadoComponent', () => {
     expect(
       (fixture.nativeElement as HTMLElement).querySelector('[data-testid="categorias-error"]')
         ?.textContent,
-    ).toContain('Serviço indisponível');
+    ).toContain('Não foi possível carregar as categorias');
     (fixture.nativeElement as HTMLElement)
       .querySelector<HTMLButtonElement>('[data-testid="categorias-error"] button')
       ?.click();

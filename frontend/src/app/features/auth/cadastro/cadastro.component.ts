@@ -12,7 +12,7 @@ import {
 import { Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../../core/auth/auth.service';
-import { apiErrorMessage } from '../../../core/http/api-error';
+import { ApiFieldViolation, apiErrorMessage, readFieldViolations } from '../../../core/http/api-error';
 
 @Component({
   selector: 'app-cadastro',
@@ -29,6 +29,7 @@ export class CadastroComponent {
   protected readonly submitting = signal(false);
   protected readonly succeeded = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
+  protected readonly fieldViolations = signal<readonly ApiFieldViolation[]>([]);
   protected readonly form = this.fb.group({
     nome: ['', [Validators.required, Validators.maxLength(120)]],
     email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],
@@ -49,6 +50,7 @@ export class CadastroComponent {
 
     this.submitting.set(true);
     this.errorMessage.set(null);
+    this.fieldViolations.set([]);
     this.auth
       .register(this.form.getRawValue())
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -59,6 +61,7 @@ export class CadastroComponent {
         },
         error: (error: unknown) => {
           this.submitting.set(false);
+          this.fieldViolations.set(readFieldViolations(error));
           this.errorMessage.set(
             error instanceof HttpErrorResponse && error.status === 409
               ? 'Este e-mail já está cadastrado.'

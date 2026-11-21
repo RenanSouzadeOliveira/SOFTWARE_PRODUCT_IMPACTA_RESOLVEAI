@@ -11,5 +11,5 @@ export const roleGuard: CanActivateFn = (route) => {
   const roles = route.data['roles'] as readonly Perfil[] | undefined;
   return (roles ? roles.some((allowed) => auth.hasRole(allowed)) : role && auth.hasRole(role))
     ? true
-    : router.createUrlTree(['/'], { queryParams: { acesso: 'negado' } });
+    : router.createUrlTree(['/acesso-negado']);
 };

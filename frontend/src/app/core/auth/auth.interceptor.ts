@@ -24,9 +24,11 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
         isApiRequest &&
         !isAuthRequest
       ) {
-        const returnUrl = safeCurrentUrl(router.url);
         auth.logout();
-        void router.navigate(['/login'], { queryParams: { returnUrl } });
+        if (!router.url.startsWith('/login')) {
+          const returnUrl = safeCurrentUrl(router.url);
+          void router.navigate(['/login'], { queryParams: { returnUrl } });
+        }
       }
       if (
         error instanceof HttpErrorResponse &&
@@ -39,7 +41,7 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
           catchError(() => throwError(() => error)),
           switchMap((usuario) => {
             if (usuario.perfil !== 'ADMIN' && router.url.startsWith('/admin/')) {
-              void router.navigate(['/dashboard']);
+              void router.navigate(['/acesso-negado']);
             }
             return throwError(() => error);
           }),

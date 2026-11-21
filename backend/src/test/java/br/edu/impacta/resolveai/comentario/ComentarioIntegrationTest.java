@@ -92,14 +92,14 @@ class ComentarioIntegrationTest {
         criar(admin, "Mensagem do administrador", 201);
         for (Usuario outsider : List.of(otherRequester, attendant, otherAttendant)) {
             listar(outsider, 404);
-            criar(outsider, "Mensagem proibida", 403);
+            criar(outsider, "Mensagem proibida", 404);
         }
         atribuicao.assumir(ticket.id(), principal(attendant));
         criar(attendant, "Mensagem do responsavel", 201);
         assertThat(listar(attendant, 200).get("content")).hasSize(3);
         for (Usuario outsider : List.of(otherRequester, otherAttendant)) {
             listar(outsider, 404);
-            criar(outsider, "Mensagem proibida", 403);
+            criar(outsider, "Mensagem proibida", 404);
         }
         assertThat(listar(admin, 200).get("content")).hasSize(3);
     }
@@ -134,7 +134,7 @@ class ComentarioIntegrationTest {
             assertThat(result.get("podeComentar").asBoolean()).isFalse();
             criar(actor, "Mensagem apos fechamento", 409);
         }
-        criar(otherRequester, "Mensagem apos fechamento", 403);
+        criar(otherRequester, "Mensagem apos fechamento", 404);
         listar(otherRequester, 404);
         assertThat(count()).isEqualTo(1);
     }

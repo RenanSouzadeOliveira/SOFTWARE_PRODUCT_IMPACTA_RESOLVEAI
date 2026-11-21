@@ -325,5 +325,6 @@ docker compose exec postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c '\d c
 - `prod`: exige as variáveis de conexão e mantém `ddl-auto=validate`, validando as entidades JPA contra o schema criado pelo Flyway.
 - `test`: isolado para a suíte automatizada.
 - Flyway é a única ferramenta autorizada a criar ou evoluir o schema.
-- CORS aceita somente as origens informadas por `CORS_ALLOWED_ORIGINS`.
+- CORS aceita somente as origens informadas por `CORS_ALLOWED_ORIGINS` (lista separada por vírgula no formato `esquema://host[:porta]`); a API recusa iniciar com curingas (`*`) ou valores vazios. Como o JWT trafega no cabeçalho `Authorization`, credenciais de navegador (cookies) não são habilitadas no CORS.
+- Erros seguem o contrato `ApiErrorResponse`: `400` (com `violations` por campo quando aplicável), `401` (token ausente, inválido, expirado, revogado ou conta inativa), `403` (perfil sem permissão), `404` (recurso inexistente **ou fora do escopo do usuário**, inclusive em escritas como comentário, status e prioridade, para não revelar chamados de terceiros), `409` (conflitos de negócio) e `5xx` com mensagem genérica, sem stack trace, SQL ou segredos. O frontend mostra uma página de acesso negado (`/acesso-negado`) e nunca exibe conteúdo do servidor em falhas `5xx`/rede.
 - Nenhuma senha, token ou chave é fornecida pelo código-fonte.

@@ -8,7 +8,16 @@
       <p class="alert alert--success" role="status">Cadastro realizado com sucesso.</p>
     }
     @if (errorMessage(); as message) {
-      <p class="alert alert--error" role="alert" data-testid="cadastro-error">{{ message }}</p>
+      <div class="alert alert--error" role="alert" data-testid="cadastro-error">
+        <p>{{ message }}</p>
+        @if (fieldViolations().length) {
+          <ul data-testid="cadastro-violations">
+            @for (violation of fieldViolations(); track violation.field + violation.message) {
+              <li>{{ violation.message }}</li>
+            }
+          </ul>
+        }
+      </div>
     }
 
     <form [formGroup]="form" (ngSubmit)="submit()" novalidate>

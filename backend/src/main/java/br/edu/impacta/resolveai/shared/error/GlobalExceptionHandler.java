@@ -9,7 +9,10 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.ErrorResponse;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import jakarta.persistence.OptimisticLockException;
@@ -26,6 +29,8 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     private final Clock clock;
 
@@ -127,6 +132,14 @@ public class GlobalExceptionHandler {
     ResponseEntity<ApiErrorResponse> handleUnexpectedException(
             Exception exception,
             HttpServletRequest request) {
+        if (exception instanceof ErrorResponse frameworkError && frameworkError.getStatusCode().is4xxClientError()) {
+            HttpStatus status = HttpStatus.valueOf(frameworkError.getStatusCode().value());
+            // Sem formato aceitavel pelo cliente nao ha como serializar corpo de erro.
+            if (status == HttpStatus.NOT_ACCEPTABLE) return ResponseEntity.status(status).build();
+            return build(status, "Requisicao nao suportada", request, List.of());
+        }
+        // Diagnostico apenas no servidor; o cliente recebe mensagem generica.
+        LOGGER.error("Erro inesperado em {} {}", request.getMethod(), request.getRequestURI(), exception);
         return build(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno inesperado", request, List.of());
     }
 

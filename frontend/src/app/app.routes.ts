@@ -147,6 +147,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'acesso-negado',
+    title: 'Acesso negado | ResolveAí',
+    loadComponent: () =>
+      import('./features/acesso-negado/acesso-negado.component').then(
+        (component) => component.AcessoNegadoComponent,
+      ),
+  },
+  {
     path: '**',
     title: 'Página não encontrada | ResolveAí',
     loadComponent: () =>

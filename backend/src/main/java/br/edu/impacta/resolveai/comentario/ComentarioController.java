@@ -49,8 +49,8 @@ public class ComentarioController {
             @ApiResponse(responseCode = "201", description = "Comentario criado"),
             @ApiResponse(responseCode = "400", description = "Conteudo/identificador invalido", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "401", description = "Autenticacao ausente ou conta inativa", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
-            @ApiResponse(responseCode = "403", description = "Usuario nao participa do chamado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
-            @ApiResponse(responseCode = "404", description = "Chamado inexistente", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Participante sem permissao para comentar", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Chamado inexistente ou fora do escopo do usuario", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "409", description = "Chamado fechado", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ResponseEntity<ComentarioResponse> criar(@PathVariable Long id,

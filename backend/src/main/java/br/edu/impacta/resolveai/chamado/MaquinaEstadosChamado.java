@@ -9,6 +9,7 @@ import br.edu.impacta.resolveai.shared.error.DadosInvalidosException;
 import br.edu.impacta.resolveai.shared.error.FieldViolation;
 import br.edu.impacta.resolveai.usuario.Perfil;
 import br.edu.impacta.resolveai.usuario.Usuario;
+import br.edu.impacta.resolveai.shared.error.RecursoNaoEncontradoException;
 import org.springframework.security.access.AccessDeniedException;
 
 /** Regras compartilhadas pelo comando de atribuicao, ciclo de vida e acoes da interface. */
@@ -74,7 +75,8 @@ public final class MaquinaEstadosChamado {
     }
 
     private static void validarParticipante(Chamado chamado, Usuario usuario) {
-        if (!podeConsultar(chamado, usuario)) throw new AccessDeniedException("Usuario nao participa deste chamado");
+        // Fora do escopo responde como inexistente para nao revelar chamados de terceiros.
+        if (!podeConsultar(chamado, usuario)) throw new RecursoNaoEncontradoException("Chamado nao encontrado");
     }
     private static boolean podeAtender(Chamado c, Usuario u) {
         return u.ativo() && (admin(u) || u.perfil() == Perfil.ATENDENTE && mesmo(c.atendente(), u));

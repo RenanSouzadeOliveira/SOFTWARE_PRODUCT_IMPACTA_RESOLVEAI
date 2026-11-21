@@ -237,7 +237,7 @@ describe('DetalheChamadoComponent', () => {
 
     const element = fixture.nativeElement as HTMLElement;
     expect(element.querySelector('[data-testid="chamado-detail-error"]')?.textContent).toContain(
-      'Serviço indisponível',
+      'Não foi possível carregar o chamado. Tente novamente.',
     );
     element.querySelector<HTMLButtonElement>('.secondary-button')?.click();
     expect(chamadosService.buscarPorId).toHaveBeenCalledTimes(2);

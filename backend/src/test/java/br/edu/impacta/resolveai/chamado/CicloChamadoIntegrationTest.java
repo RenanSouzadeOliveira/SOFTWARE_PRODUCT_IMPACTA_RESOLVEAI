@@ -109,16 +109,16 @@ class CicloChamadoIntegrationTest {
         detalhe(admin, 200);
         detalhe(atendente, 404);
         detalhe(outroSolicitante, 404);
-        alterarStatus(outroAtendente, "RESOLVIDO", "Solucao indevida", 403);
+        alterarStatus(outroAtendente, "RESOLVIDO", "Solucao indevida", 404);
         atribuicao.assumir(chamado.id(), principal(atendente));
         detalhe(atendente, 200);
         detalhe(outroAtendente, 404);
-        alterarStatus(outroSolicitante, "RESOLVIDO", "Solucao indevida", 403);
-        alterarStatus(outroAtendente, "RESOLVIDO", "Solucao indevida", 403);
+        alterarStatus(outroSolicitante, "RESOLVIDO", "Solucao indevida", 404);
+        alterarStatus(outroAtendente, "RESOLVIDO", "Solucao indevida", 404);
         alterarStatus(solicitante, "RESOLVIDO", "Solucao indevida", 403);
         alterarStatus(admin, "RESOLVIDO", "Resolucao do administrador", 200);
         alterarStatus(atendente, "FECHADO", null, 403);
-        alterarStatus(outroSolicitante, "FECHADO", null, 403);
+        alterarStatus(outroSolicitante, "FECHADO", null, 404);
         alterarStatus(admin, "EM_ATENDIMENTO", "Reabertura do administrador", 200);
         String token = token(atendente);
         atendente.desativar(Instant.now());
@@ -155,11 +155,11 @@ class CicloChamadoIntegrationTest {
 
     @Test void shouldAuditPriorityAndAllowOnlyResponsibleWhileServingOrAdminUntilClosed(CapturedOutput output) throws Exception {
         prioridade(solicitante, "ALTA", 403);
-        prioridade(outroAtendente, "ALTA", 403);
+        prioridade(outroAtendente, "ALTA", 404);
         prioridade(admin, "ALTA", 200);
         prioridade(admin, "ALTA", 409);
         atribuicao.assumir(chamado.id(), principal(atendente));
-        prioridade(outroAtendente, "BAIXA", 403);
+        prioridade(outroAtendente, "BAIXA", 404);
         prioridade(atendente, "BAIXA", 200);
         mvc.perform(patch(url() + "/prioridade").header("Authorization", token(admin))
                 .contentType(MediaType.APPLICATION_JSON).content("{\"prioridade\":\"URGENTE\"}"))

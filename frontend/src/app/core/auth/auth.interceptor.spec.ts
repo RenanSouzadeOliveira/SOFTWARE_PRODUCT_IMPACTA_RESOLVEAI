@@ -43,7 +43,7 @@ describe('authInterceptor', () => {
       .expectOne(`${environment.apiUrl}/admin/usuarios`)
       .flush({ message: 'Sem permissão' }, { status: 403, statusText: 'Forbidden' });
     expect(auth.loadCurrentUser).toHaveBeenCalledOnce();
-    expect(navigate).toHaveBeenCalledWith(['/dashboard']);
+    expect(navigate).toHaveBeenCalledWith(['/acesso-negado']);
     expect(received).toMatchObject({ status: 403, error: { message: 'Sem permissão' } });
     expect(auth.logout).not.toHaveBeenCalled();
   });
@@ -94,6 +94,18 @@ describe('authInterceptor', () => {
 
     expect(auth.logout).toHaveBeenCalledOnce();
     expect(navigate).toHaveBeenCalledWith(['/login'], { queryParams: { returnUrl: '/' } });
+  });
+
+  it('não cria laço de redirecionamento quando o 401 ocorre na tela de login', () => {
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    vi.spyOn(router, 'url', 'get').mockReturnValue('/login?returnUrl=%2Fchamados');
+    api.get('usuarios/me').subscribe({ error: () => undefined });
+    http
+      .expectOne(`${environment.apiUrl}/usuarios/me`)
+      .flush({}, { status: 401, statusText: 'Unauthorized' });
+
+    expect(auth.logout).toHaveBeenCalledOnce();
+    expect(navigate).not.toHaveBeenCalled();
   });
 
   it('redireciona uma chamada protegida que chega sem token', () => {
@@ -168,7 +180,7 @@ describe('reconciliação administrativa com sessão real', () => {
           perfil,
         );
         if (perfil === 'SOLICITANTE')
-          expect(navigate).toHaveBeenCalledExactlyOnceWith(['/dashboard']);
+          expect(navigate).toHaveBeenCalledExactlyOnceWith(['/acesso-negado']);
         else expect(navigate).not.toHaveBeenCalled();
       }
       expect(received).toMatchObject({ status: 403, error: { message: 'Ação recusada' } });

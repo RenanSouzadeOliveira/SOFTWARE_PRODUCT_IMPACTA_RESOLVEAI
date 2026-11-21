@@ -13,7 +13,12 @@ public class WebConfig implements WebMvcConfigurer {
     private final List<String> allowedOrigins;
 
     public WebConfig(@Value("${app.cors.allowed-origins}") List<String> allowedOrigins) {
-        this.allowedOrigins = List.copyOf(allowedOrigins);
+        List<String> origins = allowedOrigins.stream().map(String::trim).toList();
+        if (origins.isEmpty() || origins.stream().anyMatch(origin -> origin.isEmpty() || origin.contains("*")
+                || !origin.matches("https?://[^/\\s]+"))) {
+            throw new IllegalStateException("CORS_ALLOWED_ORIGINS deve listar origens explicitas (esquema://host[:porta]), sem curingas");
+        }
+        this.allowedOrigins = origins;
     }
 
     @Override
@@ -22,7 +27,8 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedOrigins(allowedOrigins.toArray(String[]::new))
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("Authorization", "Content-Type", "Accept")
-                .allowCredentials(true)
+                // JWT trafega no cabecalho Authorization; cookies/credenciais do navegador nao sao necessarios.
+                .allowCredentials(false)
                 .maxAge(3600);
     }
 }

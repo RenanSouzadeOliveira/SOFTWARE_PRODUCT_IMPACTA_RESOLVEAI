@@ -17,7 +17,6 @@ import br.edu.impacta.resolveai.usuario.Usuario;
 import br.edu.impacta.resolveai.usuario.UsuarioService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.annotation.Isolation;
@@ -57,8 +56,7 @@ public class ComentarioService {
         // Locks the ticket until commit. Closing uses an UPDATE on the same row, so it
         // serializes with comment creation without altering the ticket's version/dates.
         Chamado chamado = chamados.findByIdForComment(chamadoId).orElseThrow(this::naoEncontrado);
-        if (!MaquinaEstadosChamado.podeConsultar(chamado, usuario))
-            throw new AccessDeniedException("Usuario nao participa deste chamado");
+        if (!MaquinaEstadosChamado.podeConsultar(chamado, usuario)) throw naoEncontrado();
         if (chamado.status() == StatusChamado.FECHADO)
             throw new ConflitoException("Chamado fechado nao permite novos comentarios");
         Comentario comentario = comentarios.save(Comentario.criar(chamado, usuario, request.conteudo(), Instant.now(clock)));

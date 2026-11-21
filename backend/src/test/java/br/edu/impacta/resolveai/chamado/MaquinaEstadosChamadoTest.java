@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.List;
 import br.edu.impacta.resolveai.categoria.Categoria;
 import br.edu.impacta.resolveai.shared.error.ConflitoException;
+import br.edu.impacta.resolveai.shared.error.RecursoNaoEncontradoException;
 import br.edu.impacta.resolveai.shared.error.DadosInvalidosException;
 import br.edu.impacta.resolveai.usuario.*;
 import org.junit.jupiter.api.Test;
@@ -40,7 +41,7 @@ class MaquinaEstadosChamadoTest {
         assertThatThrownBy(() -> c.alterarStatus(solicitante, StatusChamado.RESOLVIDO, "Solucao valida", agora))
                 .isInstanceOf(AccessDeniedException.class);
         assertThatThrownBy(() -> c.alterarStatus(usuario(Perfil.ATENDENTE), StatusChamado.RESOLVIDO, "Solucao valida", agora))
-                .isInstanceOf(AccessDeniedException.class);
+                .isInstanceOf(RecursoNaoEncontradoException.class);
         assertThat(MaquinaEstadosChamado.acoesPermitidas(c, atendente))
                 .containsExactly(AcaoChamado.RESOLVER, AcaoChamado.ALTERAR_PRIORIDADE);
         c.alterarStatus(atendente, StatusChamado.RESOLVIDO, "  Solucao valida  ", agora);
@@ -80,7 +81,7 @@ class MaquinaEstadosChamadoTest {
         atendente.desativar(agora);
         assertThat(MaquinaEstadosChamado.acoesPermitidas(c, atendente)).isEmpty();
         assertThatThrownBy(() -> c.alterarPrioridade(atendente, PrioridadeChamado.BAIXA, agora))
-                .isInstanceOf(AccessDeniedException.class);
+                .isInstanceOf(RecursoNaoEncontradoException.class);
         Chamado fechado = emEstado(StatusChamado.ABERTO);
         fechado.assumir(admin, agora);
         fechado.alterarStatus(admin, StatusChamado.RESOLVIDO, "Solucao definitiva", agora);

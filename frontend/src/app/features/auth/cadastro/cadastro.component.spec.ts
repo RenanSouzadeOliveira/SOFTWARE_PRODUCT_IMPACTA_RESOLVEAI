@@ -61,6 +61,28 @@ describe('CadastroComponent', () => {
       .toBe(false);
   });
 
+  it('exibe violações por campo do servidor e preserva os dados digitados', () => {
+    const result = new Subject<Usuario>();
+    auth.register.mockReturnValue(result);
+    const fixture = TestBed.createComponent(CadastroComponent);
+    fixture.detectChanges();
+    fill(fixture.nativeElement, '#cadastro-nome', 'Ana');
+    fill(fixture.nativeElement, '#cadastro-email', 'ana@example.com');
+    fill(fixture.nativeElement, '#cadastro-senha', 'senha-segura');
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    result.error(
+      new HttpErrorResponse({
+        status: 400,
+        error: { message: 'Dados invalidos', violations: [{ field: 'email', message: 'email deve ser valido' }] },
+      }),
+    );
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('[data-testid="cadastro-violations"]')?.textContent).toContain('email deve ser valido');
+    expect(element.querySelector<HTMLInputElement>('#cadastro-email')?.value).toBe('ana@example.com');
+    expect(element.querySelector<HTMLButtonElement>('button[type="submit"]')?.disabled).toBe(false);
+  });
+
   it('navega ao login depois do cadastro', () => {
     const result = new Subject<Usuario>();
     auth.register.mockReturnValue(result);
