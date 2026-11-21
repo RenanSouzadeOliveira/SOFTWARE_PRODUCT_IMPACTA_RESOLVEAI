@@ -1,5 +1,6 @@
 package br.edu.impacta.resolveai.categoria.dto;
 
+import br.edu.impacta.resolveai.categoria.Categoria;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -12,7 +13,7 @@ public record CategoriaRequest(
         String descricao) {
 
     public CategoriaRequest {
-        nome = nome == null ? null : nome.strip();
+        nome = Categoria.prepararNome(nome);
         descricao = descricao == null || descricao.isBlank() ? null : descricao.strip();
     }
 }

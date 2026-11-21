@@ -12,15 +12,15 @@ import br.edu.impacta.resolveai.comentario.dto.CriarComentarioRequest;
 import br.edu.impacta.resolveai.security.UsuarioPrincipal;
 import br.edu.impacta.resolveai.shared.error.ConflitoException;
 import br.edu.impacta.resolveai.shared.error.DadosInvalidosException;
-import br.edu.impacta.resolveai.shared.error.NaoAutorizadoException;
 import br.edu.impacta.resolveai.shared.error.RecursoNaoEncontradoException;
 import br.edu.impacta.resolveai.usuario.Usuario;
-import br.edu.impacta.resolveai.usuario.UsuarioRepository;
+import br.edu.impacta.resolveai.usuario.UsuarioService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -29,20 +29,20 @@ public class ComentarioService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ComentarioService.class);
     private final ComentarioRepository comentarios;
     private final ChamadoRepository chamados;
-    private final UsuarioRepository usuarios;
+    private final UsuarioService usuarios;
     private final Clock clock;
 
     public ComentarioService(ComentarioRepository comentarios, ChamadoRepository chamados,
-            UsuarioRepository usuarios, Clock clock) {
+            UsuarioService usuarios, Clock clock) {
         this.comentarios = comentarios;
         this.chamados = chamados;
         this.usuarios = usuarios;
         this.clock = clock;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public ComentariosResponse listar(Long chamadoId, UsuarioPrincipal principal) {
-        Usuario usuario = usuarioAtivo(principal);
+        Usuario usuario = usuarios.requireActive(principal);
         validarId(chamadoId);
         Chamado chamado = chamados.findById(chamadoId).orElseThrow(this::naoEncontrado);
         if (!MaquinaEstadosChamado.podeConsultar(chamado, usuario)) throw naoEncontrado();
@@ -52,7 +52,7 @@ public class ComentarioService {
 
     @Transactional
     public ComentarioResponse criar(Long chamadoId, UsuarioPrincipal principal, CriarComentarioRequest request) {
-        Usuario usuario = usuarioAtivo(principal);
+        Usuario usuario = usuarios.requireActiveForWrite(principal);
         validarId(chamadoId);
         // Locks the ticket until commit. Closing uses an UPDATE on the same row, so it
         // serializes with comment creation without altering the ticket's version/dates.
@@ -75,11 +75,6 @@ public class ComentarioService {
         return ComentarioResponse.from(comentario);
     }
 
-    private Usuario usuarioAtivo(UsuarioPrincipal principal) {
-        if (principal == null) throw new NaoAutorizadoException("Autenticacao necessaria");
-        return usuarios.findById(principal.id()).filter(Usuario::ativo)
-                .orElseThrow(() -> new NaoAutorizadoException("Conta inexistente ou inativa"));
-    }
     private void validarId(Long id) {
         if (id == null || id < 1) throw new DadosInvalidosException("Identificador do chamado deve ser positivo");
     }

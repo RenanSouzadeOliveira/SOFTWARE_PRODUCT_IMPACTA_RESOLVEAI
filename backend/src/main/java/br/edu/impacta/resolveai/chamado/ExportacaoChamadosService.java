@@ -16,12 +16,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ExportacaoChamadosService {
     private static final int TAMANHO_LOTE = 100;
+    private final br.edu.impacta.resolveai.usuario.UsuarioService usuarios;
     private final ChamadoRepository chamados;
     private final EntityManager entityManager;
     private final int limite;
 
     public ExportacaoChamadosService(ChamadoRepository chamados, EntityManager entityManager,
-            @Value("${app.chamados.exportacao.max-registros:10000}") int limite) {
+            @Value("${app.chamados.exportacao.max-registros:10000}") int limite, br.edu.impacta.resolveai.usuario.UsuarioService usuarios) {
+        this.usuarios = usuarios;
         if (limite < 1 || limite > 100000)
             throw new IllegalArgumentException("Limite de exportação deve estar entre 1 e 100000");
         this.chamados = chamados;
@@ -31,11 +33,12 @@ public class ExportacaoChamadosService {
 
     @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public byte[] exportar(UsuarioPrincipal principal, FiltrosChamados filtros, Sort ordem) {
+        var usuario = usuarios.requireActive(principal);
         long inicio = OperacoesChamadosLog.inicio("CHAMADOS_EXPORTACAO", filtros, ordem, OperacoesChamadosLog.escopo(principal));
         long total = -1;
         long gerados = 0;
         try {
-            var spec = VisibilidadeChamados.doUsuario(principal).and(filtros.specification());
+            var spec = VisibilidadeChamados.doUsuario(usuario).and(filtros.specification());
             var pagina = chamados.findAll(spec, PageRequest.of(0, TAMANHO_LOTE, ordem));
             total = pagina.getTotalElements();
             OperacoesChamadosLog.exportacaoContagem(total, limite);

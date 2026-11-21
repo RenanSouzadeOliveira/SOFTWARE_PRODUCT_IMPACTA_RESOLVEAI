@@ -13,7 +13,10 @@ import br.edu.impacta.resolveai.shared.error.DadosInvalidosException;
 import br.edu.impacta.resolveai.shared.error.NaoAutorizadoException;
 import br.edu.impacta.resolveai.usuario.Perfil;
 import br.edu.impacta.resolveai.usuario.Usuario;
-import br.edu.impacta.resolveai.usuario.UsuarioRepository;
+import br.edu.impacta.resolveai.usuario.UsuarioService;
+import br.edu.impacta.resolveai.security.UsuarioPrincipal;
+import br.edu.impacta.resolveai.shared.error.FieldViolation;
+import java.util.List;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,30 +26,30 @@ class ChamadoCreationTransaction {
 
     private final ChamadoRepository chamadoRepository;
     private final CategoriaRepository categoriaRepository;
-    private final UsuarioRepository usuarioRepository;
+    private final UsuarioService usuarioService;
     private final Clock clock;
     private final HistoricoAtribuicaoRepository historico;
 
     ChamadoCreationTransaction(
             ChamadoRepository chamadoRepository,
             CategoriaRepository categoriaRepository,
-            UsuarioRepository usuarioRepository,
+            UsuarioService usuarioService,
             Clock clock, HistoricoAtribuicaoRepository historico) {
         this.chamadoRepository = chamadoRepository;
         this.categoriaRepository = categoriaRepository;
-        this.usuarioRepository = usuarioRepository;
+        this.usuarioService = usuarioService;
         this.clock = clock;
         this.historico = historico;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public ChamadoResponse criar(Long solicitanteId, AbrirChamadoRequest request, String protocolo) {
-        Usuario solicitante = usuarioRepository.findById(solicitanteId)
-                .filter(Usuario::ativo)
-                .filter(usuario -> usuario.perfil() == Perfil.SOLICITANTE)
-                .orElseThrow(() -> new NaoAutorizadoException("Usuario autenticado nao pode abrir chamados"));
+    public ChamadoResponse criar(UsuarioPrincipal principal, AbrirChamadoRequest request, String protocolo) {
+        Usuario solicitante = usuarioService.requireActiveForWrite(principal);
+        if (solicitante.perfil() != Perfil.SOLICITANTE)
+            throw new NaoAutorizadoException("Usuario autenticado nao pode abrir chamados");
         Categoria categoria = categoriaRepository.findByIdAndAtivaTrue(request.categoriaId())
-                .orElseThrow(() -> new DadosInvalidosException("Categoria inexistente ou inativa"));
+                .orElseThrow(() -> new DadosInvalidosException("Categoria indisponível. Escolha outra categoria.",
+                        List.of(new FieldViolation("categoriaId", "Categoria indisponível. Escolha outra categoria."))));
         Instant agora = clock.instant();
         Chamado chamado = Chamado.abrir(
                 protocolo,

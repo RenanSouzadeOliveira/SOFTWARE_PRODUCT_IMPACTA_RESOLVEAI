@@ -241,7 +241,7 @@ As entidades `Usuario`, `Categoria` e `Chamado` mapeiam explicitamente o schema 
 
 ## Administração de usuários e categorias
 
-O perfil `ADMIN` acessa **Administração** na navegação. Em **Usuários**, pode criar contas com senha inicial, editar nome, e-mail e perfil, além de ativar ou desativar outras contas. Em **Categorias**, pode criar, editar, ativar e desativar registros. A API impede autodesativação e remoção do próprio perfil administrativo.
+O perfil `ADMIN` acessa **Administração** na navegação. Em **Usuários**, pode criar contas com senha inicial, editar nome, e-mail e perfil, além de ativar ou desativar outras contas. Em **Categorias**, pode criar, editar, ativar e desativar registros. A API impede autodesativação e remoção do próprio perfil administrativo. Edições sem mudança de perfil preservam o perfil atual; a mudança de perfil exige a versão observada do registro e retorna `409` se outra pessoa alterou a conta. Mudanças de perfil ou situação encerram as sessões anteriores da conta.
 
 A API usa `GET` e `POST` em `/api/admin/usuarios` e `/api/admin/categorias`. Use `PATCH /{id}` para editar os dados e `PATCH /{id}/situacao` para alterar a situação. As listas administrativas incluem registros inativos. O catálogo `GET /api/categorias` continua exibindo apenas as categorias disponíveis para abrir chamados. A desativação preserva vínculos, histórico e a reserva do e-mail ou nome. O catálogo e os contratos administrativos estão disponíveis no Swagger.
 

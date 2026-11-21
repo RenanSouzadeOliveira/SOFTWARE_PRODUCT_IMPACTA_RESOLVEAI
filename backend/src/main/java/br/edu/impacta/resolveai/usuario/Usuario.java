@@ -48,6 +48,9 @@ public class Usuario {
     @Column(name = "atualizado_em", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private Instant atualizadoEm;
 
+    @Column(name = "versao_seguranca", nullable = false)
+    private long versaoSeguranca;
+
     @Version
     @Column(nullable = false)
     private long versao;
@@ -84,12 +87,20 @@ public class Usuario {
     public void atualizarCadastro(String nome, String email, Perfil perfil, Instant agora) {
         this.nome = requiredText(nome, "nome", 120);
         this.email = normalizarEmail(requiredText(email, "email", 254));
-        this.perfil = Objects.requireNonNull(perfil, "perfil não pode ser nulo");
+        Objects.requireNonNull(perfil, "perfil não pode ser nulo");
+        if (this.perfil != perfil) {
+            this.perfil = perfil;
+            versaoSeguranca++;
+        }
         this.atualizadoEm = Objects.requireNonNull(agora, "agora não pode ser nulo");
     }
 
     public void alterarSituacao(boolean ativo, Instant agora) {
+        if (this.ativo == ativo) {
+            return;
+        }
         this.ativo = ativo;
+        versaoSeguranca++;
         this.atualizadoEm = Objects.requireNonNull(agora, "agora não pode ser nulo");
     }
 
@@ -130,6 +141,10 @@ public class Usuario {
 
     public Instant atualizadoEm() {
         return atualizadoEm;
+    }
+
+    public long versaoSeguranca() {
+        return versaoSeguranca;
     }
 
     public long versao() {

@@ -71,7 +71,7 @@ describe('CadastroComponent', () => {
     fill(fixture.nativeElement, '#cadastro-email', 'ana@example.com');
     fill(fixture.nativeElement, '#cadastro-senha', 'senha-segura');
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
-    result.next({ id: 1, nome: 'Ana', email: 'ana@example.com', perfil: 'SOLICITANTE', ativo: true });
+    result.next({ id: 1, nome: 'Ana', email: 'ana@example.com', perfil: 'SOLICITANTE', ativo: true, versao: 0 });
     expect(navigate).toHaveBeenCalledWith(['/login'], { queryParams: { cadastrado: '1' } });
   });
 });

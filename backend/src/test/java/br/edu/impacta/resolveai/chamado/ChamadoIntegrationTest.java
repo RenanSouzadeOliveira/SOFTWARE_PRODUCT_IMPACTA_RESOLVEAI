@@ -228,7 +228,9 @@ class ChamadoIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(validPayload(categoryId)))
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.message").value("Categoria inexistente ou inativa"));
+                    .andExpect(jsonPath("$.message").value("Categoria indisponível. Escolha outra categoria."))
+                    .andExpect(jsonPath("$.violations[0].field").value("categoriaId"))
+                    .andExpect(jsonPath("$.violations[0].message").value("Categoria indisponível. Escolha outra categoria."));
         }
     }
 

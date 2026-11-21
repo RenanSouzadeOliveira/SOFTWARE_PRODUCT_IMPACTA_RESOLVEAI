@@ -1,5 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
@@ -13,13 +20,7 @@ import { finalize } from 'rxjs';
 
 import { apiErrorMessage } from '../../core/http/api-error';
 import { ChamadosService } from './chamados.service';
-import {
-  Categoria,
-  Chamado,
-  CriarChamadoInput,
-  FieldViolation,
-  Prioridade,
-} from './chamado.model';
+import { Categoria, Chamado, CriarChamadoInput, FieldViolation, Prioridade } from './chamado.model';
 
 type CategoriasState = 'loading' | 'ready' | 'empty' | 'error';
 
@@ -119,7 +120,21 @@ export class NovoChamadoComponent implements OnInit {
           this.errorMessage.set(
             apiErrorMessage(error, 'Não foi possível abrir o chamado. Tente novamente.'),
           );
-          this.fieldViolations.set(readFieldViolations(error));
+          const violations = readFieldViolations(error);
+          this.fieldViolations.set(violations);
+          if (
+            error instanceof HttpErrorResponse &&
+            error.status === 400 &&
+            violations.some(
+              (item) =>
+                item.field === 'categoriaId' &&
+                item.message === 'Categoria indisponível. Escolha outra categoria.',
+            )
+          ) {
+            this.form.controls.categoriaId.setValue(0);
+            this.form.controls.categoriaId.markAsTouched();
+            this.loadCategorias();
+          }
         },
       });
   }

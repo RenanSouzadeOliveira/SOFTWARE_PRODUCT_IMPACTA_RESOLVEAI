@@ -96,7 +96,7 @@ public class GlobalExceptionHandler {
     ResponseEntity<ApiErrorResponse> handleConflict(
             ConflitoException exception,
             HttpServletRequest request) {
-        return build(HttpStatus.CONFLICT, exception.getMessage(), request, List.of());
+        return build(HttpStatus.CONFLICT, exception.getMessage(), request, exception.violations());
     }
 
     @ExceptionHandler({OptimisticLockingFailureException.class, OptimisticLockException.class})

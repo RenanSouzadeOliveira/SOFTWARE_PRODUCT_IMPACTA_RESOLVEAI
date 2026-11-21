@@ -2,7 +2,9 @@
 
 O ResolveAí usa autenticação stateless com JWT assinado por HMAC SHA-256. O segredo nunca faz parte do artefato: ele é fornecido por `JWT_SECRET` e deve ter pelo menos 32 bytes. A duração do token é configurada por `JWT_EXPIRATION`, no formato ISO 8601, com `PT2H` como valor local sugerido.
 
-O token contém o identificador do usuário no `subject`, o perfil na claim `perfil`, o emissor, a emissão e a expiração. A API não confia apenas nas claims: a cada requisição autenticada, ela consulta o usuário e rejeita tokens de contas inexistentes ou inativas.
+O token contém o identificador do usuário no `subject`, o perfil na claim `perfil`, a versão de segurança da conta na claim `versaoSeguranca`, o emissor, a emissão e a expiração. A API não confia apenas nas claims: a cada requisição autenticada, ela consulta o usuário e rejeita tokens de contas inexistentes ou inativas.
+
+A coluna `usuarios.versao_seguranca` (V12) é incrementada na mesma transação de qualquer mudança de perfil, desativação ou reativação. O filtro JWT e os serviços transacionais rejeitam com `401` tokens cuja versão ou perfil divergem da conta atual. Assim, rebaixamento, promoção, desativação e reativação exigem novo login: um token emitido antes da mudança não volta a valer. Tokens sem a claim `versaoSeguranca` também são rejeitados.
 
 ## Contratos HTTP
 

@@ -12,6 +12,7 @@ describe('MinhaContaComponent', () => {
     email: 'ana@example.com',
     perfil: 'SOLICITANTE',
     ativo: true,
+    versao: 0,
   };
   const auth = { loadCurrentUser: vi.fn(), updateCurrentUser: vi.fn() };
 

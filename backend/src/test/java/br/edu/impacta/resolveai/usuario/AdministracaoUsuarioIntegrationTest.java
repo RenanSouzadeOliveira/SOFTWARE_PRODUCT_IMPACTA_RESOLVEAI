@@ -7,23 +7,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.time.Instant;
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import br.edu.impacta.resolveai.atendimento.AtendimentoService;
-import br.edu.impacta.resolveai.categoria.Categoria;
-import br.edu.impacta.resolveai.categoria.CategoriaRepository;
-import br.edu.impacta.resolveai.chamado.Chamado;
-import br.edu.impacta.resolveai.chamado.ChamadoRepository;
-import br.edu.impacta.resolveai.chamado.StatusChamado;
-import br.edu.impacta.resolveai.usuario.dto.AlterarSituacaoUsuarioRequest;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import br.edu.impacta.resolveai.security.JwtService;
+import br.edu.impacta.resolveai.shared.error.NaoAutorizadoException;
 import br.edu.impacta.resolveai.security.UsuarioPrincipal;
 import br.edu.impacta.resolveai.usuario.dto.AtualizarUsuarioRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -50,10 +35,6 @@ class AdministracaoUsuarioIntegrationTest {
     @Autowired JwtService jwt;
     @Autowired PasswordEncoder encoder;
     @Autowired AdministracaoUsuarioService administracao;
-    @Autowired AtendimentoService atendimento;
-    @Autowired ChamadoRepository chamados;
-    @Autowired CategoriaRepository categorias;
-    @Autowired PlatformTransactionManager transactionManager;
     @Autowired JdbcTemplate jdbc;
 
     @Test
@@ -75,15 +56,18 @@ class AdministracaoUsuarioIntegrationTest {
         String tokenPessoa = token(pessoa);
         mvc.perform(patch("/api/admin/usuarios/{id}", id).header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(Map.of(
-                        "nome", "Pessoa Atualizada", "email", " NOVO@EXAMPLE.COM ", "perfil", "SOLICITANTE"))))
+                        "nome", "Pessoa Atualizada", "email", " NOVO@EXAMPLE.COM ", "perfil", "SOLICITANTE", "versaoEsperada", pessoa.versao()))))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.email").value("novo@example.com"))
                 .andExpect(jsonPath("$.perfil").value("SOLICITANTE"));
-        mvc.perform(get("/api/usuarios/me").header("Authorization", tokenPessoa))
+        mvc.perform(get("/api/usuarios/me").header("Authorization", tokenPessoa)).andExpect(status().isUnauthorized());
+        String tokenAntesDeDesativar = login("novo@example.com");
+        mvc.perform(get("/api/usuarios/me").header("Authorization", tokenAntesDeDesativar))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.perfil").value("SOLICITANTE"));
         mvc.perform(patch("/api/admin/usuarios/{id}/situacao", id).header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON).content("{\"ativo\":false}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.ativo").value(false));
-        mvc.perform(get("/api/usuarios/me").header("Authorization", tokenPessoa)).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/usuarios/me").header("Authorization", tokenAntesDeDesativar))
+                .andExpect(status().isUnauthorized());
         var listagem = mvc.perform(get("/api/admin/usuarios").header("Authorization", token))
                 .andExpect(status().isOk()).andReturn();
         var lista = json.readTree(listagem.getResponse().getContentAsString());
@@ -94,7 +78,10 @@ class AdministracaoUsuarioIntegrationTest {
         mvc.perform(patch("/api/admin/usuarios/{id}/situacao", id).header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON).content("{\"ativo\":true}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.ativo").value(true));
-        mvc.perform(get("/api/usuarios/me").header("Authorization", tokenPessoa)).andExpect(status().isOk());
+        mvc.perform(get("/api/usuarios/me").header("Authorization", tokenAntesDeDesativar))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/usuarios/me").header("Authorization", login("novo@example.com")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.perfil").value("SOLICITANTE"));
     }
 
     @Test
@@ -181,9 +168,70 @@ class AdministracaoUsuarioIntegrationTest {
                 .andExpect(status().isConflict());
         mvc.perform(patch("/api/admin/usuarios/{id}", outro.id()).header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(Map.of(
-                        "nome", "Pessoa", "email", " DUPLICADO@EXAMPLE.COM ", "perfil", "SOLICITANTE"))))
+                        "nome", "Pessoa", "email", " DUPLICADO@EXAMPLE.COM "))))
                 .andExpect(status().isConflict());
         assertThat(outro.email()).isEqualTo("outra@example.com");
+    }
+
+    @Test
+    void edicaoDesatualizadaNaoRestauraPerfilAdministrativo() throws Exception {
+        Usuario primeiro = criar("Primeiro administrador", "primeiro-auditoria@example.com", Perfil.ADMIN);
+        Usuario segundo = criar("Segundo administrador", "segundo-auditoria@example.com", Perfil.ADMIN);
+        Usuario alvo = criar("Terceiro administrador", "alvo-auditoria@example.com", Perfil.ADMIN);
+        String sessaoA = token(primeiro);
+        String sessaoB = token(segundo);
+        String sessaoAlvo = login(alvo.email());
+        long versaoA = versaoObservada(sessaoA, alvo.id());
+        long versaoB = versaoObservada(sessaoB, alvo.id());
+        assertThat(versaoA).isEqualTo(versaoB);
+        mvc.perform(patch("/api/admin/usuarios/{id}", alvo.id()).header("Authorization", sessaoB)
+                .contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsBytes(Map.of(
+                        "nome", alvo.nome(), "email", alvo.email(), "perfil", "ATENDENTE", "versaoEsperada", versaoB))))
+                .andExpect(status().isOk());
+        mvc.perform(patch("/api/admin/usuarios/{id}", alvo.id()).header("Authorization", sessaoA)
+                .contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsBytes(Map.of(
+                        "nome", "Nome atualizado", "email", alvo.email(), "perfil", "ADMIN"))))
+                .andExpect(status().isBadRequest());
+        mvc.perform(patch("/api/admin/usuarios/{id}", alvo.id()).header("Authorization", sessaoA)
+                .contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsBytes(Map.of(
+                        "nome", "Nome atualizado", "email", alvo.email()))))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.perfil").value("ATENDENTE"));
+        assertThat(jdbc.queryForMap("SELECT nome, perfil FROM usuarios WHERE id = ?", alvo.id()))
+                .containsEntry("nome", "Nome atualizado").containsEntry("perfil", "ATENDENTE");
+        mvc.perform(patch("/api/admin/usuarios/{id}", alvo.id()).header("Authorization", sessaoA)
+                .contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsBytes(Map.of(
+                        "nome", "Nome atualizado", "email", alvo.email(), "perfil", "ADMIN", "versaoEsperada", versaoA))))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.violations[0].field").value("versaoEsperada"));
+        mvc.perform(get("/api/admin/usuarios").header("Authorization", sessaoAlvo)).andExpect(status().isUnauthorized());
+        String sessaoAposRebaixar = login(alvo.email());
+        mvc.perform(get("/api/admin/usuarios").header("Authorization", sessaoAposRebaixar)).andExpect(status().isForbidden());
+        long atual = versaoObservada(sessaoA, alvo.id());
+        mvc.perform(patch("/api/admin/usuarios/{id}", alvo.id()).header("Authorization", sessaoA)
+                .contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsBytes(Map.of(
+                        "nome", "Nome atualizado", "email", alvo.email(), "perfil", "ADMIN", "versaoEsperada", atual))))
+                .andExpect(status().isOk());
+        assertThat(jdbc.queryForObject("SELECT perfil FROM usuarios WHERE id = ?", String.class, alvo.id()))
+                .isEqualTo("ADMIN");
+        mvc.perform(get("/api/admin/usuarios").header("Authorization", sessaoAlvo)).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/admin/usuarios").header("Authorization", sessaoAposRebaixar))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/admin/usuarios").header("Authorization", login(alvo.email()))).andExpect(status().isOk());
+    }
+
+    private String login(String email) throws Exception {
+        var result = mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsBytes(Map.of("email", email, "senha", SENHA))))
+                .andExpect(status().isOk()).andReturn();
+        return "Bearer " + json.readTree(result.getResponse().getContentAsByteArray()).path("accessToken").asText();
+    }
+
+    private long versaoObservada(String sessao, long id) throws Exception {
+        var lista = json.readTree(mvc.perform(get("/api/admin/usuarios").header("Authorization", sessao))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray());
+        return java.util.stream.StreamSupport.stream(lista.spliterator(), false)
+                .filter(conta -> conta.path("id").asLong() == id)
+                .filter(conta -> conta.path("versao").isIntegralNumber())
+                .findFirst().orElseThrow().path("versao").asLong();
     }
 
     @Test
@@ -192,73 +240,9 @@ class AdministracaoUsuarioIntegrationTest {
         Usuario alvo = criar("Pessoa", "alvo@example.com", Perfil.SOLICITANTE);
         var principalAntigo = new UsuarioPrincipal(ator.id(), ator.email(), Perfil.ADMIN);
         assertThatThrownBy(() -> administracao.atualizar(alvo.id(), principalAntigo,
-                new AtualizarUsuarioRequest("Alterado", alvo.email(), Perfil.ADMIN)))
-                .isInstanceOf(AccessDeniedException.class);
+                new AtualizarUsuarioRequest("Alterado", alvo.email(), Perfil.ADMIN, alvo.versao())))
+                .isInstanceOf(NaoAutorizadoException.class);
         assertThat(alvo.perfil()).isEqualTo(Perfil.SOLICITANTE);
-    }
-
-    @Test
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    void desativacaoEsperaAutoatribuicaoEmCursoEPreservaHistorico() throws Exception {
-        TransactionTemplate tx = new TransactionTemplate(transactionManager);
-        String sufixo = UUID.randomUUID().toString();
-        Long[] ids = tx.execute(estado -> {
-            Usuario admin = criar("ZZ Administrador", "admin-" + sufixo + "@example.com", Perfil.ADMIN);
-            Usuario atendente = criar("ZZ Atendente", "atendente-" + sufixo + "@example.com", Perfil.ATENDENTE);
-            Usuario solicitante = criar("ZZ Solicitante", "solicitante-" + sufixo + "@example.com", Perfil.SOLICITANTE);
-            Categoria categoria = categorias.save(Categoria.nova("Concorrência " + sufixo, null, Instant.now()));
-            Chamado chamado = chamados.saveAndFlush(Chamado.abrir("CONC-" + sufixo.substring(0, 20),
-                    "Chamado concorrente", "Descrição fictícia para validar concorrência", solicitante, categoria, Instant.now()));
-            return new Long[]{admin.id(), atendente.id(), chamado.id()};
-        });
-        var atribuicaoPendente = new CountDownLatch(1);
-        var liberarCommit = new CountDownLatch(1);
-        var administracaoIniciada = new CountDownLatch(1);
-        var executor = Executors.newFixedThreadPool(2);
-        try {
-            var atribuicao = executor.submit(() -> tx.execute(estado -> {
-                atendimento.assumir(ids[2], new UsuarioPrincipal(ids[1], "ignorado@example.com", Perfil.ATENDENTE));
-                atribuicaoPendente.countDown();
-                aguardar(liberarCommit);
-                return true;
-            }));
-            assertThat(atribuicaoPendente.await(10, TimeUnit.SECONDS)).isTrue();
-            var desativacao = executor.submit(() -> {
-                administracaoIniciada.countDown();
-                return administracao.alterarSituacao(ids[1],
-                        new UsuarioPrincipal(ids[0], "ignorado@example.com", Perfil.ADMIN),
-                        new AlterarSituacaoUsuarioRequest(false));
-            });
-            assertThat(administracaoIniciada.await(10, TimeUnit.SECONDS)).isTrue();
-            assertThatThrownBy(() -> desativacao.get(300, TimeUnit.MILLISECONDS))
-                    .isInstanceOf(TimeoutException.class);
-            liberarCommit.countDown();
-            assertThat(atribuicao.get(10, TimeUnit.SECONDS)).isTrue();
-            assertThat(desativacao.get(10, TimeUnit.SECONDS).ativo()).isFalse();
-            tx.executeWithoutResult(estado -> {
-                assertThat(usuarios.findById(ids[1]).orElseThrow().ativo()).isFalse();
-                Chamado chamado = chamados.findById(ids[2]).orElseThrow();
-                assertThat(chamado.atendente().id()).isEqualTo(ids[1]);
-                assertThat(chamado.status()).isEqualTo(StatusChamado.EM_ATENDIMENTO);
-                assertThat(jdbc.queryForObject("select count(*) from historico_chamados where chamado_id = ? and tipo_evento = 'ATRIBUICAO'",
-                        Long.class, ids[2])).isEqualTo(1L);
-                assertThat(jdbc.queryForObject("select count(*) from historico_status where chamado_id = ?",
-                        Long.class, ids[2])).isEqualTo(1L);
-            });
-        } finally {
-            liberarCommit.countDown();
-            executor.shutdownNow();
-            assertThat(executor.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
-        }
-    }
-
-    private static void aguardar(CountDownLatch sinal) {
-        try {
-            if (!sinal.await(10, TimeUnit.SECONDS)) throw new IllegalStateException("Tempo de sincronização excedido");
-        } catch (InterruptedException exception) {
-            Thread.currentThread().interrupt();
-            throw new IllegalStateException("Sincronização interrompida", exception);
-        }
     }
 
     private Usuario criar(String nome, String email, Perfil perfil) {

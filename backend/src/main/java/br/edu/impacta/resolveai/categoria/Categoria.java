@@ -1,5 +1,6 @@
 package br.edu.impacta.resolveai.categoria;
 
+import java.text.Normalizer;
 import java.time.Instant;
 import java.util.Objects;
 
@@ -54,7 +55,7 @@ public class Categoria {
     }
 
     public void alterarDados(String nome, String descricao, Instant agora) {
-        this.nome = requiredText(nome, "nome", 100);
+        this.nome = requiredText(prepararNome(nome), "nome", 100);
         this.descricao = optionalText(descricao, "descricao", 255);
         this.atualizadoEm = Objects.requireNonNull(agora, "agora nao pode ser nulo");
     }
@@ -97,6 +98,25 @@ public class Categoria {
 
     public long versao() {
         return versao;
+    }
+
+    public static String prepararNome(String nome) {
+        if (nome == null) {
+            return null;
+        }
+        int inicio = 0;
+        int fim = nome.length();
+        while (inicio < fim && espacoUnicode(nome.charAt(inicio))) {
+            inicio++;
+        }
+        while (fim > inicio && espacoUnicode(nome.charAt(fim - 1))) {
+            fim--;
+        }
+        return Normalizer.normalize(nome.substring(inicio, fim), Normalizer.Form.NFC);
+    }
+
+    private static boolean espacoUnicode(char caractere) {
+        return Character.isSpaceChar(caractere) || caractere == 0x85 || (caractere >= 0x09 && caractere <= 0x0d);
     }
 
     private static String requiredText(String value, String field, int maxLength) {

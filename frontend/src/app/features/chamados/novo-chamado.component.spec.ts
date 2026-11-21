@@ -45,7 +45,11 @@ describe('NovoChamadoComponent', () => {
     completeCategories();
     fixture.detectChanges();
     fill(fixture.nativeElement as HTMLElement, '#chamado-titulo', '    x    ');
-    fill(fixture.nativeElement as HTMLElement, '#chamado-descricao', '                   curta                   ');
+    fill(
+      fixture.nativeElement as HTMLElement,
+      '#chamado-descricao',
+      '                   curta                   ',
+    );
     selectCategory(fixture.nativeElement as HTMLElement, '1');
     selectPriority(fixture.nativeElement as HTMLElement, 'MEDIA');
 
@@ -63,18 +67,26 @@ describe('NovoChamadoComponent', () => {
 
   it('mostra erro das categorias, permite retry e trata lista vazia', () => {
     const fixture = createFixture();
-    categorias[0].error(new HttpErrorResponse({ status: 503, error: { message: 'Serviço indisponível' } }));
+    categorias[0].error(
+      new HttpErrorResponse({ status: 503, error: { message: 'Serviço indisponível' } }),
+    );
     fixture.detectChanges();
 
-    expect((fixture.nativeElement as HTMLElement).querySelector('[data-testid="categorias-error"]')?.textContent)
-      .toContain('Serviço indisponível');
-    (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('[data-testid="categorias-error"] button')?.click();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('[data-testid="categorias-error"]')
+        ?.textContent,
+    ).toContain('Serviço indisponível');
+    (fixture.nativeElement as HTMLElement)
+      .querySelector<HTMLButtonElement>('[data-testid="categorias-error"] button')
+      ?.click();
     expect(chamados.listarCategorias).toHaveBeenCalledTimes(2);
 
     categorias[1].next([]);
     categorias[1].complete();
     fixture.detectChanges();
-    expect((fixture.nativeElement as HTMLElement).querySelector('[data-testid="categorias-empty"]')).not.toBeNull();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('[data-testid="categorias-empty"]'),
+    ).not.toBeNull();
   });
 
   it('envia uma vez, preserva dados e mostra violações quando a API falha', () => {
@@ -82,7 +94,11 @@ describe('NovoChamadoComponent', () => {
     completeCategories();
     fixture.detectChanges();
     fill(fixture.nativeElement as HTMLElement, '#chamado-titulo', '  Sem acesso  ');
-    fill(fixture.nativeElement as HTMLElement, '#chamado-descricao', 'A conta não consegue acessar o portal acadêmico.');
+    fill(
+      fixture.nativeElement as HTMLElement,
+      '#chamado-descricao',
+      'A conta não consegue acessar o portal acadêmico.',
+    );
     selectCategory(fixture.nativeElement as HTMLElement, '1');
     selectPriority(fixture.nativeElement as HTMLElement, 'ALTA');
 
@@ -111,9 +127,13 @@ describe('NovoChamadoComponent', () => {
     fixture.detectChanges();
 
     const element = fixture.nativeElement as HTMLElement;
-    expect(element.querySelector('[data-testid="chamado-error"]')?.textContent).toContain('Revise os dados');
+    expect(element.querySelector('[data-testid="chamado-error"]')?.textContent).toContain(
+      'Revise os dados',
+    );
     expect(element.textContent).toContain('O título já está em uso.');
-    expect(element.querySelector<HTMLInputElement>('#chamado-titulo')?.value).toBe('  Sem acesso  ');
+    expect(element.querySelector<HTMLInputElement>('#chamado-titulo')?.value).toBe(
+      '  Sem acesso  ',
+    );
     expect(element.querySelector<HTMLButtonElement>('button[type="submit"]')?.disabled).toBe(false);
   });
 
@@ -122,7 +142,11 @@ describe('NovoChamadoComponent', () => {
     completeCategories();
     fixture.detectChanges();
     fill(fixture.nativeElement as HTMLElement, '#chamado-titulo', 'Sem acesso');
-    fill(fixture.nativeElement as HTMLElement, '#chamado-descricao', 'A conta não consegue acessar o portal acadêmico.');
+    fill(
+      fixture.nativeElement as HTMLElement,
+      '#chamado-descricao',
+      'A conta não consegue acessar o portal acadêmico.',
+    );
     selectCategory(fixture.nativeElement as HTMLElement, '1');
     selectPriority(fixture.nativeElement as HTMLElement, 'MEDIA');
 
@@ -134,11 +158,70 @@ describe('NovoChamadoComponent', () => {
     fixture.detectChanges();
 
     const element = fixture.nativeElement as HTMLElement;
-    expect(element.querySelector('[data-testid="chamado-protocolo"]')?.textContent).toContain('RA-2026-0001');
+    expect(element.querySelector('[data-testid="chamado-protocolo"]')?.textContent).toContain(
+      'RA-2026-0001',
+    );
     element.querySelector<HTMLButtonElement>('[data-testid="chamado-success"] button')?.click();
     fixture.detectChanges();
     expect(element.querySelector('[data-testid="chamado-success"]')).toBeNull();
     expect(element.querySelector<HTMLInputElement>('#chamado-titulo')?.value).toBe('');
+  });
+
+  it('recarrega categoria indisponível e limpa só seleção sem reenviar chamado', () => {
+    const fixture = createFixture();
+    completeCategories();
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    fill(element, '#chamado-titulo', 'Sem acesso');
+    fill(element, '#chamado-descricao', 'A conta não consegue acessar o portal acadêmico.');
+    selectCategory(element, '1');
+    selectPriority(element, 'MEDIA');
+    const result = new Subject<Chamado>();
+    chamados.criar.mockReturnValue(result);
+    submit(element);
+    result.error(
+      new HttpErrorResponse({
+        status: 400,
+        error: {
+          violations: [
+            { field: 'categoriaId', message: 'Categoria indisponível. Escolha outra categoria.' },
+          ],
+        },
+      }),
+    );
+    fixture.detectChanges();
+    expect(chamados.listarCategorias).toHaveBeenCalledTimes(2);
+    categorias[1].next([]);
+    categorias[1].complete();
+    fixture.detectChanges();
+    expect(element.querySelector<HTMLInputElement>('#chamado-titulo')?.value).toBe('Sem acesso');
+    expect(element.querySelector<HTMLTextAreaElement>('#chamado-descricao')?.value).toContain(
+      'A conta',
+    );
+    expect(element.querySelector<HTMLInputElement>('input[value="MEDIA"]')?.checked).toBe(true);
+    expect(element.textContent).toContain('Categoria indisponível');
+    expect(chamados.criar).toHaveBeenCalledTimes(1);
+  });
+  it('cancela catálogo GET e mutação ao destruir', () => {
+    const pending = createFixture();
+    expect(categorias[0].observed).toBe(true);
+    pending.destroy();
+    expect(categorias[0].observed).toBe(false);
+    const fixture = createFixture();
+    categorias[1].next([categoria]);
+    categorias[1].complete();
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    fill(element, '#chamado-titulo', 'Sem acesso');
+    fill(element, '#chamado-descricao', 'A conta não consegue acessar o portal acadêmico.');
+    selectCategory(element, '1');
+    selectPriority(element, 'MEDIA');
+    const result = new Subject<Chamado>();
+    chamados.criar.mockReturnValue(result);
+    submit(element);
+    expect(result.observed).toBe(true);
+    fixture.destroy();
+    expect(result.observed).toBe(false);
   });
 
   function createFixture() {
@@ -181,7 +264,9 @@ function fill(root: HTMLElement, selector: string, value: string): void {
 function selectCategory(root: HTMLElement, value: string): void {
   const select = root.querySelector<HTMLSelectElement>('#chamado-categoria');
   if (!select) throw new Error('Categoria não encontrada');
-  const option = Array.from(select.options).find((candidate) => candidate.textContent && candidate.value.includes(value));
+  const option = Array.from(select.options).find(
+    (candidate) => candidate.textContent && candidate.value.includes(value),
+  );
   if (!option) throw new Error(`Categoria ${value} não encontrada`);
   select.value = option.value;
   select.dispatchEvent(new Event('change'));

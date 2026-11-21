@@ -20,6 +20,7 @@ public class ChamadoService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChamadoService.class);
     private static final int MAX_PROTOCOL_ATTEMPTS = 3;
 
+    private final br.edu.impacta.resolveai.usuario.UsuarioService usuarios;
     private final ChamadoCreationTransaction creationTransaction;
     private final ChamadoRepository chamadoRepository;
     private final ProtocoloChamadoGenerator protocoloGenerator;
@@ -27,7 +28,8 @@ public class ChamadoService {
     public ChamadoService(
             ChamadoCreationTransaction creationTransaction,
             ChamadoRepository chamadoRepository,
-            ProtocoloChamadoGenerator protocoloGenerator) {
+            ProtocoloChamadoGenerator protocoloGenerator, br.edu.impacta.resolveai.usuario.UsuarioService usuarios) {
+        this.usuarios = usuarios;
         this.creationTransaction = creationTransaction;
         this.chamadoRepository = chamadoRepository;
         this.protocoloGenerator = protocoloGenerator;
@@ -42,7 +44,7 @@ public class ChamadoService {
         for (int attempt = 1; attempt <= MAX_PROTOCOL_ATTEMPTS; attempt++) {
             String protocolo = protocoloGenerator.gerar();
             try {
-                ChamadoResponse response = creationTransaction.criar(principal.id(), request, protocolo);
+                ChamadoResponse response = creationTransaction.criar(principal, request, protocolo);
                 LOGGER.info(
                         "AUDITORIA evento=CHAMADO_ABERTO chamadoId={} protocolo={} solicitanteId={} status={} atendenteId={}",
                         response.id(),
@@ -63,18 +65,20 @@ public class ChamadoService {
         throw new ConflitoException("Nao foi possivel gerar um protocolo unico; tente novamente");
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
     public PaginaChamadosResponse listar(UsuarioPrincipal principal, Pageable pageable, FiltrosChamados filtros) {
+        var usuario = usuarios.requireActive(principal);
         long inicio = OperacoesChamadosLog.inicio("CHAMADOS_CONSULTA", filtros, pageable.getSort(), OperacoesChamadosLog.escopo(principal));
-        var pagina = chamadoRepository.findAll(VisibilidadeChamados.doUsuario(principal).and(filtros.specification()), pageable);
+        var pagina = chamadoRepository.findAll(VisibilidadeChamados.doUsuario(usuario).and(filtros.specification()), pageable);
         var response = PaginaChamadosResponse.from(pagina);
         OperacoesChamadosLog.resultado(pagina, inicio);
         return response;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
     public PaginaChamadosResponse listarMeus(UsuarioPrincipal principal, Pageable pageable) {
-        return PaginaChamadosResponse.from(chamadoRepository.findAllBySolicitanteId(principal.id(), pageable));
+        var usuario = usuarios.requireActive(principal);
+        return PaginaChamadosResponse.from(chamadoRepository.findAllBySolicitanteId(usuario.id(), pageable));
     }
 
 }

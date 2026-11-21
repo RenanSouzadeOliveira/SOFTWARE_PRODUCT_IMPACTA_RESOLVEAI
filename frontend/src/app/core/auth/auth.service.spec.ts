@@ -12,6 +12,7 @@ describe('AuthService', () => {
     email: 'ana@example.com',
     perfil: 'SOLICITANTE',
     ativo: true,
+    versao: 0,
   };
   const api = {
     get: vi.fn(),

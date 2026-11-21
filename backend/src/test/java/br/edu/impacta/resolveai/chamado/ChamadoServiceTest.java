@@ -27,7 +27,7 @@ class ChamadoServiceTest {
                 null, null, null, null);
         ChamadoCreationTransaction transaction = new ChamadoCreationTransaction(null, null, null, null, null) {
             @Override
-            public ChamadoResponse criar(Long solicitanteId, AbrirChamadoRequest request, String protocolo) {
+            public ChamadoResponse criar(UsuarioPrincipal principal, AbrirChamadoRequest request, String protocolo) {
                 if (attempts.getAndIncrement() == 0) {
                     throw new DataIntegrityViolationException("uk_chamados_protocolo");
                 }
@@ -92,7 +92,7 @@ class ChamadoServiceTest {
                 return attempts.get() == 0 ? "RA-protocolo-colisao-000" : "RA-protocolo-unico-0000";
             }
         };
-        ChamadoService service = new ChamadoService(transaction, repository, generator);
+        ChamadoService service = new ChamadoService(transaction, repository, generator, null);
 
         ChamadoResponse response = service.abrir(
                 new UsuarioPrincipal(1L, "solicitante@example.com", Perfil.SOLICITANTE),
@@ -102,7 +102,7 @@ class ChamadoServiceTest {
         assertThat(response).isSameAs(expected);
         assertThat(attempts).hasValue(2);
         Transactional transactional = ChamadoCreationTransaction.class
-                .getMethod("criar", Long.class, AbrirChamadoRequest.class, String.class)
+                .getMethod("criar", UsuarioPrincipal.class, AbrirChamadoRequest.class, String.class)
                 .getAnnotation(Transactional.class);
         assertThat(transactional.propagation()).isEqualTo(Propagation.REQUIRES_NEW);
     }

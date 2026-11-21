@@ -13,10 +13,9 @@ import br.edu.impacta.resolveai.chamado.dto.ChamadoDetalheResponse;
 import br.edu.impacta.resolveai.chamado.dto.HistoricoStatusResponse;
 import br.edu.impacta.resolveai.security.UsuarioPrincipal;
 import br.edu.impacta.resolveai.shared.error.DadosInvalidosException;
-import br.edu.impacta.resolveai.shared.error.NaoAutorizadoException;
 import br.edu.impacta.resolveai.shared.error.RecursoNaoEncontradoException;
 import br.edu.impacta.resolveai.usuario.Usuario;
-import br.edu.impacta.resolveai.usuario.UsuarioRepository;
+import br.edu.impacta.resolveai.usuario.UsuarioService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -28,13 +27,13 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 public class CicloChamadoService {
     private static final Logger LOGGER = LoggerFactory.getLogger(CicloChamadoService.class);
     private final ChamadoRepository chamados;
-    private final UsuarioRepository usuarios;
+    private final UsuarioService usuarios;
     private final HistoricoStatusRepository historicoStatus;
     private final HistoricoAtribuicaoRepository historicoAlteracoes;
     private final Clock clock;
     private final ConsultaHistorico consultaHistorico;
 
-    public CicloChamadoService(ChamadoRepository chamados, UsuarioRepository usuarios,
+    public CicloChamadoService(ChamadoRepository chamados, UsuarioService usuarios,
             HistoricoStatusRepository historicoStatus, HistoricoAtribuicaoRepository historicoAlteracoes, Clock clock, ConsultaHistorico consultaHistorico) {
         this.chamados = chamados;
         this.usuarios = usuarios;
@@ -44,9 +43,9 @@ public class CicloChamadoService {
         this.consultaHistorico = consultaHistorico;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public ChamadoDetalheResponse detalhar(Long id, UsuarioPrincipal principal) {
-        Usuario usuario = usuarioAtivo(principal);
+        Usuario usuario = usuarios.requireActive(principal);
         Chamado chamado = buscar(id);
         if (!MaquinaEstadosChamado.podeConsultar(chamado, usuario))
             throw new RecursoNaoEncontradoException("Chamado nao encontrado");
@@ -56,7 +55,7 @@ public class CicloChamadoService {
     @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public List<EventoHistoricoResponse> historico(
             Long id, UsuarioPrincipal principal) {
-        Usuario usuario = usuarioAtivo(principal);
+        Usuario usuario = usuarios.requireActive(principal);
         Chamado chamado = buscar(id);
         if (!MaquinaEstadosChamado.podeConsultar(chamado, usuario))
             throw new RecursoNaoEncontradoException("Chamado nao encontrado");
@@ -65,7 +64,7 @@ public class CicloChamadoService {
 
     @Transactional
     public ChamadoDetalheResponse alterarStatus(Long id, UsuarioPrincipal principal, AlterarStatusRequest request) {
-        Usuario usuario = usuarioAtivo(principal);
+        Usuario usuario = usuarios.requireActiveForWrite(principal);
         Chamado chamado = buscar(id);
         StatusChamado anterior = chamado.status();
         Instant agora = Instant.now(clock);
@@ -90,7 +89,7 @@ public class CicloChamadoService {
 
     @Transactional
     public ChamadoDetalheResponse alterarPrioridade(Long id, UsuarioPrincipal principal, AlterarPrioridadeRequest request) {
-        Usuario usuario = usuarioAtivo(principal);
+        Usuario usuario = usuarios.requireActiveForWrite(principal);
         Chamado chamado = buscar(id);
         PrioridadeChamado anterior = chamado.prioridade();
         Instant agora = Instant.now(clock);
@@ -116,12 +115,6 @@ public class CicloChamadoService {
     private Chamado buscar(Long id) {
         if (id == null || id < 1) throw new DadosInvalidosException("Identificador do chamado deve ser positivo");
         return chamados.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException("Chamado nao encontrado"));
-    }
-
-    private Usuario usuarioAtivo(UsuarioPrincipal principal) {
-        if (principal == null) throw new NaoAutorizadoException("Autenticacao necessaria");
-        return usuarios.findById(principal.id()).filter(Usuario::ativo)
-                .orElseThrow(() -> new NaoAutorizadoException("Conta inexistente ou inativa"));
     }
 
     private void auditar(Runnable registro) {

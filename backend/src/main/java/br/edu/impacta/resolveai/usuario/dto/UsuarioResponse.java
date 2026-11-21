@@ -12,7 +12,8 @@ public record UsuarioResponse(
         Perfil perfil,
         boolean ativo,
         Instant criadoEm,
-        Instant atualizadoEm) {
+        Instant atualizadoEm,
+        long versao) {
 
     public static UsuarioResponse from(Usuario usuario) {
         return new UsuarioResponse(
@@ -22,6 +23,7 @@ public record UsuarioResponse(
                 usuario.perfil(),
                 usuario.ativo(),
                 usuario.criadoEm(),
-                usuario.atualizadoEm());
+                usuario.atualizadoEm(),
+                usuario.versao());
     }
 }

@@ -1,7 +1,7 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, throwError } from 'rxjs';
+import { catchError, switchMap, take, throwError } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
@@ -18,10 +18,32 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
 
   return next(authenticatedRequest).pipe(
     catchError((error: unknown) => {
-      if (error instanceof HttpErrorResponse && error.status === 401 && isApiRequest && !isAuthRequest) {
+      if (
+        error instanceof HttpErrorResponse &&
+        error.status === 401 &&
+        isApiRequest &&
+        !isAuthRequest
+      ) {
         const returnUrl = safeCurrentUrl(router.url);
         auth.logout();
         void router.navigate(['/login'], { queryParams: { returnUrl } });
+      }
+      if (
+        error instanceof HttpErrorResponse &&
+        error.status === 403 &&
+        isApiRequest &&
+        request.url.split(/[?#]/, 1)[0].includes('/admin/')
+      ) {
+        return auth.loadCurrentUser().pipe(
+          take(1),
+          catchError(() => throwError(() => error)),
+          switchMap((usuario) => {
+            if (usuario.perfil !== 'ADMIN' && router.url.startsWith('/admin/')) {
+              void router.navigate(['/dashboard']);
+            }
+            return throwError(() => error);
+          }),
+        );
       }
       return throwError(() => error);
     }),

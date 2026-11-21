@@ -1,11 +1,11 @@
 package br.edu.impacta.resolveai.chamado;
 
 import org.springframework.data.jpa.domain.Specification;
-import br.edu.impacta.resolveai.security.UsuarioPrincipal;
+import br.edu.impacta.resolveai.usuario.Usuario;
 
 public final class VisibilidadeChamados {
     private VisibilidadeChamados() { }
-    public static Specification<Chamado> doUsuario(UsuarioPrincipal principal) {
+    public static Specification<Chamado> doUsuario(Usuario principal) {
         return switch (principal.perfil()) {
             case SOLICITANTE -> (root, query, cb) -> cb.equal(root.get("solicitante").get("id"), principal.id());
             case ATENDENTE -> carteira(principal.id());

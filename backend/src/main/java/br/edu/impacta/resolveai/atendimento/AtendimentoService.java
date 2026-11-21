@@ -17,15 +17,15 @@ import br.edu.impacta.resolveai.chamado.HistoricoStatus;
 import br.edu.impacta.resolveai.chamado.HistoricoStatusRepository;
 import br.edu.impacta.resolveai.security.UsuarioPrincipal;
 import br.edu.impacta.resolveai.shared.error.DadosInvalidosException;
-import br.edu.impacta.resolveai.shared.error.NaoAutorizadoException;
 import br.edu.impacta.resolveai.shared.error.RecursoNaoEncontradoException;
 import br.edu.impacta.resolveai.usuario.Perfil;
 import br.edu.impacta.resolveai.usuario.Usuario;
-import br.edu.impacta.resolveai.usuario.UsuarioRepository;
+import br.edu.impacta.resolveai.usuario.UsuarioService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.slf4j.Logger;
@@ -37,13 +37,13 @@ public class AtendimentoService {
     private static final Logger LOGGER = LoggerFactory.getLogger(AtendimentoService.class);
 
     private final ChamadoRepository chamados;
-    private final UsuarioRepository usuarios;
+    private final UsuarioService usuarios;
     private final HistoricoAtribuicaoRepository historico;
     private final Clock clock;
     private final CategoriaRepository categorias;
     private final HistoricoStatusRepository historicoStatus;
 
-    public AtendimentoService(ChamadoRepository chamados, UsuarioRepository usuarios,
+    public AtendimentoService(ChamadoRepository chamados, UsuarioService usuarios,
             HistoricoAtribuicaoRepository historico, Clock clock, CategoriaRepository categorias,
             HistoricoStatusRepository historicoStatus) {
         this.chamados = chamados;
@@ -54,14 +54,14 @@ public class AtendimentoService {
         this.historicoStatus = historicoStatus;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public List<CategoriaAtendimentoResponse> categorias(UsuarioPrincipal principal) {
         usuarioAutorizado(principal);
         return categorias.findAllByOrderByNomeAscIdAsc().stream()
                 .map(CategoriaAtendimentoResponse::from).toList();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public PaginaAtendimentoResponse fila(UsuarioPrincipal principal, Pageable pageable,
             PrioridadeChamado prioridade, Long categoriaId) {
         usuarioAutorizado(principal);
@@ -69,7 +69,7 @@ public class AtendimentoService {
                 pagina(pageable, categoriaId)));
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public PaginaAtendimentoResponse carteira(UsuarioPrincipal principal, Pageable pageable,
             PrioridadeChamado prioridade, Long categoriaId, StatusChamado status) {
         Usuario usuario = usuarioAutorizado(principal);
@@ -77,7 +77,7 @@ public class AtendimentoService {
                 categoriaId, pagina(pageable, categoriaId)));
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public PaginaAtendimentoResponse listarFiltrados(UsuarioPrincipal principal, Pageable pageable,
             br.edu.impacta.resolveai.chamado.FiltrosChamados filtros, boolean carteira) {
         Usuario usuario = usuarioAutorizado(principal);
@@ -116,7 +116,7 @@ public class AtendimentoService {
         return ChamadoAtendimentoResponse.from(chamado);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public PaginaAtendimentoResponse todos(UsuarioPrincipal principal, Pageable pageable,
             br.edu.impacta.resolveai.chamado.FiltrosChamados filtros) {
         Usuario usuario = usuarioAutorizado(principal);
@@ -134,12 +134,7 @@ public class AtendimentoService {
     }
 
     private Usuario usuarioAutorizado(UsuarioPrincipal principal, boolean bloquear) {
-        if (principal == null) {
-            throw new NaoAutorizadoException("Autenticacao necessaria");
-        }
-        Usuario usuario = (bloquear ? usuarios.findByIdParaLeitura(principal.id())
-                : usuarios.findById(principal.id())).filter(Usuario::ativo)
-                .orElseThrow(() -> new NaoAutorizadoException("Conta inexistente ou inativa"));
+        Usuario usuario = bloquear ? usuarios.requireActiveForWrite(principal) : usuarios.requireActive(principal);
         if (usuario.perfil() != Perfil.ATENDENTE && usuario.perfil() != Perfil.ADMIN) {
             throw new AccessDeniedException("Perfil autenticado sem permissao");
         }

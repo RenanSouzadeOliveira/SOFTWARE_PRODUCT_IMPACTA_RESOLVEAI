@@ -9,10 +9,9 @@ import br.edu.impacta.resolveai.categoria.dto.CategoriaResponse;
 import br.edu.impacta.resolveai.security.UsuarioPrincipal;
 import br.edu.impacta.resolveai.shared.error.ConflitoException;
 import br.edu.impacta.resolveai.shared.error.RecursoNaoEncontradoException;
+import br.edu.impacta.resolveai.shared.logging.AuditoriaAdministrativa;
 import br.edu.impacta.resolveai.usuario.UsuarioService;
 import org.hibernate.exception.ConstraintViolationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,15 +19,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class CategoriaService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CategoriaService.class);
     private final CategoriaRepository categoriaRepository;
     private final UsuarioService usuarioService;
     private final Clock clock;
+    private final AuditoriaAdministrativa auditoria;
 
-    public CategoriaService(CategoriaRepository categoriaRepository, UsuarioService usuarioService, Clock clock) {
+    public CategoriaService(CategoriaRepository categoriaRepository, UsuarioService usuarioService, Clock clock,
+            AuditoriaAdministrativa auditoria) {
         this.categoriaRepository = categoriaRepository;
         this.usuarioService = usuarioService;
         this.clock = clock;
+        this.auditoria = auditoria;
     }
 
     @Transactional(readOnly = true)
@@ -50,7 +51,7 @@ public class CategoriaService {
     public CategoriaAdminResponse criar(UsuarioPrincipal principal, CategoriaRequest request) {
         usuarioService.requireAdmin(principal);
         var categoria = salvarComNomeUnico(Categoria.nova(request.nome(), request.descricao(), clock.instant()));
-        LOGGER.info("AUDITORIA evento=CATEGORIA_CRIADA categoriaId={} administradorId={}", categoria.id(), principal.id());
+        auditoria.categoria("CATEGORIA_CRIADA", principal.id(), categoria.id(), categoria.ativa());
         return CategoriaAdminResponse.from(categoria);
     }
 
@@ -60,7 +61,7 @@ public class CategoriaService {
         var categoria = buscarParaAtualizacao(id);
         categoria.alterarDados(request.nome(), request.descricao(), clock.instant());
         salvarComNomeUnico(categoria);
-        LOGGER.info("AUDITORIA evento=CATEGORIA_EDITADA categoriaId={} administradorId={}", id, principal.id());
+        auditoria.categoria("CATEGORIA_EDITADA", principal.id(), id, categoria.ativa());
         return CategoriaAdminResponse.from(categoria);
     }
 
@@ -69,8 +70,7 @@ public class CategoriaService {
         usuarioService.requireAdmin(principal);
         var categoria = buscarParaAtualizacao(id);
         categoria.alterarSituacao(ativa, clock.instant());
-        LOGGER.info("AUDITORIA evento=SITUACAO_CATEGORIA_ALTERADA categoriaId={} administradorId={} ativa={}",
-                id, principal.id(), ativa);
+        auditoria.categoria("CATEGORIA_SITUACAO_ALTERADA", principal.id(), id, ativa);
         return CategoriaAdminResponse.from(categoria);
     }
 

@@ -8,7 +8,7 @@ export interface Usuario {
   readonly ativo: boolean;
   readonly criadoEm?: string;
   readonly atualizadoEm?: string;
-  readonly versao?: number;
+  readonly versao: number;
 }
 
 export interface CadastroInput {

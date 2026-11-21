@@ -64,7 +64,7 @@ public class AdministracaoUsuarioController {
     }
 
     @PatchMapping("/{id}")
-    @Operation(summary = "Atualizar usuário", description = "Exige ADMIN; altera nome, e-mail e perfil. Impede remover o próprio perfil ADMIN.")
+    @Operation(summary = "Atualizar usuário", description = "Exige ADMIN; altera nome e e-mail. Para alterar o perfil, informe perfil e versaoEsperada. Impede remover o próprio perfil ADMIN.")
     public UsuarioResponse atualizar(@PathVariable Long id, @AuthenticationPrincipal UsuarioPrincipal principal,
             @Valid @RequestBody AtualizarUsuarioRequest request) {
         return service.atualizar(id, principal, request);

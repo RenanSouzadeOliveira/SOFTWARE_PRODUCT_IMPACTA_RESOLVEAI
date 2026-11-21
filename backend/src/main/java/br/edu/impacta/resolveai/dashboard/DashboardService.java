@@ -19,17 +19,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class DashboardService {
+    private final br.edu.impacta.resolveai.usuario.UsuarioService usuarios;
     private final DashboardRepository dashboardRepository;
     private final CategoriaService categoriaService;
 
-    DashboardService(DashboardRepository dashboardRepository, CategoriaService categoriaService) {
+    DashboardService(DashboardRepository dashboardRepository, CategoriaService categoriaService, br.edu.impacta.resolveai.usuario.UsuarioService usuarios) {
+        this.usuarios = usuarios;
         this.dashboardRepository = dashboardRepository;
         this.categoriaService = categoriaService;
     }
 
     @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public DashboardResumoResponse resumir(UsuarioPrincipal principal) {
-        var visibilidade = VisibilidadeChamados.doUsuario(principal);
+        var usuario = usuarios.requireActive(principal);
+        var visibilidade = VisibilidadeChamados.doUsuario(usuario);
         var status = dashboardRepository.contarPorEnum(visibilidade, "status", StatusChamado.class);
         var prioridades = dashboardRepository.contarPorEnum(visibilidade, "prioridade", PrioridadeChamado.class);
 

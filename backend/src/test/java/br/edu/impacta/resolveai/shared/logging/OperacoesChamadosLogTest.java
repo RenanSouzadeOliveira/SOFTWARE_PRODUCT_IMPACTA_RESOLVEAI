@@ -83,7 +83,7 @@ class OperacoesChamadosLogTest {
         var calls = new AtomicInteger();
         var repo = (ChamadoRepository) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{ChamadoRepository.class},
                 (proxy,method,args) -> { calls.incrementAndGet(); throw new IllegalStateException("senha=segredo token=privado SQL"); });
-        var service = new ExportacaoChamadosService(repo, null, 10000);
+        var service = new ExportacaoChamadosService(repo, null, 10000, usuariosFicticios());
         assertThatThrownBy(() -> service.exportar(new UsuarioPrincipal(1L, "pessoa@example.invalid", Perfil.SOLICITANTE),
                 new FiltrosChamados(null,null,null,null,null,null,null), Sort.by("id"))).isInstanceOf(IllegalStateException.class);
         assertThat(calls).hasValue(1);
@@ -101,10 +101,19 @@ class OperacoesChamadosLogTest {
         };
         var repo = (ChamadoRepository) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{ChamadoRepository.class},
                 (proxy,method,args) -> new PageImpl<>(List.of(valid, broken), (org.springframework.data.domain.Pageable) args[1], 2));
-        var service = new ExportacaoChamadosService(repo, null, 10000);
+        var service = new ExportacaoChamadosService(repo, null, 10000, usuariosFicticios());
         assertThatThrownBy(() -> service.exportar(new UsuarioPrincipal(1L, user.email(), Perfil.SOLICITANTE),
                 new FiltrosChamados(null,null,null,null,null,null,null), Sort.by("id"))).isInstanceOf(IllegalStateException.class);
         assertThat(logs()).contains("FALHOU", "totalElementos=2", "registrosGerados=1").doesNotContain("CONCLUIDA", "payload-privado");
+    }
+
+    private br.edu.impacta.resolveai.usuario.UsuarioService usuariosFicticios() {
+        return new br.edu.impacta.resolveai.usuario.UsuarioService(null, java.time.Clock.systemUTC()) {
+            @Override public br.edu.impacta.resolveai.usuario.Usuario requireActive(UsuarioPrincipal principal) {
+                return br.edu.impacta.resolveai.usuario.Usuario.novo("Pessoa fictícia", principal.email(), "hash",
+                        principal.perfil(), java.time.Instant.now());
+            }
+        };
     }
 
 }

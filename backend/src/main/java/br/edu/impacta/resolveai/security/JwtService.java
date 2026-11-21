@@ -53,6 +53,7 @@ public class JwtService {
                 .subject(usuario.id().toString())
                 .issuer(issuer)
                 .claim("perfil", usuario.perfil().name())
+                .claim("versaoSeguranca", usuario.versaoSeguranca())
                 .issuedAt(Date.from(issuedAt))
                 .expiration(Date.from(issuedAt.plus(expiration)))
                 .signWith(key, Jwts.SIG.HS256)
@@ -72,8 +73,11 @@ public class JwtService {
         if (perfilClaim == null || perfilClaim.isBlank()) {
             throw new IllegalArgumentException("Token sem perfil");
         }
-        Perfil perfil = Perfil.valueOf(perfilClaim);
-        return new JwtIdentity(usuarioId, perfil);
+        Long versao = claims.get("versaoSeguranca", Long.class);
+        if (versao == null || versao < 0 || claims.getExpiration() == null) {
+            throw new IllegalArgumentException("Token sem estado de autenticação válido");
+        }
+        return new JwtIdentity(usuarioId, Perfil.valueOf(perfilClaim), versao);
     }
 
     public long expirationSeconds() {

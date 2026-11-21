@@ -28,12 +28,13 @@ public class UsuarioService {
 
     @Transactional(readOnly = true)
     public UsuarioResponse me(UsuarioPrincipal principal) {
-        return UsuarioResponse.from(requireActive(principal.id()));
+        return UsuarioResponse.from(requireActive(principal));
     }
 
     @Transactional
     public UsuarioResponse updateName(UsuarioPrincipal principal, AtualizarNomeRequest request) {
-        Usuario usuario = requireActive(principal.id());
+        Usuario usuario = validarSessao(
+                usuarioRepository.findByIdParaAtualizacao(idAutenticado(principal)).orElse(null), principal);
         usuario.alterarNome(request.nome(), clock.instant());
         Usuario saved = usuarioRepository.save(usuario);
         LOGGER.info(
@@ -43,27 +44,38 @@ public class UsuarioService {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
+    public Usuario requireActive(UsuarioPrincipal principal) {
+        return validarSessao(usuarioRepository.findById(idAutenticado(principal)).orElse(null), principal);
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Usuario requireActiveForWrite(UsuarioPrincipal principal) {
+        return validarSessao(usuarioRepository.findByIdParaLeitura(idAutenticado(principal)).orElse(null), principal);
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
     public void requireAdmin(UsuarioPrincipal principal) {
-        if (principal == null) {
-            throw new NaoAutorizadoException("Autenticação necessária");
+        validarAdmin(requireActiveForWrite(principal));
+    }
+
+    static Usuario validarSessao(Usuario usuario, UsuarioPrincipal principal) {
+        if (usuario == null || !usuario.ativo() || usuario.versaoSeguranca() != principal.versaoSeguranca()
+                || usuario.perfil() != principal.perfil()) {
+            throw new NaoAutorizadoException("Sessão inválida. Entre novamente.");
         }
-        Usuario usuario = usuarioRepository.findByIdParaLeitura(principal.id())
-                .orElse(null);
-        validarAdmin(usuario);
+        return usuario;
     }
 
     static void validarAdmin(Usuario usuario) {
-        if (usuario == null || !usuario.ativo()) {
-            throw new NaoAutorizadoException("Conta inexistente ou inativa");
-        }
         if (usuario.perfil() != Perfil.ADMIN) {
             throw new AccessDeniedException("Administração exige perfil ADMIN");
         }
     }
 
-    private Usuario requireActive(Long id) {
-        return usuarioRepository.findById(id)
-                .filter(Usuario::ativo)
-                .orElseThrow(() -> new NaoAutorizadoException("Autenticacao necessaria"));
+    private Long idAutenticado(UsuarioPrincipal principal) {
+        if (principal == null || principal.id() == null) {
+            throw new NaoAutorizadoException("Autenticação necessária");
+        }
+        return principal.id();
     }
 }

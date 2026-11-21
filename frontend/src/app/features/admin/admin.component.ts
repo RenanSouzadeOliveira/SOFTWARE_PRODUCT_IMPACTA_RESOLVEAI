@@ -163,7 +163,7 @@ export class AdminComponent {
         return;
       }
       this.confirmacao.set({ tipo: 'perfil', registro, perfil: this.form.controls.perfil.value });
-      this.focar('#admin-cancelar');
+      this.abrirConfirmacao();
       return;
     }
     this.salvar();
@@ -175,7 +175,7 @@ export class AdminComponent {
     this.error.set(null);
     this.success.set(null);
     this.confirmacao.set({ tipo: 'situacao', registro });
-    this.focar('#admin-cancelar');
+    this.abrirConfirmacao();
   }
 
   confirmar(): void {
@@ -197,15 +197,22 @@ export class AdminComponent {
     const value = this.form.getRawValue();
     let request: Observable<Registro>;
     if (this.usuarios) {
-      const input = {
-        nome: value.nome.trim(),
-        email: value.email.trim().toLowerCase(),
-        perfil: value.perfil,
-      };
-      if (registro && this.proprio(registro)) input.perfil = this.perfil(registro)!;
-      request = registro
-        ? this.service.editarUsuario(registro.id, input)
-        : this.service.criarUsuario({ ...input, senha: value.senha });
+      const input = { nome: value.nome.trim(), email: value.email.trim().toLowerCase() };
+      if (registro && 'perfil' in registro) {
+        const mudouPerfil = value.perfil !== registro.perfil;
+        if (mudouPerfil && typeof registro.versao !== 'number') {
+          this.descartarEdicaoDesatualizada();
+          return;
+        }
+        request = this.service.editarUsuario(
+          registro.id,
+          mudouPerfil
+            ? { ...input, perfil: value.perfil, versaoEsperada: registro.versao! }
+            : input,
+        );
+      } else {
+        request = this.service.criarUsuario({ ...input, perfil: value.perfil, senha: value.senha });
+      }
     } else {
       const input = { nome: value.nome.trim(), descricao: value.descricao.trim() || null };
       request = registro
@@ -241,11 +248,65 @@ export class AdminComponent {
           this.restaurarFoco();
         },
         error: (error) => {
+          if (
+            error instanceof HttpErrorResponse &&
+            error.status === 409 &&
+            Array.isArray(error.error?.violations) &&
+            error.error.violations.some(
+              (item: { field?: string }) => item?.field === 'versaoEsperada',
+            )
+          ) {
+            this.descartarEdicaoDesatualizada();
+            return;
+          }
           this.confirmacao.set(null);
           this.falha(error, 'Não foi possível salvar. Tente novamente.');
           this.focar('#admin-error');
         },
       });
+  }
+
+  private descartarEdicaoDesatualizada(): void {
+    this.editor.set(false);
+    this.confirmacao.set(null);
+    this.editando.set(null);
+    this.form.reset();
+    this.submitting.set(false);
+    this.carregar();
+    this.error.set(
+      'O registro foi alterado por outra pessoa. A lista foi atualizada. Abra a edição novamente.',
+    );
+    this.restaurarFoco();
+  }
+
+  // O <dialog> modal nativo deixa o Tab sair para a interface do navegador; mantém o ciclo nos botões.
+  prenderFoco(event: KeyboardEvent): void {
+    if (event.key !== 'Tab') return;
+    const dialogo = event.currentTarget as HTMLElement;
+    const botoes = Array.from(
+      dialogo.querySelectorAll<HTMLButtonElement>('button:not([disabled])'),
+    );
+    const atual = botoes.indexOf(document.activeElement as HTMLButtonElement);
+    event.preventDefault();
+    if (!botoes.length) return;
+    const passo = event.shiftKey ? -1 : 1;
+    botoes[(atual + passo + botoes.length) % botoes.length].focus();
+  }
+
+  cancelarDialogo(event: Event): void {
+    event.preventDefault();
+    this.cancelar();
+  }
+
+  private abrirConfirmacao(): void {
+    afterNextRender(
+      () => {
+        const dialog = this.element.nativeElement.querySelector<HTMLDialogElement>('dialog');
+        dialog?.showModal();
+        dialog?.querySelector<HTMLElement>('#admin-cancelar')?.focus();
+      },
+      { injector: this.injector },
+    );
   }
 
   private falha(error: unknown, fallback: string): void {

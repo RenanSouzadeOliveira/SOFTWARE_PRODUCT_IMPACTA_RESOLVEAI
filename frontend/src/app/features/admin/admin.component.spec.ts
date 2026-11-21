@@ -13,6 +13,7 @@ const usuario: Usuario = {
   email: 'pessoa@example.com',
   perfil: 'SOLICITANTE',
   ativo: true,
+  versao: 0,
 };
 const categoria: CategoriaAdmin = {
   id: 8,
@@ -36,6 +37,13 @@ describe('AdminComponent', () => {
   };
   beforeEach(async () => {
     vi.clearAllMocks();
+    // jsdom não implementa a top layer nativa; teclado/foco real é verificado no Chrome.
+    Object.defineProperty(HTMLDialogElement.prototype, 'showModal', {
+      configurable: true,
+      value: function (this: HTMLDialogElement) {
+        this.open = true;
+      },
+    });
     tipo = 'usuarios';
     list = new Subject();
     mutation = new Subject();
@@ -199,6 +207,7 @@ describe('AdminComponent', () => {
       nome: usuario.nome,
       email: usuario.email,
       perfil: 'ATENDENTE',
+      versaoEsperada: 0,
     });
     mutation.next({ ...usuario, perfil: 'ATENDENTE' });
     fixture.detectChanges();
@@ -214,7 +223,6 @@ describe('AdminComponent', () => {
     expect(service.editarUsuario).toHaveBeenCalledWith(1, {
       nome: 'Nome atualizado',
       email: usuario.email,
-      perfil: 'ADMIN',
     });
   });
   it.each([true, false])(
@@ -306,6 +314,99 @@ describe('AdminComponent', () => {
     click(fixture, '[data-testid="admin-situacao"]');
     click(fixture, '#admin-confirmar');
     expect(service.situacaoCategoria).toHaveBeenLastCalledWith(8, true);
+  });
+  it('edita nome e e-mail sem reenviar perfil', () => {
+    const fixture = render();
+    list.next([usuario]);
+    fixture.detectChanges();
+    click(fixture, '[data-testid="admin-editar"]');
+    field(fixture, '#admin-nome', 'Novo nome');
+    submit(fixture);
+    expect(service.editarUsuario).toHaveBeenCalledExactlyOnceWith(2, {
+      nome: 'Novo nome',
+      email: usuario.email,
+    });
+  });
+  it('fecha edição obsoleta, recarrega lista e não repete mutação', () => {
+    const fixture = render();
+    list.next([usuario]);
+    fixture.detectChanges();
+    click(fixture, '[data-testid="admin-editar"]');
+    field(fixture, '#admin-perfil', 'ATENDENTE');
+    submit(fixture);
+    click(fixture, '#admin-confirmar');
+    service.listarUsuarios.mockReturnValue(of([{ ...usuario, versao: 1 }]));
+    mutation.error(
+      new HttpErrorResponse({
+        status: 409,
+        error: {
+          violations: [{ field: 'versaoEsperada', message: 'Registro alterado.' }],
+        },
+      }),
+    );
+    fixture.detectChanges();
+    expect(query(fixture, 'form')).toBeNull();
+    expect(query(fixture, 'dialog')).toBeNull();
+    expect(service.listarUsuarios).toHaveBeenCalledTimes(2);
+    expect(service.editarUsuario).toHaveBeenCalledTimes(1);
+    expect(fixture.nativeElement.textContent).toContain('Abra a edição novamente');
+  });
+  it('desinscreve GET pendente ao destruir', () => {
+    const fixture = render();
+    expect(list.observed).toBe(true);
+    fixture.destroy();
+    expect(list.observed).toBe(false);
+  });
+  it('desinscreve mutação pendente e ignora retorno após destruir', () => {
+    const fixture = render();
+    list.next([usuario]);
+    fixture.detectChanges();
+    click(fixture, '[data-testid="admin-situacao"]');
+    click(fixture, '#admin-confirmar');
+    expect(mutation.observed).toBe(true);
+    fixture.destroy();
+    expect(mutation.observed).toBe(false);
+    mutation.next({ ...usuario, ativo: false });
+  });
+  it('usa modal nativo e bloqueia Escape durante mutação', async () => {
+    const fixture = render();
+    list.next([usuario]);
+    fixture.detectChanges();
+    click(fixture, '[data-testid="admin-situacao"]');
+    await fixture.whenStable();
+    const dialog = query<HTMLDialogElement>(fixture, 'dialog');
+    expect(dialog.open).toBe(true);
+    click(fixture, '#admin-confirmar');
+    const event = new Event('cancel', { cancelable: true });
+    dialog.dispatchEvent(event);
+    fixture.detectChanges();
+    expect(event.defaultPrevented).toBe(true);
+    expect(query(fixture, 'dialog')).not.toBeNull();
+  });
+  it('mantém Tab e Shift+Tab dentro da confirmação e descreve alvo e consequência', async () => {
+    const fixture = render();
+    list.next([usuario]);
+    fixture.detectChanges();
+    click(fixture, '[data-testid="admin-situacao"]');
+    await fixture.whenStable();
+    const dialog = query<HTMLDialogElement>(fixture, 'dialog');
+    const descricao = query<HTMLElement>(fixture, `#${dialog.getAttribute('aria-describedby')}`);
+    expect(descricao.textContent).toContain(usuario.nome);
+    expect(descricao.textContent).toContain('perderá o acesso');
+    const cancelar = query<HTMLButtonElement>(fixture, '#admin-cancelar');
+    const confirmar = query<HTMLButtonElement>(fixture, '#admin-confirmar');
+    const tab = (shiftKey: boolean) => {
+      const event = new KeyboardEvent('keydown', { key: 'Tab', shiftKey, cancelable: true });
+      dialog.dispatchEvent(event);
+      return event;
+    };
+    cancelar.focus();
+    expect(tab(false).defaultPrevented).toBe(true);
+    expect(document.activeElement).toBe(confirmar);
+    tab(true);
+    expect(document.activeElement).toBe(cancelar);
+    tab(true);
+    expect(document.activeElement).toBe(confirmar);
   });
   it('recupera erro de situação e cancela requisição ao destruir componente', () => {
     const fixture = render();

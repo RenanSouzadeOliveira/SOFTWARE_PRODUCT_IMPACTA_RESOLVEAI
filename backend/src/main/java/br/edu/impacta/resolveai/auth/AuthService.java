@@ -10,6 +10,7 @@ import br.edu.impacta.resolveai.security.JwtService;
 import br.edu.impacta.resolveai.shared.error.ConflitoException;
 import br.edu.impacta.resolveai.shared.error.DadosInvalidosException;
 import br.edu.impacta.resolveai.shared.error.NaoAutorizadoException;
+import br.edu.impacta.resolveai.shared.logging.AuditoriaAdministrativa;
 import br.edu.impacta.resolveai.usuario.Perfil;
 import br.edu.impacta.resolveai.usuario.Usuario;
 import br.edu.impacta.resolveai.usuario.UsuarioRepository;
@@ -33,23 +34,28 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final Clock clock;
+    private final AuditoriaAdministrativa auditoria;
     private final String dummyPasswordHash;
 
     public AuthService(
             UsuarioRepository usuarioRepository,
             PasswordEncoder passwordEncoder,
             JwtService jwtService,
-            Clock clock) {
+            Clock clock,
+            AuditoriaAdministrativa auditoria) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.clock = clock;
+        this.auditoria = auditoria;
         this.dummyPasswordHash = passwordEncoder.encode(DUMMY_PASSWORD);
     }
 
     @Transactional
     public UsuarioResponse register(RegisterRequest request) {
-        return cadastrar(request.nome(), request.email(), request.senha(), Perfil.SOLICITANTE);
+        var criado = cadastrar(request.nome(), request.email(), request.senha(), Perfil.SOLICITANTE);
+        auditoria.usuario("CADASTRO_PUBLICO", criado.id(), criado);
+        return criado;
     }
 
     @Transactional
@@ -68,12 +74,7 @@ public class AuthService {
                 perfil,
                 clock.instant());
         try {
-            Usuario saved = usuarioRepository.saveAndFlush(usuario);
-            LOGGER.info(
-                    "AUDITORIA evento=USUARIO_CADASTRADO usuarioId={} perfil={}",
-                    saved.id(),
-                    saved.perfil());
-            return UsuarioResponse.from(saved);
+            return UsuarioResponse.from(usuarioRepository.saveAndFlush(usuario));
         } catch (DataIntegrityViolationException exception) {
             LOGGER.warn("AUDITORIA evento=CADASTRO_RECUSADO motivo=EMAIL_DUPLICADO");
             throw new ConflitoException("E-mail ja cadastrado");

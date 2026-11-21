@@ -12,14 +12,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class OpcoesFiltrosChamados {
     public record Opcao(Long id, String nome) { }
     public record Response(List<Opcao> categorias, List<Opcao> responsaveis) { }
+    private final br.edu.impacta.resolveai.usuario.UsuarioService usuarios;
     private final EntityManager em;
-    public OpcoesFiltrosChamados(EntityManager em) { this.em = em; }
+    public OpcoesFiltrosChamados(EntityManager em, br.edu.impacta.resolveai.usuario.UsuarioService usuarios) { this.em = em; this.usuarios = usuarios; }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
     public Response listar(UsuarioPrincipal principal) {
-        return new Response(opcoes(principal, "categoria"), opcoes(principal, "atendente"));
+        var usuario = usuarios.requireActive(principal);
+        return new Response(opcoes(usuario, "categoria"), opcoes(usuario, "atendente"));
     }
-    private List<Opcao> opcoes(UsuarioPrincipal principal, String atributo) {
+    private List<Opcao> opcoes(br.edu.impacta.resolveai.usuario.Usuario principal, String atributo) {
         var cb = em.getCriteriaBuilder();
         var query = cb.createQuery(Opcao.class);
         var root = query.from(Chamado.class);

@@ -12,7 +12,7 @@ describe('LoginComponent', () => {
     accessToken: 'token',
     tokenType: 'Bearer',
     expiresIn: 3600,
-    usuario: { id: 1, nome: 'Ana', email: 'ana@example.com', perfil: 'SOLICITANTE', ativo: true },
+    usuario: { id: 1, nome: 'Ana', email: 'ana@example.com', perfil: 'SOLICITANTE', ativo: true, versao: 0 },
   };
   const auth = { login: vi.fn() };
 

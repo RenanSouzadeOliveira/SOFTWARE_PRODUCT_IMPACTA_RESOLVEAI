@@ -50,8 +50,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             JwtIdentity identity = jwtService.parse(authorization.substring(BEARER_PREFIX.length()));
             Usuario usuario = usuarioRepository.findById(identity.usuarioId())
                     .filter(Usuario::ativo)
+                    .filter(u -> u.versaoSeguranca() == identity.versaoSeguranca() && u.perfil() == identity.perfil())
                     .orElseThrow(InvalidTokenException::new);
-            UsuarioPrincipal principal = new UsuarioPrincipal(usuario.id(), usuario.email(), usuario.perfil());
+            UsuarioPrincipal principal = new UsuarioPrincipal(
+                    usuario.id(), usuario.email(), usuario.perfil(), usuario.versaoSeguranca());
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                     principal, null, List.of(new SimpleGrantedAuthority("ROLE_" + usuario.perfil().name())));
             SecurityContextHolder.getContext().setAuthentication(authentication);

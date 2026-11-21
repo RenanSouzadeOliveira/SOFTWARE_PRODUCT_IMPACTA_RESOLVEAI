@@ -130,10 +130,19 @@ class AuthIntegrationTest {
                 "Token", "token@example.com", passwordEncoder.encode(PASSWORD),
                 Perfil.SOLICITANTE, Instant.now()));
         mockMvc.perform(get("/api/usuarios/me")
-                        .header(HttpHeaders.AUTHORIZATION, bearer(expiredToken(active))))
+                        .header(HttpHeaders.AUTHORIZATION, bearer(tokenAssinado(active, Instant.now().minusSeconds(60), true))))
                 .andExpect(status().isUnauthorized());
 
         MvcResult validLogin = login("token@example.com", PASSWORD).andExpect(status().isOk()).andReturn();
+        mockMvc.perform(get("/api/usuarios/me").header(HttpHeaders.AUTHORIZATION,
+                        bearer(tokenAssinado(active, Instant.now().plusSeconds(60), false))))
+                .andExpect(status().isUnauthorized());
+        String valido = token(validLogin);
+        int assinatura = valido.lastIndexOf('.') + 1;
+        String alterado = valido.substring(0, assinatura) + (valido.charAt(assinatura) == 'A' ? 'B' : 'A')
+                + valido.substring(assinatura + 1);
+        mockMvc.perform(get("/api/usuarios/me").header(HttpHeaders.AUTHORIZATION, bearer(alterado)))
+                .andExpect(status().isUnauthorized());
         active.desativar(Instant.now());
         usuarioRepository.save(active);
         mockMvc.perform(get("/api/usuarios/me")
@@ -226,16 +235,17 @@ class AuthIntegrationTest {
         return "Bearer " + token;
     }
 
-    private String expiredToken(Usuario usuario) {
+    private String tokenAssinado(Usuario usuario, Instant expiration, boolean incluirVersao) {
         SecretKey key = Keys.hmacShaKeyFor(TEST_SECRET.getBytes(StandardCharsets.UTF_8));
-        Instant expiration = Instant.now().minusSeconds(60);
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .subject(usuario.id().toString())
                 .issuer("resolveai-api")
                 .claim("perfil", usuario.perfil().name())
                 .issuedAt(Date.from(expiration.minusSeconds(60)))
-                .expiration(Date.from(expiration))
-                .signWith(key, Jwts.SIG.HS256)
-                .compact();
+                .expiration(Date.from(expiration));
+        if (incluirVersao) {
+            builder.claim("versaoSeguranca", usuario.versaoSeguranca());
+        }
+        return builder.signWith(key, Jwts.SIG.HS256).compact();
     }
 }

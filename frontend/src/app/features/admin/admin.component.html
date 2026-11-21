@@ -168,39 +168,43 @@
   }
 
   @if (confirmacao(); as confirmacao) {
-    <section
+    <dialog
       class="confirmation"
-      role="dialog"
+      aria-modal="true"
       aria-labelledby="admin-confirmacao-title"
-      (keydown.escape)="cancelar()"
+      aria-describedby="admin-confirmacao-descricao"
+      (cancel)="cancelarDialogo($event)"
+      (keydown)="prenderFoco($event)"
       data-testid="admin-confirmacao"
     >
       <h2 id="admin-confirmacao-title">
         Confirmar {{ confirmacao.tipo === 'perfil' ? 'mudança de perfil' : 'mudança de situação' }}
       </h2>
-      @if (confirmacao.tipo === 'perfil') {
-        <p>
-          Alterar o perfil de <strong>{{ confirmacao.registro.nome }}</strong> de
-          {{ confirmacao.registro.perfil }} para <strong>{{ confirmacao.perfil }}</strong
-          >? As permissões de acesso serão alteradas.
-        </p>
-      } @else {
-        <p>
-          {{ ativo(confirmacao.registro) ? 'Desativar' : 'Ativar' }}
-          <strong>{{ confirmacao.registro.nome }}</strong
-          >?
-        </p>
-        @if (ativo(confirmacao.registro)) {
+      <div id="admin-confirmacao-descricao">
+        @if (confirmacao.tipo === 'perfil') {
           <p>
-            {{
-              usuarios
-                ? 'O usuário perderá o acesso ao sistema.'
-                : 'A categoria deixará de ser oferecida em novos chamados.'
-            }}
-            O histórico será preservado.
+            Alterar o perfil de <strong>{{ confirmacao.registro.nome }}</strong> de
+            {{ confirmacao.registro.perfil }} para <strong>{{ confirmacao.perfil }}</strong
+            >? As permissões de acesso serão alteradas.
           </p>
+        } @else {
+          <p>
+            {{ ativo(confirmacao.registro) ? 'Desativar' : 'Ativar' }}
+            <strong>{{ confirmacao.registro.nome }}</strong
+            >?
+          </p>
+          @if (ativo(confirmacao.registro)) {
+            <p>
+              {{
+                usuarios
+                  ? 'O usuário perderá o acesso ao sistema.'
+                  : 'A categoria deixará de ser oferecida em novos chamados.'
+              }}
+              O histórico será preservado.
+            </p>
+          }
         }
-      }
+      </div>
       <div class="actions">
         <button
           id="admin-confirmar"
@@ -221,7 +225,7 @@
           Cancelar
         </button>
       </div>
-    </section>
+    </dialog>
   }
 
   @if (loading()) {

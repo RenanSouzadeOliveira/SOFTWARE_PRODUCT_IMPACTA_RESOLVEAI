@@ -8,6 +8,12 @@ export interface UsuarioInput {
   readonly email: string;
   readonly perfil: Perfil;
 }
+export type AtualizarUsuarioInput = Pick<UsuarioInput, 'nome' | 'email'> &
+  (
+    | { readonly perfil?: never; readonly versaoEsperada?: never }
+    | { readonly perfil: Perfil; readonly versaoEsperada: number }
+  );
+
 export interface CategoriaInput {
   readonly nome: string;
   readonly descricao: string | null;
@@ -27,7 +33,7 @@ export class AdminService {
   criarUsuario(input: UsuarioInput & { readonly senha: string }): Observable<Usuario> {
     return this.api.post('admin/usuarios', input);
   }
-  editarUsuario(id: number, input: UsuarioInput): Observable<Usuario> {
+  editarUsuario(id: number, input: AtualizarUsuarioInput): Observable<Usuario> {
     return this.api.patch(`admin/usuarios/${id}`, input);
   }
   situacaoUsuario(id: number, ativo: boolean): Observable<Usuario> {

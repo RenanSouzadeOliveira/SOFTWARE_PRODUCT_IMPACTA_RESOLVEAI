@@ -80,6 +80,14 @@ h2 {
 }
 .confirmation {
   border: 2px solid #0967d2;
+  width: min(36rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  overflow: auto;
+  overflow-wrap: anywhere;
+  margin: auto;
+}
+.confirmation::backdrop {
+  background: rgb(18 38 58 / 55%);
 }
 fieldset {
   border: 0;
