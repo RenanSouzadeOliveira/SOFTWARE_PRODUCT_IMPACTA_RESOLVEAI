@@ -99,7 +99,7 @@ O terminal da API registra uma linha HTTP para cada chamada em `/api` e eventos 
 Exemplos exibidos durante cadastro, login, atualização da conta e abertura de chamado:
 
 ```text
-AUDITORIA evento=USUARIO_CADASTRADO usuarioId=1 perfil=SOLICITANTE
+AUDITORIA evento=CADASTRO_PUBLICO resultado=CONFIRMADO atorId=1 alvoTipo=USUARIO alvoId=1 perfil=SOLICITANTE ativo=true data=...
 HTTP metodo=POST caminho=/api/auth/register status=201 duracaoMs=120
 AUDITORIA evento=LOGIN_REALIZADO usuarioId=1 perfil=SOLICITANTE
 AUDITORIA evento=CONTA_ATUALIZADA usuarioId=1 campos=nome
@@ -244,6 +244,13 @@ As entidades `Usuario`, `Categoria` e `Chamado` mapeiam explicitamente o schema 
 O perfil `ADMIN` acessa **Administração** na navegação. Em **Usuários**, pode criar contas com senha inicial, editar nome, e-mail e perfil, além de ativar ou desativar outras contas. Em **Categorias**, pode criar, editar, ativar e desativar registros. A API impede autodesativação e remoção do próprio perfil administrativo. Edições sem mudança de perfil preservam o perfil atual; a mudança de perfil exige a versão observada do registro e retorna `409` se outra pessoa alterou a conta. Mudanças de perfil ou situação encerram as sessões anteriores da conta.
 
 A API usa `GET` e `POST` em `/api/admin/usuarios` e `/api/admin/categorias`. Use `PATCH /{id}` para editar os dados e `PATCH /{id}/situacao` para alterar a situação. As listas administrativas incluem registros inativos. O catálogo `GET /api/categorias` continua exibindo apenas as categorias disponíveis para abrir chamados. A desativação preserva vínculos, histórico e a reserva do e-mail ou nome. O catálogo e os contratos administrativos estão disponíveis no Swagger.
+
+As alterações administrativas geram eventos de auditoria somente após a confirmação da transação, com o administrador em `atorId` e o registro afetado em `alvoTipo`/`alvoId`. O cadastro público usa `CADASTRO_PUBLICO`; a conta criada por um administrador usa `USUARIO_CRIADO_POR_ADMIN`. Os demais eventos são `USUARIO_ATUALIZADO`, `USUARIO_SITUACAO_ALTERADA`, `CATEGORIA_CRIADA`, `CATEGORIA_EDITADA` e `CATEGORIA_SITUACAO_ALTERADA`:
+
+```text
+AUDITORIA evento=USUARIO_CRIADO_POR_ADMIN resultado=CONFIRMADO atorId=1 alvoTipo=USUARIO alvoId=5 perfil=ATENDENTE ativo=true data=...
+AUDITORIA evento=CATEGORIA_SITUACAO_ALTERADA resultado=CONFIRMADO atorId=1 alvoTipo=CATEGORIA alvoId=3 perfil=null ativo=false data=...
+```
 
 ## Testes e builds
 
