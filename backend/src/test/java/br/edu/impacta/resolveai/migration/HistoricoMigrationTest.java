@@ -25,7 +25,7 @@ class HistoricoMigrationTest {
             s.execute("INSERT INTO historico_status (chamado_id,autor_id,status_anterior,status_novo,observacao,criado_em) VALUES (1,1,'ABERTO','EM_ATENDIMENTO','Observação legada',TIMESTAMP WITH TIME ZONE '2026-01-01 10:00:00+00')");
         }
         String general=rows(ds,"historico_chamados"), statuses=rows(ds,"historico_status");
-        var flyway=Flyway.configure().dataSource(ds).locations("classpath:db/migration").load();
+        var flyway=Flyway.configure().dataSource(ds).locations("classpath:db/migration").target("9").load();
         assertThat(flyway.migrate().migrationsExecuted).isEqualTo(1);flyway.validate();
         assertThat(rows(ds,"historico_chamados")).isEqualTo(general);
         assertThat(rows(ds,"historico_status")).isEqualTo(statuses);

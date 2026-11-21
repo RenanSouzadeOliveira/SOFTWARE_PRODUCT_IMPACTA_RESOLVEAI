@@ -239,6 +239,12 @@ O menu **Dashboard** abre `/dashboard` para usuários autenticados. O resumo usa
 
 As entidades `Usuario`, `Categoria` e `Chamado` mapeiam explicitamente o schema resultante das migrations. Os relacionamentos JPA são lazy, não possuem cascata de remoção e os repositórios expõem apenas operações de persistência e consulta. Usuários e categorias são desativados logicamente.
 
+## Administração de usuários e categorias
+
+O perfil `ADMIN` acessa **Administração** na navegação. Em **Usuários**, pode criar contas com senha inicial, editar nome, e-mail e perfil, além de ativar ou desativar outras contas. Em **Categorias**, pode criar, editar, ativar e desativar registros. A API impede autodesativação e remoção do próprio perfil administrativo.
+
+A API usa `GET` e `POST` em `/api/admin/usuarios` e `/api/admin/categorias`. Use `PATCH /{id}` para editar os dados e `PATCH /{id}/situacao` para alterar a situação. As listas administrativas incluem registros inativos. O catálogo `GET /api/categorias` continua exibindo apenas as categorias disponíveis para abrir chamados. A desativação preserva vínculos, histórico e a reserva do e-mail ou nome. O catálogo e os contratos administrativos estão disponíveis no Swagger.
+
 ## Testes e builds
 
 ### Snapshot do dashboard em PostgreSQL 17

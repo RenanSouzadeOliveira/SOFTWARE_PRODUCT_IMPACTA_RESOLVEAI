@@ -25,6 +25,7 @@
         }
         @if (user.perfil === 'ADMIN') {
           <a routerLink="/consulta-chamados" routerLinkActive="active">Consultar chamados</a>
+          <a routerLink="/admin/usuarios" routerLinkActive="active">Administração</a>
         }
         <a routerLink="/minha-conta" routerLinkActive="active">Minha conta</a>
         <button type="button" class="nav-button" (click)="logout()">Sair</button>

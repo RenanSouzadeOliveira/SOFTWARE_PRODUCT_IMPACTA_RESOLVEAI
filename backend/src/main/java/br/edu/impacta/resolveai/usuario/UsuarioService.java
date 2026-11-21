@@ -8,7 +8,9 @@ import br.edu.impacta.resolveai.usuario.dto.AtualizarNomeRequest;
 import br.edu.impacta.resolveai.usuario.dto.UsuarioResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -38,6 +40,25 @@ public class UsuarioService {
                 "AUDITORIA evento=CONTA_ATUALIZADA usuarioId={} campos=nome",
                 saved.id());
         return UsuarioResponse.from(saved);
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void requireAdmin(UsuarioPrincipal principal) {
+        if (principal == null) {
+            throw new NaoAutorizadoException("Autenticação necessária");
+        }
+        Usuario usuario = usuarioRepository.findByIdParaLeitura(principal.id())
+                .orElse(null);
+        validarAdmin(usuario);
+    }
+
+    static void validarAdmin(Usuario usuario) {
+        if (usuario == null || !usuario.ativo()) {
+            throw new NaoAutorizadoException("Conta inexistente ou inativa");
+        }
+        if (usuario.perfil() != Perfil.ADMIN) {
+            throw new AccessDeniedException("Administração exige perfil ADMIN");
+        }
     }
 
     private Usuario requireActive(Long id) {

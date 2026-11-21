@@ -47,16 +47,27 @@ public class Categoria {
 
     public static Categoria nova(String nome, String descricao, Instant agora) {
         Categoria categoria = new Categoria();
-        categoria.nome = requiredText(nome, "nome", 100);
-        categoria.descricao = optionalText(descricao, "descricao", 255);
+        categoria.alterarDados(nome, descricao, agora);
         categoria.ativa = true;
-        categoria.criadoEm = Objects.requireNonNull(agora, "agora nao pode ser nulo");
-        categoria.atualizadoEm = agora;
+        categoria.criadoEm = agora;
         return categoria;
     }
 
+    public void alterarDados(String nome, String descricao, Instant agora) {
+        this.nome = requiredText(nome, "nome", 100);
+        this.descricao = optionalText(descricao, "descricao", 255);
+        this.atualizadoEm = Objects.requireNonNull(agora, "agora nao pode ser nulo");
+    }
+
     public void desativar(Instant agora) {
-        this.ativa = false;
+        alterarSituacao(false, agora);
+    }
+
+    public void alterarSituacao(boolean ativa, Instant agora) {
+        if (this.ativa == ativa) {
+            return;
+        }
+        this.ativa = ativa;
         this.atualizadoEm = Objects.requireNonNull(agora, "agora nao pode ser nulo");
     }
 
@@ -92,7 +103,7 @@ public class Categoria {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(field + " nao pode estar em branco");
         }
-        String normalized = value.trim();
+        String normalized = value.strip();
         if (normalized.length() > maxLength) {
             throw new IllegalArgumentException(field + " excede " + maxLength + " caracteres");
         }
@@ -103,7 +114,7 @@ public class Categoria {
         if (value == null) {
             return null;
         }
-        String normalized = value.trim();
+        String normalized = value.strip();
         if (normalized.length() > maxLength) {
             throw new IllegalArgumentException(field + " excede " + maxLength + " caracteres");
         }

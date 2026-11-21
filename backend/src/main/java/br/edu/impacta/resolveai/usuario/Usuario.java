@@ -63,7 +63,7 @@ public class Usuario {
             Instant agora) {
         Usuario usuario = new Usuario();
         usuario.nome = requiredText(nome, "nome", 120);
-        usuario.email = requiredText(email, "email", 254).toLowerCase(Locale.ROOT);
+        usuario.email = normalizarEmail(requiredText(email, "email", 254));
         usuario.senhaHash = requiredText(senhaHash, "senhaHash", 100);
         usuario.perfil = Objects.requireNonNull(perfil, "perfil nao pode ser nulo");
         usuario.ativo = true;
@@ -73,13 +73,28 @@ public class Usuario {
     }
 
     public void desativar(Instant agora) {
-        this.ativo = false;
-        this.atualizadoEm = Objects.requireNonNull(agora, "agora nao pode ser nulo");
+        alterarSituacao(false, agora);
     }
 
     public void alterarNome(String nome, Instant agora) {
         this.nome = requiredText(nome, "nome", 120);
         this.atualizadoEm = Objects.requireNonNull(agora, "agora nao pode ser nulo");
+    }
+
+    public void atualizarCadastro(String nome, String email, Perfil perfil, Instant agora) {
+        this.nome = requiredText(nome, "nome", 120);
+        this.email = normalizarEmail(requiredText(email, "email", 254));
+        this.perfil = Objects.requireNonNull(perfil, "perfil não pode ser nulo");
+        this.atualizadoEm = Objects.requireNonNull(agora, "agora não pode ser nulo");
+    }
+
+    public void alterarSituacao(boolean ativo, Instant agora) {
+        this.ativo = ativo;
+        this.atualizadoEm = Objects.requireNonNull(agora, "agora não pode ser nulo");
+    }
+
+    public static String normalizarEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
     }
 
     public Long id() {

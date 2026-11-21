@@ -1,0 +1,125 @@
+:host {
+  display: block;
+  max-width: 65rem;
+  margin: auto;
+}
+h1 {
+  color: #12263a;
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+  margin: 0;
+}
+h2 {
+  font-size: 1.15rem;
+  margin: 0 0 0.5rem;
+  overflow-wrap: anywhere;
+}
+.eyebrow {
+  color: #0756b3;
+  font-weight: 700;
+}
+.admin-tabs,
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.admin-tabs {
+  margin: 1rem 0;
+}
+.admin-tabs a {
+  color: #0756b3;
+  padding: 0.6rem;
+}
+.admin-tabs a[aria-current] {
+  background: #e3efff;
+  font-weight: 700;
+  border-radius: 0.5rem;
+}
+.records {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+}
+.record {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.record,
+.editor,
+.confirmation {
+  background: white;
+  padding: 1.25rem;
+  border: 1px solid #dce3ea;
+  border-radius: 0.8rem;
+  margin-top: 1rem;
+  min-width: 0;
+}
+.record > div:first-child {
+  min-width: 0;
+}
+.record p {
+  margin: 0.35rem 0;
+  overflow-wrap: anywhere;
+}
+.status {
+  color: #126342;
+  font-weight: 700;
+}
+.status--inactive {
+  color: #52606d;
+}
+.self {
+  font-size: 0.9rem;
+  color: #52606d;
+}
+.editor {
+  max-width: 42rem;
+}
+.confirmation {
+  border: 2px solid #0967d2;
+}
+fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+select,
+textarea {
+  font: inherit;
+  border: 1px solid #9fb3c8;
+  border-radius: 0.5rem;
+  padding: 0.65rem 0.75rem;
+  width: 100%;
+  color: #12263a;
+  background: white;
+  min-height: 2.9rem;
+}
+.actions {
+  margin-top: 0.75rem;
+}
+.primary-button {
+  width: auto;
+  margin: 0;
+}
+button:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+@media (max-width: 40rem) {
+  .record {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .actions > button {
+    flex: 1 1 auto;
+  }
+  .record,
+  .editor,
+  .confirmation {
+    padding: 1rem;
+  }
+}

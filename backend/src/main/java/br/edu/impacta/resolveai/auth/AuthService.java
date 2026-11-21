@@ -2,7 +2,6 @@ package br.edu.impacta.resolveai.auth;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
-import java.util.Locale;
 
 import br.edu.impacta.resolveai.auth.dto.LoginRequest;
 import br.edu.impacta.resolveai.auth.dto.LoginResponse;
@@ -15,7 +14,6 @@ import br.edu.impacta.resolveai.usuario.Perfil;
 import br.edu.impacta.resolveai.usuario.Usuario;
 import br.edu.impacta.resolveai.usuario.UsuarioRepository;
 import br.edu.impacta.resolveai.usuario.dto.UsuarioResponse;
-import jakarta.persistence.EntityManager;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,41 +33,42 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final Clock clock;
-    private final EntityManager entityManager;
     private final String dummyPasswordHash;
 
     public AuthService(
             UsuarioRepository usuarioRepository,
             PasswordEncoder passwordEncoder,
             JwtService jwtService,
-            Clock clock,
-            EntityManager entityManager) {
+            Clock clock) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.clock = clock;
-        this.entityManager = entityManager;
         this.dummyPasswordHash = passwordEncoder.encode(DUMMY_PASSWORD);
     }
 
     @Transactional
     public UsuarioResponse register(RegisterRequest request) {
-        String email = normalizeEmail(request.email());
-        ensurePasswordFitsBcrypt(request.senha());
+        return cadastrar(request.nome(), request.email(), request.senha(), Perfil.SOLICITANTE);
+    }
+
+    @Transactional
+    public UsuarioResponse cadastrar(String nome, String emailInformado, String senha, Perfil perfil) {
+        String email = Usuario.normalizarEmail(emailInformado);
+        ensurePasswordFitsBcrypt(senha);
         if (usuarioRepository.findByEmail(email).isPresent()) {
             LOGGER.warn("AUDITORIA evento=CADASTRO_RECUSADO motivo=EMAIL_DUPLICADO");
             throw new ConflitoException("E-mail ja cadastrado");
         }
 
         Usuario usuario = Usuario.novo(
-                request.nome(),
+                nome,
                 email,
-                passwordEncoder.encode(request.senha()),
-                Perfil.SOLICITANTE,
+                passwordEncoder.encode(senha),
+                perfil,
                 clock.instant());
         try {
-            Usuario saved = usuarioRepository.save(usuario);
-            entityManager.flush();
+            Usuario saved = usuarioRepository.saveAndFlush(usuario);
             LOGGER.info(
                     "AUDITORIA evento=USUARIO_CADASTRADO usuarioId={} perfil={}",
                     saved.id(),
@@ -83,7 +82,7 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request) {
-        String email = normalizeEmail(request.email());
+        String email = Usuario.normalizarEmail(request.email());
         if (request.senha().getBytes(StandardCharsets.UTF_8).length > BCRYPT_MAX_PASSWORD_BYTES) {
             throw new NaoAutorizadoException(INVALID_CREDENTIALS);
         }
@@ -107,10 +106,6 @@ public class AuthService {
                 "Bearer",
                 jwtService.expirationSeconds(),
                 UsuarioResponse.from(usuario));
-    }
-
-    private String normalizeEmail(String email) {
-        return email.trim().toLowerCase(Locale.ROOT);
     }
 
     private void ensurePasswordFitsBcrypt(String password) {

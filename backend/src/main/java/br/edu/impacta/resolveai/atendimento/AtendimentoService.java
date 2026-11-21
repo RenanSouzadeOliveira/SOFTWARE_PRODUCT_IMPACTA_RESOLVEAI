@@ -93,7 +93,8 @@ public class AtendimentoService {
 
     @Transactional
     public ChamadoAtendimentoResponse assumir(Long id, UsuarioPrincipal principal) {
-        Usuario usuario = usuarioAutorizado(principal);
+        // Mantém a conta elegível até o commit, sem serializar chamados distintos.
+        Usuario usuario = usuarioAutorizado(principal, true);
         if (id == null || id < 1) {
             throw new DadosInvalidosException("Identificador do chamado deve ser positivo");
         }
@@ -129,10 +130,15 @@ public class AtendimentoService {
     }
 
     private Usuario usuarioAutorizado(UsuarioPrincipal principal) {
+        return usuarioAutorizado(principal, false);
+    }
+
+    private Usuario usuarioAutorizado(UsuarioPrincipal principal, boolean bloquear) {
         if (principal == null) {
             throw new NaoAutorizadoException("Autenticacao necessaria");
         }
-        Usuario usuario = usuarios.findById(principal.id()).filter(Usuario::ativo)
+        Usuario usuario = (bloquear ? usuarios.findByIdParaLeitura(principal.id())
+                : usuarios.findById(principal.id())).filter(Usuario::ativo)
                 .orElseThrow(() -> new NaoAutorizadoException("Conta inexistente ou inativa"));
         if (usuario.perfil() != Perfil.ATENDENTE && usuario.perfil() != Perfil.ADMIN) {
             throw new AccessDeniedException("Perfil autenticado sem permissao");

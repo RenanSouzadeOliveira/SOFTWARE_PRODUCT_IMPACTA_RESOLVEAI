@@ -3,6 +3,14 @@ import { authGuard } from './core/auth/auth.guard';
 import { roleGuard } from './core/auth/role.guard';
 
 describe('app routes for requester tickets', () => {
+  it('protege administração de usuários e categorias exclusivamente para ADMIN', async () => {
+    for (const administracao of ['usuarios', 'categorias']) {
+      const route = routes.find((candidate) => candidate.path === `admin/${administracao}`);
+      expect(route?.canActivate).toEqual([authGuard, roleGuard]);
+      expect(route?.data).toEqual({ role: 'ADMIN', administracao });
+      expect(await route?.loadComponent?.()).toBeTruthy();
+    }
+  });
   it('protege o dashboard para os três perfis de chamados', () => {
     const route = routes.find((candidate) => candidate.path === 'dashboard');
     expect(route?.canActivate).toEqual([authGuard, roleGuard]);

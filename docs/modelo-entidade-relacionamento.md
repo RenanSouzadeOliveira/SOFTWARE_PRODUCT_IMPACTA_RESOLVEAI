@@ -114,7 +114,9 @@ No bloco Mermaid, `TIMESTAMPTZ` é o nome curto usado para o tipo PostgreSQL `TI
 
 ### Unicidade e checks
 
-Há unicidade em `usuarios.email`, `categorias.nome` e `chamados.protocolo`. Antes de acrescentar `ck_usuarios_email_normalizado`, a V2 normaliza os e-mails já existentes com `LOWER(TRIM(email))`; combinada à unicidade da V1, a constraint elimina diferenças de caixa e espaços externos. Se dados antigos contiverem duas versões do mesmo e-mail que colidam após a normalização, a migration falha de forma atômica para que o conflito seja resolvido explicitamente. Os demais `CHECK`s da V1 são:
+Há unicidade em `usuarios.email`, `categorias.nome` e `chamados.protocolo`. Antes de acrescentar `ck_usuarios_email_normalizado`, a V2 normaliza os e-mails já existentes com `LOWER(TRIM(email))`; combinada à unicidade da V1, a constraint elimina diferenças de caixa e espaços externos. Se dados antigos contiverem duas versões do mesmo e-mail que colidam após a normalização, a migration falha de forma atômica para que o conflito seja resolvido explicitamente. A V10 acrescenta o índice único `uk_categorias_nome_normalizado` no PostgreSQL. A comparação ignora a caixa e os espaços em branco nas extremidades. Categorias inativas continuam reservando o nome. Se a V9 já contiver nomes equivalentes, a V10 falha antes de criar o índice e preserva os registros para correção explícita.
+
+Os demais `CHECK`s da V1 são:
 
 - `usuarios.perfil`: `SOLICITANTE`, `ATENDENTE` ou `ADMIN`; nome e e-mail não podem ser vazios após `TRIM`.
 - `categorias.nome` não pode ser vazio após `TRIM`.

@@ -1,0 +1,292 @@
+<section aria-labelledby="admin-title">
+  <p class="eyebrow">Administração</p>
+  <h1 id="admin-title">{{ usuarios ? 'Gerenciar usuários' : 'Gerenciar categorias' }}</h1>
+  <nav class="admin-tabs" aria-label="Administração">
+    <a routerLink="/admin/usuarios" [attr.aria-current]="usuarios ? 'page' : null">Usuários</a>
+    <a routerLink="/admin/categorias" [attr.aria-current]="!usuarios ? 'page' : null">Categorias</a>
+  </nav>
+  <p>Desative registros para preservar o histórico dos chamados.</p>
+  @if (success(); as message) {
+    <p role="status" class="alert alert--success" data-testid="admin-success">{{ message }}</p>
+  }
+  @if (error(); as message) {
+    <p
+      id="admin-error"
+      tabindex="-1"
+      role="alert"
+      class="alert alert--error"
+      data-testid="admin-error"
+    >
+      {{ message }}
+    </p>
+  }
+  <div class="actions">
+    <button
+      id="admin-novo"
+      class="secondary-button"
+      type="button"
+      [disabled]="loading() || submitting() || editor() || !!confirmacao()"
+      (click)="abrir()"
+    >
+      {{ usuarios ? 'Novo usuário' : 'Nova categoria' }}
+    </button>
+    <button
+      class="secondary-button"
+      type="button"
+      data-testid="admin-recarregar"
+      [disabled]="loading() || submitting() || editor() || !!confirmacao()"
+      (click)="carregar()"
+    >
+      Atualizar lista
+    </button>
+  </div>
+
+  @if (editor()) {
+    <section class="editor" aria-labelledby="admin-editor-title">
+      <h2 id="admin-editor-title">
+        {{ editando() ? 'Editar' : 'Criar' }} {{ usuarios ? 'usuário' : 'categoria' }}
+      </h2>
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate data-testid="admin-form">
+        <fieldset [disabled]="submitting() || !!confirmacao()">
+          <div class="field">
+            <label for="admin-nome">Nome</label>
+            <input
+              id="admin-nome"
+              formControlName="nome"
+              [attr.maxlength]="usuarios ? 120 : 100"
+              autocomplete="off"
+              [attr.aria-invalid]="form.controls.nome.touched && form.controls.nome.invalid"
+              aria-describedby="admin-nome-error"
+            />
+            <div id="admin-nome-error" class="field-error" aria-live="polite">
+              @if (form.controls.nome.touched && form.controls.nome.invalid) {
+                Informe um nome com até {{ usuarios ? 120 : 100 }} caracteres.
+              }
+            </div>
+          </div>
+          @if (usuarios) {
+            <div class="field">
+              <label for="admin-email">E-mail</label>
+              <input
+                id="admin-email"
+                type="email"
+                formControlName="email"
+                maxlength="254"
+                autocomplete="off"
+                inputmode="email"
+                [attr.aria-invalid]="form.controls.email.touched && form.controls.email.invalid"
+                aria-describedby="admin-email-error"
+              />
+              <div id="admin-email-error" class="field-error" aria-live="polite">
+                @if (form.controls.email.touched && form.controls.email.invalid) {
+                  Informe um e-mail válido com até 254 caracteres.
+                }
+              </div>
+            </div>
+            <div class="field">
+              <label for="admin-perfil">Perfil</label>
+              <select
+                id="admin-perfil"
+                formControlName="perfil"
+                aria-describedby="admin-perfil-hint"
+              >
+                @for (perfil of perfis; track perfil) {
+                  <option [value]="perfil">{{ perfil }}</option>
+                }
+              </select>
+              <p id="admin-perfil-hint" class="field-hint">
+                {{
+                  proprio(editando())
+                    ? 'Você não pode alterar seu próprio perfil.'
+                    : 'Alterações de perfil precisam de confirmação.'
+                }}
+              </p>
+            </div>
+            @if (!editando()) {
+              <div class="field">
+                <label for="admin-senha">Senha inicial</label>
+                <input
+                  id="admin-senha"
+                  type="password"
+                  formControlName="senha"
+                  autocomplete="new-password"
+                  maxlength="72"
+                  [attr.aria-invalid]="form.controls.senha.touched && form.controls.senha.invalid"
+                  aria-describedby="admin-senha-hint admin-senha-error"
+                />
+                <p id="admin-senha-hint" class="field-hint">
+                  Use pelo menos 8 caracteres e no máximo 72 bytes em UTF-8.
+                </p>
+                <div id="admin-senha-error" class="field-error" aria-live="polite">
+                  @if (form.controls.senha.touched && form.controls.senha.invalid) {
+                    Informe uma senha válida: 8 caracteres ou mais e até 72 bytes.
+                  }
+                </div>
+              </div>
+            }
+          } @else {
+            <div class="field">
+              <label for="admin-descricao">Descrição (opcional)</label>
+              <textarea
+                id="admin-descricao"
+                formControlName="descricao"
+                maxlength="255"
+                rows="3"
+                [attr.aria-invalid]="
+                  form.controls.descricao.touched && form.controls.descricao.invalid
+                "
+                aria-describedby="admin-descricao-error"
+              ></textarea>
+              <div id="admin-descricao-error" class="field-error" aria-live="polite">
+                @if (form.controls.descricao.touched && form.controls.descricao.invalid) {
+                  Use até 255 caracteres.
+                }
+              </div>
+            </div>
+          }
+          <div class="actions">
+            <button
+              class="primary-button"
+              type="submit"
+              data-testid="admin-salvar"
+              [disabled]="submitting() || !!confirmacao()"
+            >
+              {{ submitting() ? 'Salvando…' : 'Salvar' }}
+            </button>
+            <button
+              class="secondary-button"
+              type="button"
+              (click)="cancelar()"
+              [disabled]="submitting() || !!confirmacao()"
+            >
+              Cancelar edição
+            </button>
+          </div>
+        </fieldset>
+      </form>
+    </section>
+  }
+
+  @if (confirmacao(); as confirmacao) {
+    <section
+      class="confirmation"
+      role="dialog"
+      aria-labelledby="admin-confirmacao-title"
+      (keydown.escape)="cancelar()"
+      data-testid="admin-confirmacao"
+    >
+      <h2 id="admin-confirmacao-title">
+        Confirmar {{ confirmacao.tipo === 'perfil' ? 'mudança de perfil' : 'mudança de situação' }}
+      </h2>
+      @if (confirmacao.tipo === 'perfil') {
+        <p>
+          Alterar o perfil de <strong>{{ confirmacao.registro.nome }}</strong> de
+          {{ confirmacao.registro.perfil }} para <strong>{{ confirmacao.perfil }}</strong
+          >? As permissões de acesso serão alteradas.
+        </p>
+      } @else {
+        <p>
+          {{ ativo(confirmacao.registro) ? 'Desativar' : 'Ativar' }}
+          <strong>{{ confirmacao.registro.nome }}</strong
+          >?
+        </p>
+        @if (ativo(confirmacao.registro)) {
+          <p>
+            {{
+              usuarios
+                ? 'O usuário perderá o acesso ao sistema.'
+                : 'A categoria deixará de ser oferecida em novos chamados.'
+            }}
+            O histórico será preservado.
+          </p>
+        }
+      }
+      <div class="actions">
+        <button
+          id="admin-confirmar"
+          type="button"
+          class="primary-button"
+          [disabled]="submitting()"
+          (click)="confirmar()"
+        >
+          {{ submitting() ? 'Salvando…' : 'Confirmar' }}
+        </button>
+        <button
+          id="admin-cancelar"
+          type="button"
+          class="secondary-button"
+          [disabled]="submitting()"
+          (click)="cancelar()"
+        >
+          Cancelar
+        </button>
+      </div>
+    </section>
+  }
+
+  @if (loading()) {
+    <p class="loading-state" role="status">
+      Carregando {{ usuarios ? 'usuários' : 'categorias' }}…
+    </p>
+  } @else if (registros().length === 0 && !error()) {
+    <p role="status" data-testid="admin-vazio">
+      {{ usuarios ? 'Nenhum usuário cadastrado.' : 'Nenhuma categoria cadastrada.' }}
+    </p>
+  } @else {
+    <ul class="records" aria-label="Registros cadastrados" [attr.aria-busy]="submitting()">
+      @for (registro of registros(); track registro.id) {
+        <li class="record" [attr.data-testid]="'admin-registro-' + registro.id">
+          <div>
+            <h2>
+              {{ registro.nome }}
+              @if (proprio(registro)) {
+                <span class="self">(você)</span>
+              }
+            </h2>
+            @if (usuarios) {
+              <p class="email">{{ email(registro) }}</p>
+              <p>
+                Perfil: <strong>{{ perfil(registro) }}</strong>
+              </p>
+            } @else if (descricao(registro)) {
+              <p>{{ descricao(registro) }}</p>
+            }
+            <p class="status" [class.status--inactive]="!ativo(registro)">
+              {{
+                ativo(registro) ? (usuarios ? 'Ativo' : 'Ativa') : usuarios ? 'Inativo' : 'Inativa'
+              }}
+            </p>
+            @if (proprio(registro)) {
+              <p class="field-hint" [id]="'admin-self-' + registro.id">
+                Você não pode desativar sua própria conta nem alterar seu próprio perfil.
+              </p>
+            }
+          </div>
+          <div class="actions">
+            <button
+              type="button"
+              class="secondary-button"
+              data-testid="admin-editar"
+              [attr.aria-label]="'Editar ' + registro.nome"
+              [disabled]="editor() || submitting() || !!confirmacao()"
+              (click)="abrir(registro)"
+            >
+              Editar
+            </button>
+            <button
+              type="button"
+              class="secondary-button"
+              data-testid="admin-situacao"
+              [attr.aria-label]="(ativo(registro) ? 'Desativar ' : 'Ativar ') + registro.nome"
+              [attr.aria-describedby]="proprio(registro) ? 'admin-self-' + registro.id : null"
+              [disabled]="proprio(registro) || editor() || submitting() || !!confirmacao()"
+              (click)="pedirSituacao(registro)"
+            >
+              {{ ativo(registro) ? 'Desativar' : 'Ativar' }}
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</section>

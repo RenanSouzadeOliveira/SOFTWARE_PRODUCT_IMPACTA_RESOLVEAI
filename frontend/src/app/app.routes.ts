@@ -4,6 +4,13 @@ import { authGuard } from './core/auth/auth.guard';
 import { roleGuard } from './core/auth/role.guard';
 
 export const routes: Routes = [
+  ...(['usuarios', 'categorias'] as const).map((administracao) => ({
+    path: `admin/${administracao}`,
+    title: `Gerenciar ${administracao === 'usuarios' ? 'usuários' : 'categorias'} | ResolveAí`,
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'ADMIN', administracao },
+    loadComponent: () => import('./features/admin/admin.component').then((c) => c.AdminComponent),
+  })),
   {
     path: '',
     title: 'Início | ResolveAí',
