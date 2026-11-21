@@ -224,7 +224,7 @@ Parâmetros: `search`, `status`, `prioridade`, `categoriaId` (alias `categoria`)
 
 O menu **Dashboard** abre `/dashboard` para usuários autenticados. O resumo usa a mesma visibilidade de `GET /api/chamados`: chamados próprios para solicitantes, carteira para atendentes e visão global para administradores.
 
-`GET /api/dashboard/resumo` retorna `total`, `abertos`, `emAtendimento`, `concluidos` e as distribuições `porStatus`, `porPrioridade` e `porCategoria`. Concluídos somam `RESOLVIDO` e `FECHADO`. Status, prioridades e categorias ativas aparecem mesmo com quantidade zero. Categorias inativas aparecem se tiverem chamados visíveis. O [Swagger do ambiente local](http://localhost:8080/swagger-ui.html) detalha os campos da resposta.
+`GET /api/dashboard/resumo` retorna `total`, `abertos`, `emAtendimento`, `concluidos` e as distribuições `porStatus`, `porPrioridade` e `porCategoria`. Concluídos somam `RESOLVIDO` e `FECHADO`. Isso inclui chamados com resolução registrada que ainda aguardam fechamento. Status, prioridades e categorias ativas aparecem mesmo com quantidade zero. Categorias inativas aparecem se tiverem chamados visíveis. O [Swagger do ambiente local](http://localhost:8080/swagger-ui.html) detalha os campos da resposta.
 
 ## Modelo de dados
 
@@ -240,6 +240,14 @@ O menu **Dashboard** abre `/dashboard` para usuários autenticados. O resumo usa
 As entidades `Usuario`, `Categoria` e `Chamado` mapeiam explicitamente o schema resultante das migrations. Os relacionamentos JPA são lazy, não possuem cascata de remoção e os repositórios expõem apenas operações de persistência e consulta. Usuários e categorias são desativados logicamente.
 
 ## Testes e builds
+
+### Snapshot do dashboard em PostgreSQL 17
+
+Configure `DASHBOARD_POSTGRES17_URL` com a URL JDBC de um banco **descartável** PostgreSQL 17. O Flyway aplica as migrations ao banco de teste. O usuário padrão é `postgres` e a senha padrão é vazia. Use `DASHBOARD_POSTGRES17_USER` e `DASHBOARD_POSTGRES17_PASSWORD` se necessário. Sem a URL, a suíte padrão ignora somente esse teste.
+
+```bash
+mvn -f backend/pom.xml -Dtest=DashboardSnapshotPostgresTest test
+```
 
 ### Consolidação reproduzível da AC2
 

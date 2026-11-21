@@ -11,7 +11,7 @@
   @case ('erro') {
     <div class="surface feedback">
       <p role="alert">Não foi possível carregar o resumo dos chamados.</p>
-      <button type="button" class="primary-button" (click)="tentarNovamente()">
+      <button #retryButton type="button" class="primary-button" (click)="tentarNovamente()">
         Tentar novamente
       </button>
     </div>

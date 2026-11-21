@@ -1,10 +1,14 @@
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
   DestroyRef,
+  ElementRef,
   inject,
+  Injector,
   signal,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -33,6 +37,8 @@ type EstadoDashboard =
 export class DashboardComponent {
   private readonly service = inject(DashboardService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
+  private readonly retryButton = viewChild<ElementRef<HTMLButtonElement>>('retryButton');
   private readonly currentUser = inject(AuthService).currentUser;
 
   protected readonly estado = signal<EstadoDashboard>({ tipo: 'carregando' });
@@ -82,17 +88,30 @@ export class DashboardComponent {
   }
 
   protected tentarNovamente(): void {
-    if (this.estado().tipo === 'erro') this.carregar();
+    if (this.estado().tipo === 'erro') this.carregar(true);
   }
 
-  private carregar(): void {
+  private carregar(restaurarFoco = false): void {
     this.estado.set({ tipo: 'carregando' });
     this.service
       .resumir()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (resumo) => this.estado.set({ tipo: 'pronto', resumo }),
-        error: () => this.estado.set({ tipo: 'erro' }),
+        error: () => {
+          this.estado.set({ tipo: 'erro' });
+          if (restaurarFoco) {
+            afterNextRender(
+              () => {
+                const botao = this.retryButton()?.nativeElement;
+                if (botao && botao.ownerDocument.activeElement === botao.ownerDocument.body) {
+                  botao.focus();
+                }
+              },
+              { injector: this.injector },
+            );
+          }
+        },
       });
   }
 }

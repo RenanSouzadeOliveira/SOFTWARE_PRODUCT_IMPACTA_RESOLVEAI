@@ -106,21 +106,35 @@ describe('DashboardComponent', () => {
     expect(charts[2].querySelector<HTMLElement>('.barra')?.style.width).toBe('100%');
   });
 
-  it('avisa sobre falha e envia uma única requisição ao tentar novamente', () => {
-    http.expectOne(url).flush({}, { status: 503, statusText: 'Service Unavailable' });
-    fixture.detectChanges();
+  it('devolve o foco a cada falha de retry e carrega uma única vez por tentativa', async () => {
+    const indisponivel = { status: 503, statusText: 'Service Unavailable' };
+    const botao = () => element.querySelector<HTMLButtonElement>('button')!;
+    http.expectOne({ url, method: 'GET' }).flush({}, indisponivel);
+    await fixture.whenStable();
     expect(element.querySelector('[role="alert"]')?.textContent).toContain(
       'Não foi possível carregar',
     );
+    expect(document.activeElement).toBe(document.body);
 
-    const retry = element.querySelector<HTMLButtonElement>('button')!;
-    retry.click();
-    retry.click();
-    fixture.detectChanges();
-    expect(element.querySelector('[role="status"]')?.textContent).toContain('Carregando');
+    botao().focus();
+    for (let tentativa = 0; tentativa < 2; tentativa += 1) {
+      const retry = botao();
+      expect(document.activeElement).toBe(retry);
+      retry.click();
+      retry.click();
+      fixture.detectChanges();
+      expect(element.querySelector('[role="status"]')?.textContent).toContain('Carregando');
+      expect(element.querySelector('button')).toBeNull();
 
+      http.expectOne({ url, method: 'GET' }).flush({}, indisponivel);
+      await fixture.whenStable();
+      expect(element.querySelector('[role="alert"]')).not.toBeNull();
+      expect(document.activeElement).toBe(botao());
+    }
+
+    botao().click();
     http.expectOne({ url, method: 'GET' }).flush(resumo);
-    fixture.detectChanges();
+    await fixture.whenStable();
     expect(element.querySelector('[role="alert"]')).toBeNull();
     expect(element.querySelectorAll('.grafico')).toHaveLength(3);
   });
