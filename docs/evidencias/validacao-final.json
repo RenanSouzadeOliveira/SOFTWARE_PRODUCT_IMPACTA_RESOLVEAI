@@ -1,0 +1,516 @@
+{
+  "baseGit": "de677e9904fab087e2a0d7949c7e3716af7f8719",
+  "lockfileSha256": "e8ef003ced202ed1b6c4783b8e0e352f731e342e1f4b36da78eb280349fbaab8",
+  "surefireComPostgreSQL17": [
+    {
+      "classe": "AtendimentoIntegrationTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "AuthIntegrationTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "CategoriaAdminIntegrationTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "AutorizacaoTransacionalPostgresTest",
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "ChamadoIntegrationTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "ChamadoServiceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "CicloChamadoIntegrationTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "CsvChamadosTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "ExportacaoChamadosIntegrationTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "FiltrosChamadosIntegrationTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "HistoricoChamadoIntegrationTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "MaquinaEstadosChamadoTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "ProtocoloChamadoGeneratorTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "ComentarioIntegrationTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "ComentarioTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "OpenApiContractTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "PerfilAtivoEnvironmentPostProcessorTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "WebConfigTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "DashboardIntegrationTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "DashboardSnapshotPostgresTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "DomainFactoryTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "HealthControllerTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "CategoriaNormalizacaoMigrationTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "ComentarioMigrationTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "FiltrosMigrationTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "HistoricoMigrationTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "InitialMigrationTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "PaginacaoMigrationTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "PaginacaoIntegrationTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "JpaMappingIntegrationTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "RepositoryContractTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "JwtAuthenticationFilterTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "SegurancaConsolidadaIntegrationTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "GlobalExceptionHandlerTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "AuditoriaAdministrativaIntegrationTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "OperacoesChamadosLogTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "OperacoesChamadosLoggingIntegrationTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "classe": "AdministracaoUsuarioIntegrationTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "contratoOpenAPI": {
+    "versao": "3.1.0",
+    "operacoes": {
+      "/api/chamados": [
+        "GET",
+        "POST"
+      ],
+      "/api/chamados/{id}/comentarios": [
+        "GET",
+        "POST"
+      ],
+      "/api/auth/register": [
+        "POST"
+      ],
+      "/api/auth/login": [
+        "POST"
+      ],
+      "/api/admin/usuarios": [
+        "GET",
+        "POST"
+      ],
+      "/api/admin/categorias": [
+        "GET",
+        "POST"
+      ],
+      "/api/usuarios/me": [
+        "GET",
+        "PATCH"
+      ],
+      "/api/chamados/{id}/status": [
+        "PATCH"
+      ],
+      "/api/chamados/{id}/prioridade": [
+        "PATCH"
+      ],
+      "/api/chamados/{id}/assumir": [
+        "PATCH"
+      ],
+      "/api/admin/usuarios/{id}": [
+        "PATCH"
+      ],
+      "/api/admin/usuarios/{id}/situacao": [
+        "PATCH"
+      ],
+      "/api/admin/categorias/{id}": [
+        "PATCH"
+      ],
+      "/api/admin/categorias/{id}/situacao": [
+        "PATCH"
+      ],
+      "/api/health": [
+        "GET"
+      ],
+      "/api/dashboard/resumo": [
+        "GET"
+      ],
+      "/api/chamados/{id}": [
+        "GET"
+      ],
+      "/api/chamados/{id}/historico": [
+        "GET"
+      ],
+      "/api/chamados/me": [
+        "GET"
+      ],
+      "/api/chamados/filtros": [
+        "GET"
+      ],
+      "/api/chamados/exportacao": [
+        "GET"
+      ],
+      "/api/categorias": [
+        "GET"
+      ],
+      "/api/atendimento/todos": [
+        "GET"
+      ],
+      "/api/atendimento/me": [
+        "GET"
+      ],
+      "/api/atendimento/fila": [
+        "GET"
+      ],
+      "/api/atendimento/categorias": [
+        "GET"
+      ],
+      "/api/atendimento/acesso": [
+        "GET"
+      ]
+    }
+  },
+  "chromeFluxosCandidato": [
+    {
+      "verificacao": "Teclado: 1º Tab foca o atalho \"Pular para o conteúdo\" com contorno visível",
+      "passou": true
+    },
+    {
+      "verificacao": "Login: validação aparece junto aos campos sem requisição",
+      "passou": true
+    },
+    {
+      "verificacao": "Login: credenciais inválidas mostram mensagem compreensível e preservam o e-mail",
+      "passou": true
+    },
+    {
+      "verificacao": "Lista 360px: sem rolagem horizontal e status/prioridade com texto",
+      "passou": true
+    },
+    {
+      "verificacao": "Menu móvel: abre com Enter e fecha com Escape devolvendo o foco",
+      "passou": true
+    },
+    {
+      "verificacao": "Menu SOLICITANTE: um indicador ativo no desktop e no celular",
+      "passou": true
+    },
+    {
+      "verificacao": "Paginação: Meus chamados durante carga, erro e recuperação",
+      "passou": true
+    },
+    {
+      "verificacao": "Estado vazio por filtro: sem overflow em 320 × 640",
+      "passou": true
+    },
+    {
+      "verificacao": "Estado vazio por filtro: sem overflow em 360 × 800",
+      "passou": true
+    },
+    {
+      "verificacao": "Estado vazio por filtro: sem overflow em 390 × 844",
+      "passou": true
+    },
+    {
+      "verificacao": "Estado vazio por filtro: sem overflow em 768 × 1024",
+      "passou": true
+    },
+    {
+      "verificacao": "Estado vazio por filtro: sem overflow em 1440 × 900",
+      "passou": true
+    },
+    {
+      "verificacao": "Detalhe 360px: sem rolagem horizontal",
+      "passou": true
+    },
+    {
+      "verificacao": "Novo chamado: envia um POST, foca a confirmação e oferece próximo passo por Tab",
+      "passou": true
+    },
+    {
+      "verificacao": "Fila 360px: sem rolagem horizontal",
+      "passou": true
+    },
+    {
+      "verificacao": "Menu ATENDENTE: um indicador ativo no desktop e no celular",
+      "passou": true
+    },
+    {
+      "verificacao": "Paginação: fila durante carga, erro e recuperação",
+      "passou": true
+    },
+    {
+      "verificacao": "Assumir: Escape restaura foco ao acionador",
+      "passou": true
+    },
+    {
+      "verificacao": "Assumir: Cancelar restaura foco ao acionador",
+      "passou": true
+    },
+    {
+      "verificacao": "Assumir: confirmação dupla gera um único PATCH",
+      "passou": true
+    },
+    {
+      "verificacao": "Dashboard 360px: sem rolagem horizontal",
+      "passou": true
+    },
+    {
+      "verificacao": "Admin 360px: sem rolagem horizontal e perfis em pt-BR",
+      "passou": true
+    },
+    {
+      "verificacao": "Admin: diálogo modal cabe na viewport, prende o foco e cancela com Escape",
+      "passou": true
+    },
+    {
+      "verificacao": "Categorias 360px: nome longo sem rolagem horizontal",
+      "passou": true
+    },
+    {
+      "verificacao": "Menu ADMIN: um indicador ativo no desktop e no celular",
+      "passou": true
+    },
+    {
+      "verificacao": "Paginação: consulta administrativa durante carga, erro e recuperação",
+      "passou": true
+    },
+    {
+      "verificacao": "Rota de ADMIN negada para SOLICITANTE (guard mantido)",
+      "passou": true
+    }
+  ],
+  "chromeErrosDoConsole": [],
+  "cicloNoNavegador": {
+    "resultado": "PASS",
+    "checks": [
+      "comentário integrado persistente",
+      "RESOLVER:Resolvido",
+      "REABRIR:Em atendimento",
+      "RESOLVER:Resolvido",
+      "FECHAR:Fechado",
+      "fechado terminal e comentários só leitura"
+    ],
+    "errors": []
+  },
+  "varreduraNaBase": {
+    "verificacoes": 105,
+    "comOverflow": [],
+    "errosConsole": []
+  },
+  "auditProducao": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "auditCompleto": {
+    "info": 0,
+    "low": 0,
+    "moderate": 16,
+    "high": 0,
+    "critical": 0,
+    "total": 16
+  },
+  "reproducaoVideoFinal": {
+    "duracao": 153.527,
+    "largura": 1280,
+    "altura": 800,
+    "audioPico": 0.7528843879699707,
+    "erro": null,
+    "reproduzidoAteFim": true,
+    "sha256": "fe32907975046dd1a5d05123066bf9cf04473ef19401e1ca505cd2d64951d31c"
+  }
+}

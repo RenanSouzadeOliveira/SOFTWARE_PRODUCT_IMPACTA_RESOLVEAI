@@ -29,18 +29,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/admin/usuarios")
 @SecurityRequirement(name = "bearerAuth")
-@ApiResponses({
-        @ApiResponse(responseCode = "400", description = "Dados inválidos",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
-        @ApiResponse(responseCode = "401", description = "Autenticação necessária",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
-        @ApiResponse(responseCode = "403", description = "Operação não permitida",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
-        @ApiResponse(responseCode = "404", description = "Usuário não encontrado",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
-        @ApiResponse(responseCode = "409", description = "E-mail já cadastrado ou alteração concorrente",
-                content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
-})
 public class AdministracaoUsuarioController {
     private final AdministracaoUsuarioService service;
 
@@ -50,6 +38,11 @@ public class AdministracaoUsuarioController {
 
     @GetMapping
     @Operation(summary = "Listar usuários", description = "Exige ADMIN; inclui contas inativas e ordena por nome e identificador.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Operação concluída"),
+            @ApiResponse(responseCode = "401", description = "Autenticação necessária ou conta inativa", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Perfil sem permissão", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public List<UsuarioResponse> listar(@AuthenticationPrincipal UsuarioPrincipal principal) {
         return service.listar(principal);
     }
@@ -57,7 +50,13 @@ public class AdministracaoUsuarioController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Criar usuário", description = "Exige ADMIN; cria conta ativa com o perfil informado e senha protegida por BCrypt.")
-    @ApiResponse(responseCode = "201", description = "Usuário criado")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Operação concluída"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Autenticação necessária ou conta inativa", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Perfil sem permissão", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "E-mail já cadastrado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public UsuarioResponse criar(@AuthenticationPrincipal UsuarioPrincipal principal,
             @Valid @RequestBody CriarUsuarioRequest request) {
         return service.criar(principal, request);
@@ -65,6 +64,14 @@ public class AdministracaoUsuarioController {
 
     @PatchMapping("/{id}")
     @Operation(summary = "Atualizar usuário", description = "Exige ADMIN; altera nome e e-mail. Para alterar o perfil, informe perfil e versaoEsperada. Impede remover o próprio perfil ADMIN.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Operação concluída"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Autenticação necessária ou conta inativa", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Perfil sem permissão", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "E-mail já cadastrado, versão divergente ou alteração concorrente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public UsuarioResponse atualizar(@PathVariable Long id, @AuthenticationPrincipal UsuarioPrincipal principal,
             @Valid @RequestBody AtualizarUsuarioRequest request) {
         return service.atualizar(id, principal, request);
@@ -72,6 +79,14 @@ public class AdministracaoUsuarioController {
 
     @PatchMapping("/{id}/situacao")
     @Operation(summary = "Ativar ou desativar usuário", description = "Exige ADMIN; preserva referências e impede a própria desativação.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Operação concluída"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Autenticação necessária ou conta inativa", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Perfil sem permissão", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Alteração concorrente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public UsuarioResponse alterarSituacao(@PathVariable Long id, @AuthenticationPrincipal UsuarioPrincipal principal,
             @Valid @RequestBody AlterarSituacaoUsuarioRequest request) {
         return service.alterarSituacao(id, principal, request);

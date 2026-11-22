@@ -7,7 +7,7 @@ import { pathToFileURL } from 'node:url';
 
 const args = process.argv.slice(2);
 if (args.includes('--help')) {
-  console.log('Usage: node scripts/ac2-browser.mjs --fixtures /tmp/fixtures.json --output-dir /tmp/ac2-browser\nAC2_BROWSER_URL defaults to http://127.0.0.1:4200. AC2_PLAYWRIGHT_MODULE overrides the bundled Playwright module.\nCreates local screenshots, assertion report and a technical silent video; does not publish evidence.');
+  console.log('Usage: node scripts/ac2-browser.mjs --fixtures /tmp/fixtures.json --output-dir /tmp/ac2-browser\nAC2_BROWSER_URL defaults to http://127.0.0.1:4200. AC2_PLAYWRIGHT_MODULE can point to the installed Playwright module.\nCreates local screenshots, assertion report and a technical silent video; does not publish evidence.');
   process.exit(0);
 }
 function option(name) {
@@ -18,8 +18,8 @@ function option(name) {
 const fixtures = JSON.parse(await readFile(option('--fixtures'), 'utf8'));
 const output = resolve(option('--output-dir'));
 const browserUrl = process.env.AC2_BROWSER_URL ?? 'http://127.0.0.1:4200';
-const modulePath = process.env.AC2_PLAYWRIGHT_MODULE ?? '/home/renansouzadeoliveira/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs';
-const { chromium } = await import(pathToFileURL(modulePath).href);
+const modulePath = process.env.AC2_PLAYWRIGHT_MODULE;
+const { chromium } = await import(modulePath ? pathToFileURL(modulePath).href : 'playwright');
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch({ headless: true, slowMo: 90 });
 const context = await browser.newContext({ viewport: { width: 1280, height: 720 }, recordVideo: { dir: output, size: { width: 1280, height: 720 } } });

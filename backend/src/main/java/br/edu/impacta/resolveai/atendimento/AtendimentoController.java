@@ -71,7 +71,7 @@ public class AtendimentoController {
     @GetMapping("/fila")
     @Operation(summary = "Consultar fila de chamados disponiveis",
             description = "ATENDENTE e ADMIN ativos consultam somente ABERTO sem responsavel. "
-                    + "Filtros combinaveis, paginacao no servidor e ordem padrão criadoEm DESC, id DESC; sort configurável. "
+                    + "Filtros AND search, status, prioridade, categoriaId (alias categoria), responsavel e datas UTC, sempre restritos a ABERTO sem responsável; filtros incompatíveis produzem página vazia. Paginacao no servidor e ordem padrão criadoEm DESC, id DESC; sort configurável. "
                     + "Categorias inativas permanecem visiveis nos chamados existentes.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Pagina da fila, inclusive vazia"),
@@ -83,9 +83,17 @@ public class AtendimentoController {
                     content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     @Parameters({
-            @Parameter(name = "page", in = ParameterIn.QUERY, description = "Índice a partir de zero", schema = @Schema(type = "integer", minimum = "0", defaultValue = "0")),
+            @Parameter(name = "search", in = ParameterIn.QUERY, description = "Texto parcial literal em protocolo, título ou descrição; espaços externos ignorados", schema = @Schema(type = "string")),
+            @Parameter(name = "status", in = ParameterIn.QUERY, description = "Filtro AND de status", schema = @Schema(implementation = br.edu.impacta.resolveai.chamado.StatusChamado.class)),
+            @Parameter(name = "prioridade", in = ParameterIn.QUERY, description = "Filtro AND de prioridade", schema = @Schema(implementation = br.edu.impacta.resolveai.chamado.PrioridadeChamado.class)),
+            @Parameter(name = "categoriaId", in = ParameterIn.QUERY, description = "ID positivo da categoria; não combinar com alias conflitante", schema = @Schema(type = "integer", format = "int64", minimum = "1")),
+            @Parameter(name = "categoria", in = ParameterIn.QUERY, description = "Alias de categoriaId; não combinar com valor conflitante", schema = @Schema(type = "integer", format = "int64", minimum = "1")),
+            @Parameter(name = "responsavel", in = ParameterIn.QUERY, description = "ID positivo do atendente; aplicado dentro da visibilidade da rota", schema = @Schema(type = "integer", format = "int64", minimum = "1")),
+            @Parameter(name = "dataInicial", in = ParameterIn.QUERY, description = "Criação a partir deste dia UTC (inclusivo); não posterior a dataFinal", schema = @Schema(type = "string", format = "date")),
+            @Parameter(name = "dataFinal", in = ParameterIn.QUERY, description = "Criação até o final deste dia UTC (inclusivo)", schema = @Schema(type = "string", format = "date")),
+            @Parameter(name = "page", in = ParameterIn.QUERY, description = "Índice a partir de zero; deslocamento page*size até 2147483647", schema = @Schema(type = "integer", minimum = "0", defaultValue = "0")),
             @Parameter(name = "size", in = ParameterIn.QUERY, description = "Itens por página", schema = @Schema(type = "integer", minimum = "1", maximum = "100", defaultValue = "20")),
-            @Parameter(name = "sort", in = ParameterIn.QUERY, description = "campo,asc|desc; campos: criadoEm, atualizadoEm, titulo, status, prioridade, id. Desempate id DESC", schema = @Schema(defaultValue = "criadoEm,desc"))
+            @Parameter(name = "sort", in = ParameterIn.QUERY, description = "campo,asc|desc; campos: criadoEm, atualizadoEm, titulo, status, prioridade, id. Desempate id DESC", schema = @Schema(type = "string", defaultValue = "criadoEm,desc"))
     })
     public PaginaAtendimentoResponse fila(@AuthenticationPrincipal UsuarioPrincipal principal,
             @Parameter(hidden = true) @RequestParam MultiValueMap<String, String> parameters,
@@ -98,7 +106,7 @@ public class AtendimentoController {
     @GetMapping("/me")
     @Operation(summary = "Consultar minha carteira de atendimento",
             description = "Somente chamados atribuidos ao ATENDENTE ou ADMIN autenticado. "
-                    + "Permite combinar status, prioridade e categoriaId; ordem padrão criadoEm DESC, id DESC; sort configurável.")
+                    + "Permite combinar search, status, prioridade, categoriaId (alias categoria), responsavel e datas UTC; ordem padrão criadoEm DESC, id DESC; sort configurável.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Pagina da carteira, inclusive vazia"),
             @ApiResponse(responseCode = "400", description = "Pagina, tamanho ou filtros invalidos",
@@ -109,9 +117,17 @@ public class AtendimentoController {
                     content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     @Parameters({
-            @Parameter(name = "page", in = ParameterIn.QUERY, description = "Índice a partir de zero", schema = @Schema(type = "integer", minimum = "0", defaultValue = "0")),
+            @Parameter(name = "search", in = ParameterIn.QUERY, description = "Texto parcial literal em protocolo, título ou descrição; espaços externos ignorados", schema = @Schema(type = "string")),
+            @Parameter(name = "status", in = ParameterIn.QUERY, description = "Filtro AND de status", schema = @Schema(implementation = br.edu.impacta.resolveai.chamado.StatusChamado.class)),
+            @Parameter(name = "prioridade", in = ParameterIn.QUERY, description = "Filtro AND de prioridade", schema = @Schema(implementation = br.edu.impacta.resolveai.chamado.PrioridadeChamado.class)),
+            @Parameter(name = "categoriaId", in = ParameterIn.QUERY, description = "ID positivo da categoria; não combinar com alias conflitante", schema = @Schema(type = "integer", format = "int64", minimum = "1")),
+            @Parameter(name = "categoria", in = ParameterIn.QUERY, description = "Alias de categoriaId; não combinar com valor conflitante", schema = @Schema(type = "integer", format = "int64", minimum = "1")),
+            @Parameter(name = "responsavel", in = ParameterIn.QUERY, description = "ID positivo do atendente; aplicado dentro da visibilidade da rota", schema = @Schema(type = "integer", format = "int64", minimum = "1")),
+            @Parameter(name = "dataInicial", in = ParameterIn.QUERY, description = "Criação a partir deste dia UTC (inclusivo); não posterior a dataFinal", schema = @Schema(type = "string", format = "date")),
+            @Parameter(name = "dataFinal", in = ParameterIn.QUERY, description = "Criação até o final deste dia UTC (inclusivo)", schema = @Schema(type = "string", format = "date")),
+            @Parameter(name = "page", in = ParameterIn.QUERY, description = "Índice a partir de zero; deslocamento page*size até 2147483647", schema = @Schema(type = "integer", minimum = "0", defaultValue = "0")),
             @Parameter(name = "size", in = ParameterIn.QUERY, description = "Itens por página", schema = @Schema(type = "integer", minimum = "1", maximum = "100", defaultValue = "20")),
-            @Parameter(name = "sort", in = ParameterIn.QUERY, description = "campo,asc|desc; campos: criadoEm, atualizadoEm, titulo, status, prioridade, id. Desempate id DESC", schema = @Schema(defaultValue = "criadoEm,desc"))
+            @Parameter(name = "sort", in = ParameterIn.QUERY, description = "campo,asc|desc; campos: criadoEm, atualizadoEm, titulo, status, prioridade, id. Desempate id DESC", schema = @Schema(type = "string", defaultValue = "criadoEm,desc"))
     })
     public PaginaAtendimentoResponse carteira(@AuthenticationPrincipal UsuarioPrincipal principal,
             @Parameter(hidden = true) @RequestParam MultiValueMap<String, String> parameters,
@@ -136,13 +152,17 @@ public class AtendimentoController {
                     content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     @Parameters({
-            @Parameter(name = "page", in = ParameterIn.QUERY, schema = @Schema(defaultValue = "0", minimum = "0")),
-            @Parameter(name = "size", in = ParameterIn.QUERY, schema = @Schema(defaultValue = "20", minimum = "1", maximum = "100")),
-            @Parameter(name = "sort", in = ParameterIn.QUERY, schema = @Schema(defaultValue = "criadoEm,desc")),
-            @Parameter(name = "search", in = ParameterIn.QUERY),
-            @Parameter(name = "responsavel", in = ParameterIn.QUERY),
-            @Parameter(name = "dataInicial", in = ParameterIn.QUERY),
-            @Parameter(name = "dataFinal", in = ParameterIn.QUERY)
+            @Parameter(name = "search", in = ParameterIn.QUERY, description = "Texto parcial literal em protocolo, título ou descrição; espaços externos ignorados", schema = @Schema(type = "string")),
+            @Parameter(name = "status", in = ParameterIn.QUERY, description = "Filtro AND de status", schema = @Schema(implementation = br.edu.impacta.resolveai.chamado.StatusChamado.class)),
+            @Parameter(name = "prioridade", in = ParameterIn.QUERY, description = "Filtro AND de prioridade", schema = @Schema(implementation = br.edu.impacta.resolveai.chamado.PrioridadeChamado.class)),
+            @Parameter(name = "categoriaId", in = ParameterIn.QUERY, description = "ID positivo da categoria; não combinar com alias conflitante", schema = @Schema(type = "integer", format = "int64", minimum = "1")),
+            @Parameter(name = "categoria", in = ParameterIn.QUERY, description = "Alias de categoriaId; não combinar com valor conflitante", schema = @Schema(type = "integer", format = "int64", minimum = "1")),
+            @Parameter(name = "responsavel", in = ParameterIn.QUERY, description = "ID positivo do atendente; aplicado dentro da visibilidade da rota", schema = @Schema(type = "integer", format = "int64", minimum = "1")),
+            @Parameter(name = "dataInicial", in = ParameterIn.QUERY, description = "Criação a partir deste dia UTC (inclusivo); não posterior a dataFinal", schema = @Schema(type = "string", format = "date")),
+            @Parameter(name = "dataFinal", in = ParameterIn.QUERY, description = "Criação até o final deste dia UTC (inclusivo)", schema = @Schema(type = "string", format = "date")),
+            @Parameter(name = "page", in = ParameterIn.QUERY, description = "Índice a partir de zero; deslocamento page*size até 2147483647", schema = @Schema(type = "integer", minimum = "0", defaultValue = "0")),
+            @Parameter(name = "size", in = ParameterIn.QUERY, description = "Itens por página", schema = @Schema(type = "integer", minimum = "1", maximum = "100", defaultValue = "20")),
+            @Parameter(name = "sort", in = ParameterIn.QUERY, description = "campo,asc|desc; campos: criadoEm, atualizadoEm, titulo, status, prioridade, id. Desempate id DESC", schema = @Schema(type = "string", defaultValue = "criadoEm,desc"))
     })
     public PaginaAtendimentoResponse todos(@AuthenticationPrincipal UsuarioPrincipal principal,
             @Parameter(hidden = true) @RequestParam MultiValueMap<String, String> parameters,

@@ -1,43 +1,56 @@
 # ResolveAí
 
-ResolveAí é um sistema acadêmico de gestão de chamados. O incremento da AC2 permite registrar um problema, assumir seu atendimento, trocar comentários, resolver, reabrir e fechar o chamado, com autorização e histórico em três camadas:
+O ResolveAí é um projeto acadêmico de gestão de chamados. Um solicitante registra o problema e acompanha a resposta pelo protocolo. O atendente assume o chamado na fila, registra as ações e propõe uma solução. A administração acompanha os indicadores e mantém os cadastros de usuários e categorias. Busca, filtros, paginação, exportação CSV, comentários e histórico atendem aos três perfis dentro das permissões de cada um.
 
-- Angular e TypeScript no front-end;
-- Java 21 e Spring Boot no back-end;
-- PostgreSQL com migrations Flyway.
+## Executar a demonstração em um ambiente limpo
 
-## Arquitetura
-
-```text
-Angular :4200  ── HTTP /api + JWT ──>  Spring Boot :8080  ── JPA ──>  PostgreSQL :5432
-                                                └──────── Flyway ──────────────┘
-```
-
-O Angular concentra a interface e os contratos tipados; o Spring Boot aplica validação, autenticação, autorização e regras de negócio; o PostgreSQL garante a integridade relacional. O Flyway é a única ferramenta que cria ou evolui o schema e o Hibernate apenas o valida. As decisões completas estão em [Arquitetura inicial](docs/architecture.md).
-
-O [histórico completo de chamados AC3](docs/historico-chamados.md) reúne contrato HTTP, migration V9, timeline, evidências de testes e roteiro reproduzível do vídeo.
-
-## Validação integrada e entrega AC3
-
-O [relatório de release AC3](docs/ac3-release.md) registra a revisão validada, os resultados consolidados, os limites e os passos de reprodução. O [roteiro de gravação](docs/ac3-video.md) contém a narração em português e as pendências de publicação. Os scripts `scripts/ac3-release-browser.mjs` e `scripts/ac3-serve.mjs` apoiam a captura local do build padrão, usando Playwright instalado separadamente.
-
-## Pré-requisitos
-
-- Node.js 22.12 ou superior na linha 22 e npm 10+
-- Java 21
-- Maven 3.6.3+
-- Docker com Docker Compose
-
-## Configuração local
-
-Crie o arquivo local de ambiente a partir do exemplo e ajuste os valores fictícios:
+Em Linux com Bash, instale Git, Java/JDK 21 (incluindo `jar`), Maven, Node.js compatível com Angular 21 (por exemplo, 22.12+ na linha 22), npm 10, Docker com acesso ao daemon, curl e OpenSSL. O Compose v2 atende ao modo de desenvolvimento descrito abaixo. A primeira instalação precisa acessar os registros Maven, npm e a imagem `postgres:17-alpine`.
 
 ```bash
-cp backend/.env.example .env
-openssl rand -hex 32
+git clone https://github.com/RenanSouzadeOliveira/SOFTWARE_PRODUCT_IMPACTA_RESOLVEAI.git
+cd SOFTWARE_PRODUCT_IMPACTA_RESOLVEAI
+# Para avaliar uma entrega específica, selecione a revisão fornecida com a entrega.
+mvn -B -ntp -f backend/pom.xml clean verify
+(cd frontend && npm ci && npm test -- --watch=false && npm run build)
+bash scripts/demo-final.sh --verificar
+bash scripts/demo-final.sh
 ```
 
-Copie a saída aleatória do segundo comando para `JWT_SECRET` no `.env`. O placeholder do exemplo é deliberadamente curto e a API recusa a inicialização até que ele seja substituído.
+A distribuição externa precisa conter `scripts/demo-final.sh`. Enquanto a publicação estiver pendente, use o checkout da entrega local. O comando de verificação inicia o JAR, aplica as migrations, prepara a massa duas vezes e confere os totais pela API através do frontend. O último comando abre um laboratório novo. Acesse `http://127.0.0.1:14595` e use uma conta indicada no arquivo privado cujo caminho aparece no terminal. As seis contas têm senhas aleatórias e são exclusivas dessa execução. Escolha `solicitante1`, `atendente1` ou `admin` conforme a cena. Feche o visualizador das contas antes de gravar.
+
+O banco fica em memória e só aceita conexões pela interface local. Ctrl+C encerra este laboratório e descarta banco e credenciais. Para reiniciar a demo use o mesmo comando. Para escolher portas livres, defina `DEMO_API_PORT` e `DEMO_WEB_PORT`; os padrões são 18595 e 14595. Este procedimento independe de arquivos `.env` e de cadastros anteriores. A criação do primeiro ADMIN na demo é feita pelo inicializador acadêmico, que usa o codificador de senhas da aplicação. O cadastro público cria SOLICITANTE. Não há bootstrap administrativo automático no perfil de produção.
+
+| Componente | Versão de referência |
+| --- | --- |
+| API | Java 21, Spring Boot 3.5.16 e springdoc 2.8.16 |
+| Interface | Angular 21.2.26, CLI 21.2.30 e TypeScript 5.9.3. Demais versões em `frontend/package-lock.json`; npm declarado 10.9.2 |
+| Persistência | PostgreSQL 17 com UTF-8, Hibernate em modo `validate`, Flyway V1–V12 |
+| Ferramentas de contêiner | Docker 29.1.3 e Compose 2.40.3 observados na validação |
+
+O JAR executável fica em `backend/target/resolveai-api-0.0.1-SNAPSHOT.jar`. O site estático fica em `frontend/dist/frontend/browser/`; em produção, o servidor da interface precisa encaminhar `/api` ao backend. O nome interno do JAR é o definido no POM.
+
+## Guia do avaliador
+
+- [Arquitetura da aplicação](docs/architecture.md) e [modelo entidade-relacionamento](docs/modelo-entidade-relacionamento.md)
+- [OpenAPI e contratos da API](docs/api-ac2.md)
+- [Vídeo narrado](docs/evidencias/apresentacao-final.webm), [cenas e narração](docs/demonstracao-final.md) e [capturas de tela](docs/evidencias/ux-p1/README.md)
+- [Relatório de validação e limitações](docs/validacao-final.md), [rastreabilidade das quatro entregas](docs/rastreabilidade-final.md) e [notas e checklist de publicação](docs/release-final.md)
+
+## Desenvolvimento com PostgreSQL persistente
+
+O Compose inicia o PostgreSQL. A API e o Angular rodam em terminais separados. As portas padrão deste modo são 5432, 8080 e 4200. Use a demonstração descartável acima para apresentar os três perfis. Para desenvolver em um checkout novo, crie um arquivo de ambiente privado. O comando a seguir recusa substituir um `.env` existente e gera uma senha única para o banco e uma chave de assinatura independente.
+
+```bash
+(
+  set -euC
+  umask 077
+  senha_local=$(openssl rand -hex 24)
+  chave_local=$(openssl rand -hex 48)
+  sed -e "s/troque-esta-senha-local/$senha_local/g" \
+      -e "s/troque-esta-chave/$chave_local/" backend/.env.example > .env
+)
+```
+
 
 ### Variáveis de ambiente
 
@@ -254,33 +267,13 @@ AUDITORIA evento=CATEGORIA_SITUACAO_ALTERADA resultado=CONFIRMADO atorId=1 alvoT
 
 ## Testes e builds
 
-### Snapshot do dashboard em PostgreSQL 17
-
-O teste de upgrade do histórico (`HistoricoMigrationTest`) usa `HISTORY_MIGRATION_URL` com um banco descartável; usuário e senha vêm de `HISTORY_MIGRATION_USER` (padrão `postgres`) e `HISTORY_MIGRATION_PASSWORD` (padrão vazio), sem papel de banco pré-criado.
-
-Configure `DASHBOARD_POSTGRES17_URL` com a URL JDBC de um banco **descartável** PostgreSQL 17. O Flyway aplica as migrations ao banco de teste. O usuário padrão é `postgres` e a senha padrão é vazia. Use `DASHBOARD_POSTGRES17_USER` e `DASHBOARD_POSTGRES17_PASSWORD` se necessário. Sem a URL, a suíte padrão ignora somente esse teste.
+A suíte padrão combina unidades, H2 e MockMvc. Para incluir os testes reais de concorrência, snapshot e upgrades com PostgreSQL 17, use o script abaixo. Ele inicia uma instância em memória exclusiva e cria quatro bancos vazios. Nenhuma variável de conexão ou papel previamente cadastrado é necessário.
 
 ```bash
-mvn -f backend/pom.xml -Dtest=DashboardSnapshotPostgresTest test
+bash scripts/testar-postgres17.sh
 ```
 
-### Consolidação reproduzível da AC2
-
-```bash
-bash scripts/validar-ac2.sh
-```
-
-O comando executa testes e builds, inicia uma API e um PostgreSQL **isolados e vazios**, aplica V1–V9, prepara contas fictícias dos três perfis e chamados nos quatro estados e verifica ciclo, permissões, concorrência e rollback. Não utiliza seu `.env` nem apaga o volume habitual. Portas padrão: banco `55439`, API `18082` e interface `4200`; portas ocupadas são recusadas.
-
-Para validar a interface e gravar uma demonstração técnica local, usando Playwright configurado:
-
-```bash
-bash scripts/validar-ac2.sh --com-navegador
-```
-
-Relatórios, OpenAPI, capturas e vídeo silencioso são salvos em uma pasta privada `/tmp/resolveai-ac2-*`. O ambiente é removido ao terminar. `--manter` preserva o ambiente de demonstração após sucesso, usando API na porta `8080` para funcionar também fora da automação, com instruções privadas para encerrá-lo. Portas ocupadas são recusadas. **Nunca publique `fixtures.json`: contém senha e tokens fictícios locais.**
-
-Veja [Entrega e evidências da AC2](docs/entrega-ac2.md), [API consolidada](docs/api-ac2.md) e [notas da versão](docs/release-ac2.md). O cartão final não é considerado concluído antes da publicação e vinculação de commit, release e vídeo.
+A [validação final](docs/validacao-final.md) discrimina os resultados. O [relatório da AC2](docs/entrega-ac2.md) e o [relatório da AC3](docs/ac3-release.md) registram as respectivas revisões históricas.
 
 Front-end:
 
@@ -301,13 +294,7 @@ O comando `verify` executa os testes e gera `backend/target/resolveai-api-0.0.1-
 
 ## Validar migrations desde um banco vazio
 
-Use o roteiro isolado e confirme em `api.log` que o Flyway aplicou V1–V9 antes da validação do Hibernate:
-
-```bash
-bash scripts/validar-ac2.sh
-```
-
-Esse comando cria e remove somente seu próprio container descartável, sem apagar o volume do PostgreSQL habitual. Não use `docker compose down -v` quando houver dados locais a preservar.
+O [laboratório descartável](scripts/demo-final.sh) parte de um banco novo, inicia o JAR no perfil `dev` e aplica V1–V12 e a migration repetível das categorias antes do seed acadêmico. O [relatório final](docs/validacao-final.md) registra a instalação distinta em `prod` sem categorias ou contas iniciais.
 
 Para inspecionar as tabelas e os relacionamentos usados como evidência:
 

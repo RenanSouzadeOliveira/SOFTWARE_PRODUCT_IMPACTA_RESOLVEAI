@@ -84,19 +84,20 @@ public class ChamadoController {
     @Operation(summary = "Pesquisar chamados com filtros combinados",
             description = "Filtros AND: search (protocolo OU título OU descrição, parcial literal sem distinguir maiúsculas), status, prioridade, categoriaId (alias categoria), responsavel, dataInicial e dataFinal (AAAA-MM-DD, dias inteiros UTC). Solicitante: próprios; atendente: atribuídos; ADMIN: todos. Paginação padrão page=0,size=20,sort=criadoEm,desc; máximo 100 e desempate id DESC.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "Página filtrada e autorizada"),
-            @ApiResponse(responseCode = "400", description = "Filtros, paginação ou ordenação inválidos"),
-            @ApiResponse(responseCode = "401", description = "Autenticação necessária")})
+            @ApiResponse(responseCode = "400", description = "Filtros, paginação ou ordenação inválidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Autenticação necessária", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class)))})
     @Parameters({
-            @Parameter(name = "search", in = ParameterIn.QUERY, description = "Texto literal; espaços externos ignorados"),
-            @Parameter(name = "status", in = ParameterIn.QUERY, schema = @Schema(implementation = StatusChamado.class)),
-            @Parameter(name = "prioridade", in = ParameterIn.QUERY, schema = @Schema(implementation = PrioridadeChamado.class)),
-            @Parameter(name = "categoriaId", in = ParameterIn.QUERY, description = "ID positivo; alias categoria"),
-            @Parameter(name = "responsavel", in = ParameterIn.QUERY, description = "ID positivo do atendente"),
-            @Parameter(name = "dataInicial", in = ParameterIn.QUERY, description = "AAAA-MM-DD, inclusiva UTC"),
-            @Parameter(name = "dataFinal", in = ParameterIn.QUERY, description = "AAAA-MM-DD, inclusiva UTC"),
-            @Parameter(name = "page", in = ParameterIn.QUERY, schema = @Schema(defaultValue = "0")),
-            @Parameter(name = "size", in = ParameterIn.QUERY, schema = @Schema(defaultValue = "20", maximum = "100")),
-            @Parameter(name = "sort", in = ParameterIn.QUERY, schema = @Schema(defaultValue = "criadoEm,desc"))
+            @Parameter(name = "search", in = ParameterIn.QUERY, description = "Texto parcial literal em protocolo, título ou descrição; espaços externos ignorados", schema = @Schema(type = "string")),
+            @Parameter(name = "status", in = ParameterIn.QUERY, description = "Filtro AND de status", schema = @Schema(implementation = br.edu.impacta.resolveai.chamado.StatusChamado.class)),
+            @Parameter(name = "prioridade", in = ParameterIn.QUERY, description = "Filtro AND de prioridade", schema = @Schema(implementation = br.edu.impacta.resolveai.chamado.PrioridadeChamado.class)),
+            @Parameter(name = "categoriaId", in = ParameterIn.QUERY, description = "ID positivo da categoria; não combinar com alias conflitante", schema = @Schema(type = "integer", format = "int64", minimum = "1")),
+            @Parameter(name = "categoria", in = ParameterIn.QUERY, description = "Alias de categoriaId; não combinar com valor conflitante", schema = @Schema(type = "integer", format = "int64", minimum = "1")),
+            @Parameter(name = "responsavel", in = ParameterIn.QUERY, description = "ID positivo do atendente; aplicado dentro da visibilidade da rota", schema = @Schema(type = "integer", format = "int64", minimum = "1")),
+            @Parameter(name = "dataInicial", in = ParameterIn.QUERY, description = "Criação a partir deste dia UTC (inclusivo); não posterior a dataFinal", schema = @Schema(type = "string", format = "date")),
+            @Parameter(name = "dataFinal", in = ParameterIn.QUERY, description = "Criação até o final deste dia UTC (inclusivo)", schema = @Schema(type = "string", format = "date")),
+            @Parameter(name = "page", in = ParameterIn.QUERY, description = "Índice a partir de zero; deslocamento page*size até 2147483647", schema = @Schema(type = "integer", minimum = "0", defaultValue = "0")),
+            @Parameter(name = "size", in = ParameterIn.QUERY, description = "Itens por página", schema = @Schema(type = "integer", minimum = "1", maximum = "100", defaultValue = "20")),
+            @Parameter(name = "sort", in = ParameterIn.QUERY, description = "campo,asc|desc; campos: criadoEm, atualizadoEm, titulo, status, prioridade, id. Desempate id DESC", schema = @Schema(type = "string", defaultValue = "criadoEm,desc"))
     })
     public PaginaChamadosResponse listar(@AuthenticationPrincipal UsuarioPrincipal principal,
             @Parameter(hidden = true) @RequestParam MultiValueMap<String, String> parameters) {
@@ -113,18 +114,19 @@ public class ChamadoController {
                     content = @Content(mediaType = "text/csv", schema = @Schema(type = "string", format = "binary"))),
             @ApiResponse(responseCode = "400", description = "Filtros inválidos ou limite excedido",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class))),
-            @ApiResponse(responseCode = "401", description = "Autenticação necessária")})
+            @ApiResponse(responseCode = "401", description = "Autenticação necessária", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class)))})
     @Parameters({
-            @Parameter(name = "search", in = ParameterIn.QUERY, description = "Texto literal; espaços externos ignorados"),
-            @Parameter(name = "status", in = ParameterIn.QUERY, schema = @Schema(implementation = StatusChamado.class)),
-            @Parameter(name = "prioridade", in = ParameterIn.QUERY, schema = @Schema(implementation = PrioridadeChamado.class)),
-            @Parameter(name = "categoriaId", in = ParameterIn.QUERY, description = "ID positivo; alias categoria"),
-            @Parameter(name = "responsavel", in = ParameterIn.QUERY, description = "ID positivo do atendente"),
-            @Parameter(name = "dataInicial", in = ParameterIn.QUERY, description = "AAAA-MM-DD, inclusiva UTC"),
-            @Parameter(name = "dataFinal", in = ParameterIn.QUERY, description = "AAAA-MM-DD, inclusiva UTC"),
-            @Parameter(name = "page", in = ParameterIn.QUERY, schema = @Schema(defaultValue = "0")),
-            @Parameter(name = "size", in = ParameterIn.QUERY, schema = @Schema(defaultValue = "20", maximum = "100")),
-            @Parameter(name = "sort", in = ParameterIn.QUERY, schema = @Schema(defaultValue = "criadoEm,desc"))
+            @Parameter(name = "search", in = ParameterIn.QUERY, description = "Texto parcial literal em protocolo, título ou descrição; espaços externos ignorados", schema = @Schema(type = "string")),
+            @Parameter(name = "status", in = ParameterIn.QUERY, description = "Filtro AND de status", schema = @Schema(implementation = br.edu.impacta.resolveai.chamado.StatusChamado.class)),
+            @Parameter(name = "prioridade", in = ParameterIn.QUERY, description = "Filtro AND de prioridade", schema = @Schema(implementation = br.edu.impacta.resolveai.chamado.PrioridadeChamado.class)),
+            @Parameter(name = "categoriaId", in = ParameterIn.QUERY, description = "ID positivo da categoria; não combinar com alias conflitante", schema = @Schema(type = "integer", format = "int64", minimum = "1")),
+            @Parameter(name = "categoria", in = ParameterIn.QUERY, description = "Alias de categoriaId; não combinar com valor conflitante", schema = @Schema(type = "integer", format = "int64", minimum = "1")),
+            @Parameter(name = "responsavel", in = ParameterIn.QUERY, description = "ID positivo do atendente; aplicado dentro da visibilidade da rota", schema = @Schema(type = "integer", format = "int64", minimum = "1")),
+            @Parameter(name = "dataInicial", in = ParameterIn.QUERY, description = "Criação a partir deste dia UTC (inclusivo); não posterior a dataFinal", schema = @Schema(type = "string", format = "date")),
+            @Parameter(name = "dataFinal", in = ParameterIn.QUERY, description = "Criação até o final deste dia UTC (inclusivo)", schema = @Schema(type = "string", format = "date")),
+            @Parameter(name = "page", in = ParameterIn.QUERY, description = "Índice a partir de zero; deslocamento page*size até 2147483647; validado, mas não restringe o CSV completo", schema = @Schema(type = "integer", minimum = "0", defaultValue = "0")),
+            @Parameter(name = "size", in = ParameterIn.QUERY, description = "Itens por página; validado, mas não restringe o CSV completo", schema = @Schema(type = "integer", minimum = "1", maximum = "100", defaultValue = "20")),
+            @Parameter(name = "sort", in = ParameterIn.QUERY, description = "campo,asc|desc; campos: criadoEm, atualizadoEm, titulo, status, prioridade, id. Desempate id DESC", schema = @Schema(type = "string", defaultValue = "criadoEm,desc"))
     })
     public ResponseEntity<byte[]> exportar(@AuthenticationPrincipal UsuarioPrincipal principal,
             @Parameter(hidden = true) @RequestParam MultiValueMap<String, String> parameters) {
@@ -148,6 +150,11 @@ public class ChamadoController {
 
     @GetMapping("/filtros")
     @Operation(summary = "Opções dos filtros de chamados", description = "Categorias e responsáveis (somente id e nome) dos chamados visíveis ao usuário, incluindo referências inativas. Não revela usuários sem chamados visíveis.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Operação concluída"),
+            @ApiResponse(responseCode = "401", description = "Autenticação necessária ou conta inativa", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Perfil sem permissão", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public OpcoesFiltrosChamados.Response filtros(@AuthenticationPrincipal UsuarioPrincipal principal) {
         return opcoes.listar(principal);
     }
@@ -155,10 +162,10 @@ public class ChamadoController {
     @GetMapping("/me")
     @Operation(
             summary = "Listar meus chamados",
-            description = "Página dos chamados do solicitante autenticado. page começa em 0; size padrão 20, máximo 100. Sort: criadoEm, atualizadoEm, titulo, status, prioridade ou id, seguido de asc ou desc. Padrão criadoEm,desc; desempate id DESC.")
+            description = "Página dos chamados do solicitante autenticado, com os mesmos filtros AND de GET /api/chamados. page começa em 0; size padrão 20, máximo 100. Sort: criadoEm, atualizadoEm, titulo, status, prioridade ou id, seguido de asc ou desc. Padrão criadoEm,desc; desempate id DESC.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Página do solicitante, inclusive vazia"),
-            @ApiResponse(responseCode = "400", description = "Paginação ou ordenação inválida",
+            @ApiResponse(responseCode = "400", description = "Filtros, paginação ou ordenação inválidos",
                     content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou de conta inativa",
                     content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
@@ -166,9 +173,17 @@ public class ChamadoController {
                     content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     @Parameters({
-            @Parameter(name = "page", in = ParameterIn.QUERY, description = "Índice a partir de zero", schema = @Schema(type = "integer", minimum = "0", defaultValue = "0")),
+            @Parameter(name = "search", in = ParameterIn.QUERY, description = "Texto parcial literal em protocolo, título ou descrição; espaços externos ignorados", schema = @Schema(type = "string")),
+            @Parameter(name = "status", in = ParameterIn.QUERY, description = "Filtro AND de status", schema = @Schema(implementation = br.edu.impacta.resolveai.chamado.StatusChamado.class)),
+            @Parameter(name = "prioridade", in = ParameterIn.QUERY, description = "Filtro AND de prioridade", schema = @Schema(implementation = br.edu.impacta.resolveai.chamado.PrioridadeChamado.class)),
+            @Parameter(name = "categoriaId", in = ParameterIn.QUERY, description = "ID positivo da categoria; não combinar com alias conflitante", schema = @Schema(type = "integer", format = "int64", minimum = "1")),
+            @Parameter(name = "categoria", in = ParameterIn.QUERY, description = "Alias de categoriaId; não combinar com valor conflitante", schema = @Schema(type = "integer", format = "int64", minimum = "1")),
+            @Parameter(name = "responsavel", in = ParameterIn.QUERY, description = "ID positivo do atendente; aplicado dentro da visibilidade da rota", schema = @Schema(type = "integer", format = "int64", minimum = "1")),
+            @Parameter(name = "dataInicial", in = ParameterIn.QUERY, description = "Criação a partir deste dia UTC (inclusivo); não posterior a dataFinal", schema = @Schema(type = "string", format = "date")),
+            @Parameter(name = "dataFinal", in = ParameterIn.QUERY, description = "Criação até o final deste dia UTC (inclusivo)", schema = @Schema(type = "string", format = "date")),
+            @Parameter(name = "page", in = ParameterIn.QUERY, description = "Índice a partir de zero; deslocamento page*size até 2147483647", schema = @Schema(type = "integer", minimum = "0", defaultValue = "0")),
             @Parameter(name = "size", in = ParameterIn.QUERY, description = "Itens por página", schema = @Schema(type = "integer", minimum = "1", maximum = "100", defaultValue = "20")),
-            @Parameter(name = "sort", in = ParameterIn.QUERY, description = "campo,asc|desc; campos: criadoEm, atualizadoEm, titulo, status, prioridade, id. Desempate id DESC", schema = @Schema(defaultValue = "criadoEm,desc"))
+            @Parameter(name = "sort", in = ParameterIn.QUERY, description = "campo,asc|desc; campos: criadoEm, atualizadoEm, titulo, status, prioridade, id. Desempate id DESC", schema = @Schema(type = "string", defaultValue = "criadoEm,desc"))
     })
     public PaginaChamadosResponse listarMeus(
             @AuthenticationPrincipal UsuarioPrincipal principal,
@@ -183,6 +198,7 @@ public class ChamadoController {
                     + "Sem visibilidade retorna 404. Inclui acoes autorizadas e historico de status ordenado por data e id.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Detalhe seguro do chamado"),
+            @ApiResponse(responseCode = "400", description = "Identificador inválido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "401", description = "Token ausente, invalido ou de conta inativa",
                     content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "403", description = "Perfil autenticado sem permissao",

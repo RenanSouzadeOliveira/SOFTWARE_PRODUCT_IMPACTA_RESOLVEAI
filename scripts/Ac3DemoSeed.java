@@ -3,6 +3,8 @@ import br.edu.impacta.resolveai.atendimento.AtendimentoService;
 import br.edu.impacta.resolveai.categoria.CategoriaRepository;
 import br.edu.impacta.resolveai.chamado.*;
 import br.edu.impacta.resolveai.chamado.dto.*;
+import br.edu.impacta.resolveai.comentario.ComentarioService;
+import br.edu.impacta.resolveai.comentario.dto.CriarComentarioRequest;
 import br.edu.impacta.resolveai.security.UsuarioPrincipal;
 import br.edu.impacta.resolveai.usuario.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -143,6 +145,10 @@ public class Ac3DemoSeed {
                         categories.get(i % 3), initial);
                 require(validator.validate(request).isEmpty(), "Dados de abertura inválidos.");
                 long id = tickets.abrir(owner, request).id();
+                if (i == 0) {
+                    context.getBean(ComentarioService.class).criar(id, owner,
+                            new CriarComentarioRequest("A impressora do laboratório está ligada e sem fila de impressão."));
+                }
                 if (stage != 0) {
                     final int scenario = stage;
                     tx.executeWithoutResult(status -> {

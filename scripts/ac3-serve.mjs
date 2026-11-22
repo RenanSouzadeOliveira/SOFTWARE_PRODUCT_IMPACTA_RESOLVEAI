@@ -19,4 +19,4 @@ http.createServer((req,res)=>{
  const target=fs.existsSync(file)&&fs.statSync(file).isFile()?file:path.join(root,'index.html');
  if(!fs.existsSync(target)){res.writeHead(503);res.end('Execute npm run build.');return}
  res.writeHead(200,{'Content-Type':types[path.extname(target)]??'application/octet-stream'});fs.createReadStream(target).pipe(res);
-}).listen(Number(process.env.AC3_WEB_PORT ?? 4239),'127.0.0.1');
+}).listen(Number(process.env.AC3_WEB_PORT ?? 4239),'127.0.0.1', () => console.log('Interface disponível em loopback.'));

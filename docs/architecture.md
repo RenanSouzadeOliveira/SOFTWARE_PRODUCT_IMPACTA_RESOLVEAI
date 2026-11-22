@@ -1,14 +1,22 @@
-# Arquitetura inicial
+# Arquitetura do ResolveAí
 
-```text
-Navegador
-  |
-  | HTTP /api + Bearer JWT
-  v
-Angular :4200  --->  Spring Security  --->  Spring Boot :8080  --->  PostgreSQL :5432
-                                                |                       ^
-                                                +------ Flyway ---------+
+```mermaid
+flowchart LR
+    B["Navegador"] --> UI["Angular • rotas e formulários"]
+    UI -->|"POST /api/auth/login"| S["Spring Security • BCrypt e JWT"]
+    S -->|"JWT com expiração e versão de segurança"| UI
+    UI -->|"HTTP /api • Authorization Bearer"| S
+    S -->|"identidade ativa e perfil"| R["Controllers REST • validação e DTOs"]
+    R --> D["Serviços • autorização por chamado e transações"]
+    D --> J["Spring Data JPA / JDBC"]
+    J --> P[("PostgreSQL 17 • UTF-8")]
+    P -->|"conta e versão a cada requisição autenticada"| S
+    F["Flyway no startup"] -->|"V1 a V12"| P
 ```
+
+No desenvolvimento, o navegador carrega o Angular na porta 4200 e acessa a API na 8080 com CORS explícito. O build de produção usa a rota relativa `/api`. A demonstração serve esse build e encaminha as chamadas no mesmo endereço de origem. O Compose da raiz inicia o banco. O processamento de chamados, as consultas de dashboard e a administração vivem na mesma aplicação Spring Boot.
+
+A sessão da aba guarda o token. O filtro confere assinatura, emissor, validade, perfil e `versao_seguranca` da conta antes dos controllers. O serviço valida o escopo do chamado e as transições. A API devolve DTOs e registra as mudanças de estado com seus eventos na mesma transação.
 
 ## Responsabilidades
 
@@ -17,7 +25,7 @@ Angular :4200  --->  Spring Security  --->  Spring Boot :8080  --->  PostgreSQL 
 - O PostgreSQL assegura integridade relacional.
 - O Flyway é a fonte versionada de evolução do schema.
 
-## Decisões da fundação
+## Decisões de implementação
 
 - APIs funcionais são publicadas sob `/api`.
 - Configuração específica do ambiente é externa ao artefato.

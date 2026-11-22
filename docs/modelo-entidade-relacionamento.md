@@ -8,12 +8,12 @@ A V9 mantém as duas tabelas e todas as linhas AC2, acrescenta desempate por ID 
 
 ## Diagrama
 
-O incremento consolidado da AC2 usa seis tabelas funcionais: usuários, categorias, chamados, comentários, histórico de atribuição/prioridade e histórico de status. O diagrama abaixo corresponde às migrations V1–V6; `flyway_schema_history` é uma tabela de infraestrutura e não integra o domínio. Na demonstração, responsáveis e autores são FKs, sem cópia de nome/e-mail no chamado.
+O schema V12 contém seis tabelas de domínio, com a atribuição atual em `chamados.atendente_id` e as mudanças de responsável em `historico_chamados`. O Flyway controla as versões em `flyway_schema_history`. Os nomes abaixo correspondem ao catálogo PostgreSQL.
 
 ```mermaid
 erDiagram
-    %% Entidades centrais em foco: USUARIOS, CATEGORIAS e CHAMADOS.
-    USUARIOS {
+    %% Entidades centrais em foco: usuarios, categorias e chamados.
+    usuarios {
         BIGINT id PK "identity, NOT NULL"
         VARCHAR_120 nome "NOT NULL"
         VARCHAR_254 email "NOT NULL, UNIQUE"
@@ -22,10 +22,11 @@ erDiagram
         BOOLEAN ativo "NOT NULL, default TRUE"
         TIMESTAMPTZ criado_em "NOT NULL, default CURRENT_TIMESTAMP"
         TIMESTAMPTZ atualizado_em "NOT NULL, default CURRENT_TIMESTAMP"
+        BIGINT versao_seguranca "NOT NULL, default 0, CHECK >= 0"
         BIGINT versao "NOT NULL, default 0, @Version"
     }
 
-    CATEGORIAS {
+    categorias {
         BIGINT id PK "identity, NOT NULL"
         VARCHAR_100 nome "NOT NULL, UNIQUE"
         VARCHAR_255 descricao "nullable"
@@ -35,7 +36,7 @@ erDiagram
         BIGINT versao "NOT NULL, default 0, @Version"
     }
 
-    CHAMADOS {
+    chamados {
         BIGINT id PK "identity, NOT NULL"
         VARCHAR_30 protocolo "NOT NULL, UNIQUE"
         VARCHAR_120 titulo "NOT NULL, 5 a 120 após TRIM"
@@ -54,7 +55,7 @@ erDiagram
         BIGINT versao "NOT NULL, default 0, @Version"
     }
 
-    COMENTARIOS {
+    comentarios {
         BIGINT id PK "identity, NOT NULL"
         BIGINT chamado_id FK "NOT NULL"
         BIGINT autor_id FK "NOT NULL"
@@ -62,7 +63,7 @@ erDiagram
         TIMESTAMPTZ criado_em "NOT NULL, default CURRENT_TIMESTAMP"
     }
 
-    HISTORICO_CHAMADOS {
+    historico_chamados {
         BIGINT id PK "identity, NOT NULL"
         BIGINT chamado_id FK "NOT NULL"
         BIGINT autor_id FK "NOT NULL"
@@ -77,7 +78,7 @@ erDiagram
         TIMESTAMPTZ criado_em "NOT NULL, default CURRENT_TIMESTAMP"
     }
 
-    HISTORICO_STATUS {
+    historico_status {
         BIGINT id PK "identity, NOT NULL"
         BIGINT chamado_id FK "NOT NULL"
         VARCHAR_20 status_anterior "NOT NULL, enum"
@@ -87,17 +88,17 @@ erDiagram
         VARCHAR_500 observacao "nullable"
     }
 
-    USUARIOS ||--o{ CHAMADOS : "solicitante_id"
-    USUARIOS o|--o{ CHAMADOS : "atendente_id"
-    CATEGORIAS ||--o{ CHAMADOS : "categoria_id"
-    CHAMADOS ||--o{ COMENTARIOS : "chamado_id"
-    USUARIOS ||--o{ COMENTARIOS : "autor_id"
-    CHAMADOS ||--o{ HISTORICO_CHAMADOS : "chamado_id"
-    USUARIOS ||--o{ HISTORICO_CHAMADOS : "autor_id"
-    USUARIOS o|--o{ HISTORICO_CHAMADOS : "atendente_anterior_id"
-    USUARIOS o|--o{ HISTORICO_CHAMADOS : "atendente_novo_id"
-    CHAMADOS ||--o{ HISTORICO_STATUS : "chamado_id"
-    USUARIOS ||--o{ HISTORICO_STATUS : "autor_id"
+    usuarios ||--o{ chamados : "solicitante_id"
+    usuarios o|--o{ chamados : "atendente_id"
+    categorias ||--o{ chamados : "categoria_id"
+    chamados ||--o{ comentarios : "chamado_id"
+    usuarios ||--o{ comentarios : "autor_id"
+    chamados ||--o{ historico_chamados : "chamado_id"
+    usuarios ||--o{ historico_chamados : "autor_id"
+    usuarios o|--o{ historico_chamados : "atendente_anterior_id"
+    usuarios o|--o{ historico_chamados : "atendente_novo_id"
+    chamados ||--o{ historico_status : "chamado_id"
+    usuarios ||--o{ historico_status : "autor_id"
 ```
 
 No bloco Mermaid, `TIMESTAMPTZ` é o nome curto usado para o tipo PostgreSQL `TIMESTAMP WITH TIME ZONE`. Os tamanhos (`VARCHAR_120`, por exemplo) são rótulos visuais para os `VARCHAR(n)`; a definição normativa é o conjunto ordenado das migrations.
@@ -174,3 +175,10 @@ Sem mudanças em entidades ou relacionamentos. `idx_chamados_solicitante_criado_
 ## AC3 — busca e filtros combinados (V8)
 
 Sem alteração de entidades, campos ou relacionamentos. A V8 acrescenta `idx_chamados_criado_id (criado_em DESC, id DESC)` para a nova consulta global do ADMIN, cuja ordenação não dispõe das igualdades iniciais dos índices de solicitante, fila e carteira. Os demais índices de V1/V4/V7 são reutilizados. A busca parcial literal com `lower(...) LIKE '%texto%'` não é acelerada por B-tree de protocolo; nenhum índice redundante ou extensão foi introduzido. Consulte [Busca e filtros AC3](filtros-chamados.md) e `scripts/ac3-filtros-query-plans.sql` para a medição com dados fictícios.
+
+
+## Integridade administrativa e de sessão (V10–V12)
+
+O índice único `uk_categorias_nome_normalizado` reserva nomes de categorias inclusive após desativação. A V11 normaliza espaços Unicode, caixa e equivalência canônica com NFC e `pg_catalog.pg_c_utf8`. A comparação do resultado usa a collation C. O ambiente validado é PostgreSQL 17 com UTF-8. A V12 persiste `usuarios.versao_seguranca` com default zero e a constraint `ck_usuarios_versao_seguranca`. O campo `versao` controla concorrência; o campo de segurança permite invalidar tokens anteriores a uma mudança de perfil ou situação.
+
+A conferência de tabelas, índices, constraints e triggers consta no [relatório final](validacao-final.md).

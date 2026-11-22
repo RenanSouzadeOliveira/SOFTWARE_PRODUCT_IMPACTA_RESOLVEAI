@@ -1,6 +1,14 @@
-# API consolidada — AC2
+# Guia da API e do Swagger
 
-A especificação executável é gerada pelo código em `/v3/api-docs`; a interface fica em `/swagger-ui.html`. O roteiro isolado exporta a especificação para `openapi.json`, junto à evidência técnica da versão executada.
+Com a demonstração em execução, abra `http://127.0.0.1:18595/swagger-ui.html`. No desenvolvimento convencional, use a porta 8080. A interface redireciona para `/swagger-ui/index.html`; o JSON está em `/v3/api-docs`. Para conferir a especificação da instância local:
+
+```bash
+curl -fsS http://127.0.0.1:18595/v3/api-docs | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d["openapi"], len(d["paths"]))'
+```
+
+Na operação `POST /api/auth/login`, use uma conta sintética da sua execução. Copie apenas o `accessToken` para **Authorize → bearerAuth** na sua sessão local. Encerre a autorização ao terminar. A documentação, saúde, login e cadastro são públicos na configuração da aplicação. Os demais endpoints funcionais exigem JWT. A configuração de segurança também permite o Swagger em `prod`; qualquer restrição adicional depende da implantação. Nenhum host público da API foi definido para esta entrega.
+
+O contrato final contempla as consultas, a abertura e o ciclo de vida, os catálogos, a exportação CSV, a administração e o dashboard. Os 27 caminhos e 32 operações HTTP foram observados na especificação gerada da aplicação. O Spring expõe o contrato HTTP; tarefas internas do Flyway e o script local de demonstração são executados fora dessa API.
 
 ## Endpoints disponíveis
 
@@ -25,6 +33,12 @@ A especificação executável é gerada pelo código em `/v3/api-docs`; a interf
 | `PATCH /api/chamados/{id}/status` | Conforme máquina de estados, perfil e participação |
 | `GET /api/chamados/{id}/comentarios` | Participantes/ADMIN: conversa, inclusive fechado |
 | `POST /api/chamados/{id}/comentarios` | Participantes/ADMIN: comentário imutável, exceto fechado |
+| `GET /api/chamados`, `/api/chamados/filtros`, `/api/chamados/exportacao` | Consulta por escopo, opções de filtro e CSV |
+| `GET /api/chamados/{id}/historico` | Eventos de criação, atribuição, status e prioridade conforme visibilidade |
+| `GET /api/dashboard/resumo` | Contagens e distribuições no escopo do perfil |
+| `GET` e `POST /api/admin/usuarios` ou `/api/admin/categorias` | Listar e criar, somente ADMIN |
+| `PATCH /api/admin/usuarios/{id}` ou `/api/admin/categorias/{id}` | Editar cadastro, somente ADMIN |
+| `PATCH /api/admin/usuarios/{id}/situacao` ou `/api/admin/categorias/{id}/situacao` | Ativar ou desativar, preservando histórico |
 
 ## Fluxo e entradas
 

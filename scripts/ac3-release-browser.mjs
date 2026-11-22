@@ -182,7 +182,7 @@ try{
  await ownerPage.screenshot({path:output+'/historico-mobile.png',fullPage:true});
  assert.ok(await ownerPage.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),'360px horizontal overflow');
  await ownerPage.route(`**/api/chamados/${ticket.id}/historico`,route=>route.fulfill({status:503,contentType:'application/json',body:'{"message":"Falha acadêmica temporária"}'}),{times:1});
- await ownerPage.reload();await ownerPage.getByRole('alert').filter({hasText:'Falha acadêmica temporária'}).waitFor();
+ await ownerPage.reload();await ownerPage.getByRole('alert').filter({hasText:'Não foi possível carregar o histórico. Tente novamente.'}).waitFor();
  const retry=ownerPage.getByRole('button',{name:'Tentar carregar histórico novamente'});await retry.focus();await retry.press('Enter');await count(ownerPage,5);
  sql(`UPDATE usuarios SET ativo=false WHERE id=${agent.id}`);
  await ownerPage.reload();await count(ownerPage,5);assert.match(await timeline.textContent(),/Pessoa acadêmica atendente/);
