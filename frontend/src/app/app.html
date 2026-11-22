@@ -1,11 +1,33 @@
 <div class="app-shell">
-  <header class="site-header">
+  <a class="skip-link" href="#conteudo-principal" (click)="pularParaConteudo($event)"
+    >Pular para o conteúdo</a
+  >
+  <header
+    class="site-header"
+    [class.site-header--recolhivel]="!!currentUser()"
+    [class.site-header--aberto]="menuAberto()"
+  >
     <a class="brand" routerLink="/" aria-label="ResolveAí, página inicial">
       <span class="brand__mark" aria-hidden="true">R</span>
       <span>ResolveAí</span>
     </a>
 
-    <nav aria-label="Navegação principal">
+    @if (currentUser()) {
+      <button
+        #botaoMenu
+        type="button"
+        class="menu-toggle"
+        aria-controls="menu-principal"
+        [attr.aria-expanded]="menuAberto()"
+        (click)="alternarMenu()"
+        data-testid="menu-toggle"
+      >
+        <span class="menu-toggle__icon" aria-hidden="true"></span>
+        {{ menuAberto() ? 'Fechar menu' : 'Menu' }}
+      </button>
+    }
+
+    <nav id="menu-principal" aria-label="Navegação principal">
       @if (currentUser(); as user) {
         <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
         @if (user.perfil === 'SOLICITANTE') {
@@ -44,7 +66,7 @@
     </nav>
   </header>
 
-  <main id="conteudo-principal" class="site-main">
+  <main id="conteudo-principal" class="site-main" tabindex="-1">
     <router-outlet />
   </main>
 

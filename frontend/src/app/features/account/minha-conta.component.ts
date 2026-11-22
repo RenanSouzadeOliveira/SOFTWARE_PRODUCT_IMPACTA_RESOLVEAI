@@ -5,6 +5,7 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { AuthService } from '../../core/auth/auth.service';
 import { Usuario } from '../../core/auth/auth.models';
 import { apiErrorMessage } from '../../core/http/api-error';
+import { PERFIL_LABELS } from '../../shared/rotulos';
 
 type AccountState =
   | { readonly kind: 'loading' }
@@ -22,6 +23,7 @@ export class MinhaContaComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
 
+  protected readonly perfilLabels = PERFIL_LABELS;
   protected readonly state = signal<AccountState>({ kind: 'loading' });
   protected readonly saving = signal(false);
   protected readonly saveSucceeded = signal(false);

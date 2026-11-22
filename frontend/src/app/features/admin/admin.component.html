@@ -91,7 +91,7 @@
                 aria-describedby="admin-perfil-hint"
               >
                 @for (perfil of perfis; track perfil) {
-                  <option [value]="perfil">{{ perfil }}</option>
+                  <option [value]="perfil">{{ perfilLabels[perfil] }}</option>
                 }
               </select>
               <p id="admin-perfil-hint" class="field-hint">
@@ -184,7 +184,8 @@
         @if (confirmacao.tipo === 'perfil') {
           <p>
             Alterar o perfil de <strong>{{ confirmacao.registro.nome }}</strong> de
-            {{ confirmacao.registro.perfil }} para <strong>{{ confirmacao.perfil }}</strong
+            {{ perfilLabels[confirmacao.registro.perfil] }} para
+            <strong>{{ perfilLabels[confirmacao.perfil] }}</strong
             >? As permissões de acesso serão alteradas.
           </p>
         } @else {
@@ -250,7 +251,7 @@
             @if (usuarios) {
               <p class="email">{{ email(registro) }}</p>
               <p>
-                Perfil: <strong>{{ perfil(registro) }}</strong>
+                Perfil: <strong>{{ rotulo(perfil(registro) ?? '') }}</strong>
               </p>
             } @else if (descricao(registro)) {
               <p>{{ descricao(registro) }}</p>

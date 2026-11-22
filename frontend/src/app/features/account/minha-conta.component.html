@@ -17,7 +17,7 @@
       @case ('ready') {
         <dl class="account-summary">
           <div><dt>E-mail</dt><dd>{{ currentState.user.email }}</dd></div>
-          <div><dt>Perfil</dt><dd>{{ currentState.user.perfil }}</dd></div>
+          <div><dt>Perfil</dt><dd>{{ perfilLabels[currentState.user.perfil] }}</dd></div>
         </dl>
 
         @if (saveSucceeded()) {

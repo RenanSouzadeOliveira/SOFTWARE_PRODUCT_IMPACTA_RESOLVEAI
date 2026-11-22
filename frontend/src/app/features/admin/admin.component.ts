@@ -23,6 +23,7 @@ import { Perfil, Usuario } from '../../core/auth/auth.models';
 import { AuthService } from '../../core/auth/auth.service';
 import { apiErrorMessage } from '../../core/http/api-error';
 import { utf8MaxBytes } from '../auth/cadastro/cadastro.component';
+import { PERFIL_LABELS, rotulo } from '../../shared/rotulos';
 import { AdminService, CategoriaAdmin } from './admin.service';
 
 type Registro = Usuario | CategoriaAdmin;
@@ -58,6 +59,8 @@ export class AdminComponent {
   protected readonly editando = signal<Registro | null>(null);
   protected readonly confirmacao = signal<Confirmacao | null>(null);
   protected readonly perfis: readonly Perfil[] = ['SOLICITANTE', 'ATENDENTE', 'ADMIN'];
+  protected readonly perfilLabels = PERFIL_LABELS;
+  protected readonly rotulo = rotulo;
   protected readonly form = inject(NonNullableFormBuilder).group({
     nome: ['', [textoObrigatorio, Validators.maxLength(this.usuarios ? 120 : 100)]],
     email: [''],

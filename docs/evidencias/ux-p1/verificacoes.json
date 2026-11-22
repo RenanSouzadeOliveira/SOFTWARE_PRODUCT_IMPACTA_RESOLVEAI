@@ -1,0 +1,69 @@
+{
+ "checks": [
+  {
+   "nome": "Teclado: 1º Tab foca o atalho \"Pular para o conteúdo\" com contorno visível",
+   "ok": true
+  },
+  {
+   "nome": "Login: validação aparece junto aos campos sem requisição",
+   "ok": true
+  },
+  {
+   "nome": "Login: credenciais inválidas mostram mensagem compreensível e preservam o e-mail",
+   "ok": true
+  },
+  {
+   "nome": "Lista 360px: sem rolagem horizontal e status/prioridade com texto",
+   "ok": true
+  },
+  {
+   "nome": "Menu móvel: abre com Enter e fecha com Escape devolvendo o foco",
+   "ok": true
+  },
+  {
+   "nome": "Estado vazio por filtro: mensagem orienta a limpar filtros",
+   "ok": true
+  },
+  {
+   "nome": "Detalhe 360px: sem rolagem horizontal",
+   "ok": true
+  },
+  {
+   "nome": "Novo chamado: dupla ativação gera uma única requisição POST",
+   "ok": true
+  },
+  {
+   "nome": "Fila 360px: sem rolagem horizontal",
+   "ok": true
+  },
+  {
+   "nome": "Assumir: diálogo cancela com Escape e devolve o foco ao botão",
+   "ok": true
+  },
+  {
+   "nome": "Assumir: confirmação dupla gera um único PATCH",
+   "ok": true
+  },
+  {
+   "nome": "Dashboard 360px: sem rolagem horizontal",
+   "ok": true
+  },
+  {
+   "nome": "Admin 360px: sem rolagem horizontal e perfis em pt-BR",
+   "ok": true
+  },
+  {
+   "nome": "Admin: diálogo modal cabe na viewport, prende o foco e cancela com Escape",
+   "ok": true
+  },
+  {
+   "nome": "Categorias 360px: nome longo sem rolagem horizontal",
+   "ok": true
+  },
+  {
+   "nome": "Rota de ADMIN negada para SOLICITANTE (guard mantido)",
+   "ok": true
+  }
+ ],
+ "errosConsole": []
+}

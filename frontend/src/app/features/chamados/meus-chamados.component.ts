@@ -30,21 +30,9 @@ import { ChamadosService } from './chamados.service';
 
 import { FiltrosChamadosComponent } from './filtros-chamados.component';
 import { ConsultaChamados, consultaDaUrl } from './filtros-chamados.model';
+import { PRIORIDADE_LABELS, STATUS_LABELS } from '../../shared/rotulos';
 
 type MeusChamadosState = 'loading' | 'empty' | 'success' | 'error';
-
-const STATUS_LABELS: Readonly<Record<StatusChamado, string>> = {
-  ABERTO: 'Aberto',
-  EM_ATENDIMENTO: 'Em atendimento',
-  RESOLVIDO: 'Resolvido',
-  FECHADO: 'Fechado',
-};
-
-const PRIORIDADE_LABELS: Readonly<Record<Prioridade, string>> = {
-  BAIXA: 'Baixa',
-  MEDIA: 'Média',
-  ALTA: 'Alta',
-};
 
 @Component({
   selector: 'app-meus-chamados',

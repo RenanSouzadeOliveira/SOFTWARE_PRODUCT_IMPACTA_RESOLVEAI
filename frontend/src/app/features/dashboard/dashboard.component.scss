@@ -143,11 +143,6 @@ h2 {
   margin: 0 0 0.75rem;
 }
 
-.feedback button:focus-visible {
-  outline: 3px solid #0756b3;
-  outline-offset: 3px;
-}
-
 @media (max-width: 58rem) {
   .graficos {
     grid-template-columns: repeat(2, minmax(0, 1fr));

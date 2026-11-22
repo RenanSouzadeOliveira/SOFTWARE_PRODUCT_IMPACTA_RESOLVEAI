@@ -33,7 +33,9 @@
               <h1 id="detalhe-chamado-title">{{ item.titulo }}</h1>
               <p class="protocol">{{ item.protocolo }}</p>
             </div>
-            <span class="status-badge">{{ statusLabel(item.status) }}</span>
+            <span class="badge status-badge" [class]="'badge--' + item.status">{{
+              statusLabel(item.status)
+            }}</span>
           </header>
 
           <dl class="detail-meta">
@@ -43,7 +45,11 @@
             </div>
             <div>
               <dt>Prioridade</dt>
-              <dd>{{ prioridadeLabel(item.prioridade) }}</dd>
+              <dd>
+                <span class="badge badge--prioridade" [class]="'badge--' + item.prioridade">{{
+                  prioridadeLabel(item.prioridade)
+                }}</span>
+              </dd>
             </div>
             <div>
               <dt>Aberto em</dt>
@@ -165,7 +171,7 @@
                   >
                     Cancelar
                   </button>
-                  <button type="submit" class="secondary-button" [disabled]="!canSubmit()">
+                  <button type="submit" class="primary-button" [disabled]="!canSubmit()">
                     {{ submitting() ? 'Salvando…' : 'Confirmar alteração' }}
                   </button>
                 </div>

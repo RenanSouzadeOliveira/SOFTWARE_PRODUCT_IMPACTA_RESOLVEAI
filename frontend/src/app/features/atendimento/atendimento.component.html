@@ -112,11 +112,19 @@
                 </div>
                 <div>
                   <dt>Prioridade</dt>
-                  <dd>{{ label(item.prioridade) }}</dd>
+                  <dd>
+                    <span class="badge badge--prioridade" [class]="'badge--' + item.prioridade">{{
+                      label(item.prioridade)
+                    }}</span>
+                  </dd>
                 </div>
                 <div>
                   <dt>Status</dt>
-                  <dd>{{ label(item.status) }}</dd>
+                  <dd>
+                    <span class="badge" [class]="'badge--' + item.status">{{
+                      label(item.status)
+                    }}</span>
+                  </dd>
                 </div>
                 <div>
                   <dt>Aberto em</dt>

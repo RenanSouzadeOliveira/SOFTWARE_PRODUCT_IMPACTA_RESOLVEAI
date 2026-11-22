@@ -101,14 +101,107 @@ nav a.active {
   margin: 0;
 }
 
+.skip-link {
+  background: #12263a;
+  border-radius: 0.5rem;
+  color: #ffffff;
+  font-weight: 700;
+  left: 1rem;
+  padding: 0.6rem 1rem;
+  position: absolute;
+  top: -4rem;
+  z-index: 10;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+.site-main:focus {
+  outline: none;
+}
+
+.menu-toggle {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #9fb3c8;
+  border-radius: 0.5rem;
+  color: #243b53;
+  cursor: pointer;
+  display: none;
+  font-weight: 700;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.85rem;
+}
+
+.menu-toggle__icon,
+.menu-toggle__icon::before,
+.menu-toggle__icon::after {
+  background: currentColor;
+  border-radius: 1px;
+  display: block;
+  height: 2px;
+  width: 1.1rem;
+}
+
+.menu-toggle__icon {
+  position: relative;
+}
+
+.menu-toggle__icon::before,
+.menu-toggle__icon::after {
+  content: '';
+  left: 0;
+  position: absolute;
+}
+
+.menu-toggle__icon::before {
+  top: -0.35rem;
+}
+
+.menu-toggle__icon::after {
+  top: 0.35rem;
+}
+
+/* Telas estreitas: navegação autenticada vira menu recolhível para não empurrar o conteúdo. */
+@media (max-width: 48rem) {
+  .site-header--recolhivel {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .site-header--recolhivel .menu-toggle {
+    display: inline-flex;
+  }
+
+  .site-header--recolhivel nav {
+    align-items: stretch;
+    border-top: 1px solid #dce3ea;
+    display: none;
+    flex-direction: column;
+    padding-top: 0.5rem;
+    width: 100%;
+  }
+
+  .site-header--aberto nav {
+    display: flex;
+  }
+
+  .site-header--recolhivel nav a,
+  .site-header--recolhivel .nav-button {
+    text-align: left;
+  }
+}
+
 @media (max-width: 30rem) {
-  .site-header {
+  .site-header:not(.site-header--recolhivel) {
     align-items: flex-start;
     flex-direction: column;
     min-height: 4rem;
   }
 
-  nav {
+  .site-header:not(.site-header--recolhivel) nav {
     justify-content: flex-start;
     width: 100%;
   }

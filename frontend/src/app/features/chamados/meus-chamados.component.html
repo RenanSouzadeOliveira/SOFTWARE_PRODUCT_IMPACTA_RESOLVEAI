@@ -74,7 +74,9 @@
             >
               <div class="ticket-card__topline">
                 <span class="ticket-protocol">{{ chamado.protocolo }}</span>
-                <span class="ticket-status">{{ statusLabel(chamado.status) }}</span>
+                <span class="badge" [class]="'badge--' + chamado.status">{{
+                  statusLabel(chamado.status)
+                }}</span>
               </div>
               <h2>{{ chamado.titulo }}</h2>
               <dl class="ticket-meta">
@@ -84,7 +86,13 @@
                 </div>
                 <div>
                   <dt>Prioridade</dt>
-                  <dd>{{ prioridadeLabel(chamado.prioridade) }}</dd>
+                  <dd>
+                    <span
+                      class="badge badge--prioridade"
+                      [class]="'badge--' + chamado.prioridade"
+                      >{{ prioridadeLabel(chamado.prioridade) }}</span
+                    >
+                  </dd>
                 </div>
                 <div>
                   <dt>Aberto em</dt>

@@ -35,7 +35,8 @@ describe('MinhaContaComponent', () => {
     fixture.detectChanges();
     const element = fixture.nativeElement as HTMLElement;
     expect(element.textContent).toContain('ana@example.com');
-    expect(element.textContent).toContain('SOLICITANTE');
+    expect(element.textContent).toContain('Solicitante');
+    expect(element.textContent).not.toContain('SOLICITANTE');
     expect(element.querySelector('[formControlName="email"]')).toBeNull();
   });
 

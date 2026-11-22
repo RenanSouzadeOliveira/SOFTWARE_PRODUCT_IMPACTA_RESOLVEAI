@@ -25,6 +25,7 @@ import { apiErrorMessage } from '../../core/http/api-error';
 import { StatusChamado } from './chamado.model';
 import { ComentariosChamado } from './comentarios-chamado.model';
 import { ComentariosChamadoService } from './comentarios-chamado.service';
+import { PERFIL_LABELS } from '../../shared/rotulos';
 
 @Component({
   selector: 'app-comentarios-chamado',
@@ -52,11 +53,7 @@ export class ComentariosChamadoComponent implements OnChanges {
   protected readonly form = inject(NonNullableFormBuilder).group({
     conteudo: ['', trimmedContent],
   });
-  protected readonly roles: Readonly<Record<Perfil, string>> = {
-    SOLICITANTE: 'Solicitante',
-    ATENDENTE: 'Atendente',
-    ADMIN: 'Administrador',
-  };
+  protected readonly roles: Readonly<Record<Perfil, string>> = PERFIL_LABELS;
 
   constructor() {
     this.reload

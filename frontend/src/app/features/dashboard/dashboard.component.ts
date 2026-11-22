@@ -13,17 +13,11 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { AuthService } from '../../core/auth/auth.service';
-import { Prioridade, StatusChamado } from '../chamados/chamado.model';
+import { PRIORIDADE_LABELS, STATUS_LABELS } from '../../shared/rotulos';
 import { DashboardResumo, DashboardService } from './dashboard.service';
 
-const STATUS: Record<StatusChamado, string> = {
-  ABERTO: 'Aberto',
-  EM_ATENDIMENTO: 'Em atendimento',
-  RESOLVIDO: 'Resolvido',
-  FECHADO: 'Fechado',
-};
-
-const PRIORIDADE: Record<Prioridade, string> = { BAIXA: 'Baixa', MEDIA: 'Média', ALTA: 'Alta' };
+const STATUS = STATUS_LABELS;
+const PRIORIDADE = PRIORIDADE_LABELS;
 
 type EstadoDashboard =
   { tipo: 'carregando' } | { tipo: 'erro' } | { tipo: 'pronto'; resumo: DashboardResumo };

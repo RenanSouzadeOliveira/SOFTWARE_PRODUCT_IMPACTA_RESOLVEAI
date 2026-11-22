@@ -109,7 +109,9 @@ describe('AdminComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Carregando usuários');
     list.next([usuario, { ...usuario, id: 1, nome: 'Admin', perfil: 'ADMIN' }]);
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('SOLICITANTE');
+    expect(fixture.nativeElement.textContent).toContain('Perfil: Solicitante');
+    expect(fixture.nativeElement.textContent).toContain('Administrador');
+    expect(fixture.nativeElement.textContent).not.toContain('SOLICITANTE');
     expect(fixture.nativeElement.textContent).toContain('Ativo');
     expect(
       query<HTMLButtonElement>(
@@ -197,7 +199,7 @@ describe('AdminComponent', () => {
     field(fixture, '#admin-perfil', 'ATENDENTE');
     submit(fixture);
     expect(service.editarUsuario).not.toHaveBeenCalled();
-    expect(fixture.nativeElement.textContent).toContain('de SOLICITANTE para ATENDENTE');
+    expect(fixture.nativeElement.textContent).toMatch(/de Solicitante para\s+Atendente/);
     click(fixture, '#admin-cancelar');
     expect(query(fixture, '[data-testid="admin-confirmacao"]')).toBeNull();
     submit(fixture);

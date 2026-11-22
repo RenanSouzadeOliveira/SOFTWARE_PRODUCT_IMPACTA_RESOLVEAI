@@ -33,6 +33,7 @@ import { AtendimentoService } from './atendimento.service';
 
 import { FiltrosChamadosComponent } from '../chamados/filtros-chamados.component';
 import { consultaDaUrl } from '../chamados/filtros-chamados.model';
+import { rotulo } from '../../shared/rotulos';
 
 @Component({
   selector: 'app-atendimento',
@@ -190,19 +191,7 @@ export class AtendimentoComponent implements OnInit {
   }
 
   label(value: string): string {
-    return (
-      (
-        {
-          BAIXA: 'Baixa',
-          MEDIA: 'Média',
-          ALTA: 'Alta',
-          ABERTO: 'Aberto',
-          EM_ATENDIMENTO: 'Em atendimento',
-          RESOLVIDO: 'Resolvido',
-          FECHADO: 'Fechado',
-        } as Record<string, string>
-      )[value] ?? value
-    );
+    return rotulo(value);
   }
 
   private finishAssignment(): void {

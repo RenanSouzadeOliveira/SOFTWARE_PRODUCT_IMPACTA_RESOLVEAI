@@ -37,7 +37,9 @@ a {
 }
 
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
 }
 
@@ -150,6 +152,16 @@ input {
   color: #243b53;
 }
 
+.secondary-button:hover:not(:disabled) {
+  background: #f0f4f8;
+  border-color: #627d98;
+}
+
+.secondary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .alert {
   border-radius: 0.6rem;
   margin: 1rem 0;
@@ -210,8 +222,62 @@ input {
   overflow-wrap: anywhere;
 }
 
+/* Indicadores: status = pílula preenchida; prioridade = contorno com marcador. O texto sempre acompanha a cor. */
+.badge {
+  align-items: center;
+  background: #edf0f3;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: #3e4c59;
+  display: inline-flex;
+  font-size: 0.8rem;
+  font-weight: 700;
+  gap: 0.35rem;
+  line-height: 1.2;
+  padding: 0.3rem 0.65rem;
+  white-space: nowrap;
+}
+
+.badge--ABERTO {
+  background: #e8f1fc;
+  color: #0756b3;
+}
+
+.badge--EM_ATENDIMENTO {
+  background: #fff4e0;
+  color: #8a4b00;
+}
+
+.badge--RESOLVIDO {
+  background: #e3f6ec;
+  color: #126342;
+}
+
+.badge--prioridade {
+  background: #ffffff;
+  border-color: #b8c5d1;
+}
+
+.badge--prioridade::before {
+  background: currentColor;
+  border-radius: 50%;
+  content: '';
+  height: 0.5rem;
+  width: 0.5rem;
+}
+
+.badge--ALTA {
+  border-color: #e8a29b;
+  color: #9b1c1c;
+}
+
+.badge--MEDIA {
+  border-color: #e9b872;
+  color: #8a4b00;
+}
+
 :focus-visible {
-  outline: 3px solid #ffb703;
+  outline: 3px solid #0756b3;
   outline-offset: 3px;
 }
 

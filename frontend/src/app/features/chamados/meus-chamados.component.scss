@@ -145,16 +145,6 @@ h2 {
   overflow-wrap: anywhere;
 }
 
-.ticket-status {
-  background: #e8f1fc;
-  border-radius: 999px;
-  color: #0756b3;
-  font-size: 0.78rem;
-  font-weight: 700;
-  padding: 0.3rem 0.6rem;
-  white-space: nowrap;
-}
-
 .ticket-card h2 {
   margin-bottom: 1rem;
 }
@@ -225,8 +215,4 @@ h2 {
 .secondary-button:disabled {
   cursor: wait;
   opacity: 0.65;
-}
-.secondary-button:focus-visible {
-  outline: 3px solid #0967d2;
-  outline-offset: 3px;
 }

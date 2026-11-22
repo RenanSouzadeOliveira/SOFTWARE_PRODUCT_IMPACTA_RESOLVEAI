@@ -31,21 +31,9 @@ import {
 } from './chamado.model';
 import { ChamadosService } from './chamados.service';
 import { ComentariosChamadoComponent } from './comentarios-chamado.component';
+import { PRIORIDADE_LABELS, STATUS_LABELS } from '../../shared/rotulos';
 
 type DetalheChamadoState = 'loading' | 'success' | 'error';
-
-const STATUS_LABELS: Readonly<Record<StatusChamado, string>> = {
-  ABERTO: 'Aberto',
-  EM_ATENDIMENTO: 'Em atendimento',
-  RESOLVIDO: 'Resolvido',
-  FECHADO: 'Fechado',
-};
-
-const PRIORIDADE_LABELS: Readonly<Record<Prioridade, string>> = {
-  BAIXA: 'Baixa',
-  MEDIA: 'Média',
-  ALTA: 'Alta',
-};
 
 @Component({
   selector: 'app-detalhe-chamado',

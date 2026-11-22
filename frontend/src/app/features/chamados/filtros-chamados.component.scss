@@ -48,7 +48,31 @@ p {
   grid-column: 1 / -1;
   margin: 0;
 }
-:focus-visible {
-  outline: 3px solid #2563eb;
-  outline-offset: 3px;
+.search-field {
+  grid-column: span 2;
+}
+.filter-actions .primary-button {
+  margin-top: 0;
+  width: auto;
+}
+.filter-actions button {
+  flex: 1 1 auto;
+}
+/* Celular: dois filtros por linha para que os resultados apareçam sem rolar uma tela inteira. */
+@media (max-width: 40rem) {
+  .ticket-filters {
+    gap: 0.75rem;
+    grid-template-columns: 1fr 1fr;
+  }
+  .search-field,
+  .filter-actions {
+    grid-column: 1 / -1;
+  }
+  label {
+    font-size: 0.9rem;
+  }
+  input,
+  select {
+    padding: 0.55rem;
+  }
 }

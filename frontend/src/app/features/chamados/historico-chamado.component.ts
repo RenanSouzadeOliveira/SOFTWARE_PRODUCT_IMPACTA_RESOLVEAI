@@ -13,6 +13,7 @@ import { catchError, EMPTY, Subject, switchMap, tap } from 'rxjs';
 import { apiErrorMessage } from '../../core/http/api-error';
 import { ChamadosService } from './chamados.service';
 import { EventoHistorico, TipoEventoHistorico, ValorHistorico } from './historico-chamado.model';
+import { PRIORIDADE_LABELS, STATUS_LABELS } from '../../shared/rotulos';
 
 @Component({
   selector: 'app-historico-chamado',
@@ -37,13 +38,8 @@ export class HistoricoChamadoComponent implements OnChanges {
     ATRIBUICAO: 'Responsável alterado',
   };
   private readonly values: Readonly<Record<string, string>> = {
-    ABERTO: 'Aberto',
-    EM_ATENDIMENTO: 'Em atendimento',
-    RESOLVIDO: 'Resolvido',
-    FECHADO: 'Fechado',
-    BAIXA: 'Baixa',
-    MEDIA: 'Média',
-    ALTA: 'Alta',
+    ...STATUS_LABELS,
+    ...PRIORIDADE_LABELS,
   };
 
   constructor() {

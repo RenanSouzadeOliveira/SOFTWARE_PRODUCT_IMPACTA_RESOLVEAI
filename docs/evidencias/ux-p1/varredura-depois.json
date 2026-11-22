@@ -1,0 +1,1005 @@
+{
+ "relatorio": [
+  {
+   "perfil": "publico",
+   "rota": "/",
+   "viewport": "360x800",
+   "final": "/",
+   "scrollWidth": 360,
+   "largura": 360,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "publico",
+   "rota": "/",
+   "viewport": "390x844",
+   "final": "/",
+   "scrollWidth": 390,
+   "largura": 390,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "publico",
+   "rota": "/",
+   "viewport": "768x1024",
+   "final": "/",
+   "scrollWidth": 768,
+   "largura": 768,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "publico",
+   "rota": "/",
+   "viewport": "1024x768",
+   "final": "/",
+   "scrollWidth": 1024,
+   "largura": 1024,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "publico",
+   "rota": "/",
+   "viewport": "1440x900",
+   "final": "/",
+   "scrollWidth": 1440,
+   "largura": 1440,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "publico",
+   "rota": "/login",
+   "viewport": "360x800",
+   "final": "/login",
+   "scrollWidth": 360,
+   "largura": 360,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "publico",
+   "rota": "/login",
+   "viewport": "390x844",
+   "final": "/login",
+   "scrollWidth": 390,
+   "largura": 390,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "publico",
+   "rota": "/login",
+   "viewport": "768x1024",
+   "final": "/login",
+   "scrollWidth": 768,
+   "largura": 768,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "publico",
+   "rota": "/login",
+   "viewport": "1024x768",
+   "final": "/login",
+   "scrollWidth": 1024,
+   "largura": 1024,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "publico",
+   "rota": "/login",
+   "viewport": "1440x900",
+   "final": "/login",
+   "scrollWidth": 1440,
+   "largura": 1440,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "publico",
+   "rota": "/cadastro",
+   "viewport": "360x800",
+   "final": "/cadastro",
+   "scrollWidth": 360,
+   "largura": 360,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "publico",
+   "rota": "/cadastro",
+   "viewport": "390x844",
+   "final": "/cadastro",
+   "scrollWidth": 390,
+   "largura": 390,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "publico",
+   "rota": "/cadastro",
+   "viewport": "768x1024",
+   "final": "/cadastro",
+   "scrollWidth": 768,
+   "largura": 768,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "publico",
+   "rota": "/cadastro",
+   "viewport": "1024x768",
+   "final": "/cadastro",
+   "scrollWidth": 1024,
+   "largura": 1024,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "publico",
+   "rota": "/cadastro",
+   "viewport": "1440x900",
+   "final": "/cadastro",
+   "scrollWidth": 1440,
+   "largura": 1440,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "publico",
+   "rota": "/rota-inexistente",
+   "viewport": "360x800",
+   "final": "/rota-inexistente",
+   "scrollWidth": 360,
+   "largura": 360,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "publico",
+   "rota": "/rota-inexistente",
+   "viewport": "390x844",
+   "final": "/rota-inexistente",
+   "scrollWidth": 390,
+   "largura": 390,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "publico",
+   "rota": "/rota-inexistente",
+   "viewport": "768x1024",
+   "final": "/rota-inexistente",
+   "scrollWidth": 768,
+   "largura": 768,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "publico",
+   "rota": "/rota-inexistente",
+   "viewport": "1024x768",
+   "final": "/rota-inexistente",
+   "scrollWidth": 1024,
+   "largura": 1024,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "publico",
+   "rota": "/rota-inexistente",
+   "viewport": "1440x900",
+   "final": "/rota-inexistente",
+   "scrollWidth": 1440,
+   "largura": 1440,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/chamados",
+   "viewport": "360x800",
+   "final": "/chamados",
+   "scrollWidth": 360,
+   "largura": 360,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/chamados",
+   "viewport": "390x844",
+   "final": "/chamados",
+   "scrollWidth": 390,
+   "largura": 390,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/chamados",
+   "viewport": "768x1024",
+   "final": "/chamados",
+   "scrollWidth": 768,
+   "largura": 768,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/chamados",
+   "viewport": "1024x768",
+   "final": "/chamados",
+   "scrollWidth": 1024,
+   "largura": 1024,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/chamados",
+   "viewport": "1440x900",
+   "final": "/chamados",
+   "scrollWidth": 1440,
+   "largura": 1440,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/chamados/novo",
+   "viewport": "360x800",
+   "final": "/chamados/novo",
+   "scrollWidth": 360,
+   "largura": 360,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/chamados/novo",
+   "viewport": "390x844",
+   "final": "/chamados/novo",
+   "scrollWidth": 390,
+   "largura": 390,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/chamados/novo",
+   "viewport": "768x1024",
+   "final": "/chamados/novo",
+   "scrollWidth": 768,
+   "largura": 768,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/chamados/novo",
+   "viewport": "1024x768",
+   "final": "/chamados/novo",
+   "scrollWidth": 1024,
+   "largura": 1024,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/chamados/novo",
+   "viewport": "1440x900",
+   "final": "/chamados/novo",
+   "scrollWidth": 1440,
+   "largura": 1440,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/chamados/1",
+   "viewport": "360x800",
+   "final": "/chamados/1",
+   "scrollWidth": 360,
+   "largura": 360,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/chamados/1",
+   "viewport": "390x844",
+   "final": "/chamados/1",
+   "scrollWidth": 390,
+   "largura": 390,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/chamados/1",
+   "viewport": "768x1024",
+   "final": "/chamados/1",
+   "scrollWidth": 768,
+   "largura": 768,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/chamados/1",
+   "viewport": "1024x768",
+   "final": "/chamados/1",
+   "scrollWidth": 1024,
+   "largura": 1024,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/chamados/1",
+   "viewport": "1440x900",
+   "final": "/chamados/1",
+   "scrollWidth": 1440,
+   "largura": 1440,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/dashboard",
+   "viewport": "360x800",
+   "final": "/dashboard",
+   "scrollWidth": 360,
+   "largura": 360,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/dashboard",
+   "viewport": "390x844",
+   "final": "/dashboard",
+   "scrollWidth": 390,
+   "largura": 390,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/dashboard",
+   "viewport": "768x1024",
+   "final": "/dashboard",
+   "scrollWidth": 768,
+   "largura": 768,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/dashboard",
+   "viewport": "1024x768",
+   "final": "/dashboard",
+   "scrollWidth": 1024,
+   "largura": 1024,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/dashboard",
+   "viewport": "1440x900",
+   "final": "/dashboard",
+   "scrollWidth": 1440,
+   "largura": 1440,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/minha-conta",
+   "viewport": "360x800",
+   "final": "/minha-conta",
+   "scrollWidth": 360,
+   "largura": 360,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/minha-conta",
+   "viewport": "390x844",
+   "final": "/minha-conta",
+   "scrollWidth": 390,
+   "largura": 390,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/minha-conta",
+   "viewport": "768x1024",
+   "final": "/minha-conta",
+   "scrollWidth": 768,
+   "largura": 768,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/minha-conta",
+   "viewport": "1024x768",
+   "final": "/minha-conta",
+   "scrollWidth": 1024,
+   "largura": 1024,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/minha-conta",
+   "viewport": "1440x900",
+   "final": "/minha-conta",
+   "scrollWidth": 1440,
+   "largura": 1440,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/acesso-negado",
+   "viewport": "360x800",
+   "final": "/acesso-negado",
+   "scrollWidth": 360,
+   "largura": 360,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/acesso-negado",
+   "viewport": "390x844",
+   "final": "/acesso-negado",
+   "scrollWidth": 390,
+   "largura": 390,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/acesso-negado",
+   "viewport": "768x1024",
+   "final": "/acesso-negado",
+   "scrollWidth": 768,
+   "largura": 768,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/acesso-negado",
+   "viewport": "1024x768",
+   "final": "/acesso-negado",
+   "scrollWidth": 1024,
+   "largura": 1024,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "solicitante",
+   "rota": "/acesso-negado",
+   "viewport": "1440x900",
+   "final": "/acesso-negado",
+   "scrollWidth": 1440,
+   "largura": 1440,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "atendente",
+   "rota": "/atendimento",
+   "viewport": "360x800",
+   "final": "/atendimento",
+   "scrollWidth": 360,
+   "largura": 360,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "atendente",
+   "rota": "/atendimento",
+   "viewport": "390x844",
+   "final": "/atendimento",
+   "scrollWidth": 390,
+   "largura": 390,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "atendente",
+   "rota": "/atendimento",
+   "viewport": "768x1024",
+   "final": "/atendimento",
+   "scrollWidth": 768,
+   "largura": 768,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "atendente",
+   "rota": "/atendimento",
+   "viewport": "1024x768",
+   "final": "/atendimento",
+   "scrollWidth": 1024,
+   "largura": 1024,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "atendente",
+   "rota": "/atendimento",
+   "viewport": "1440x900",
+   "final": "/atendimento",
+   "scrollWidth": 1440,
+   "largura": 1440,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "atendente",
+   "rota": "/atendimento/me",
+   "viewport": "360x800",
+   "final": "/atendimento/me",
+   "scrollWidth": 360,
+   "largura": 360,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "atendente",
+   "rota": "/atendimento/me",
+   "viewport": "390x844",
+   "final": "/atendimento/me",
+   "scrollWidth": 390,
+   "largura": 390,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "atendente",
+   "rota": "/atendimento/me",
+   "viewport": "768x1024",
+   "final": "/atendimento/me",
+   "scrollWidth": 768,
+   "largura": 768,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "atendente",
+   "rota": "/atendimento/me",
+   "viewport": "1024x768",
+   "final": "/atendimento/me",
+   "scrollWidth": 1024,
+   "largura": 1024,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "atendente",
+   "rota": "/atendimento/me",
+   "viewport": "1440x900",
+   "final": "/atendimento/me",
+   "scrollWidth": 1440,
+   "largura": 1440,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "atendente",
+   "rota": "/atendimento/chamados/1",
+   "viewport": "360x800",
+   "final": "/atendimento/chamados/1",
+   "scrollWidth": 360,
+   "largura": 360,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "atendente",
+   "rota": "/atendimento/chamados/1",
+   "viewport": "390x844",
+   "final": "/atendimento/chamados/1",
+   "scrollWidth": 390,
+   "largura": 390,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "atendente",
+   "rota": "/atendimento/chamados/1",
+   "viewport": "768x1024",
+   "final": "/atendimento/chamados/1",
+   "scrollWidth": 768,
+   "largura": 768,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "atendente",
+   "rota": "/atendimento/chamados/1",
+   "viewport": "1024x768",
+   "final": "/atendimento/chamados/1",
+   "scrollWidth": 1024,
+   "largura": 1024,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "atendente",
+   "rota": "/atendimento/chamados/1",
+   "viewport": "1440x900",
+   "final": "/atendimento/chamados/1",
+   "scrollWidth": 1440,
+   "largura": 1440,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "atendente",
+   "rota": "/dashboard",
+   "viewport": "360x800",
+   "final": "/dashboard",
+   "scrollWidth": 360,
+   "largura": 360,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "atendente",
+   "rota": "/dashboard",
+   "viewport": "390x844",
+   "final": "/dashboard",
+   "scrollWidth": 390,
+   "largura": 390,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "atendente",
+   "rota": "/dashboard",
+   "viewport": "768x1024",
+   "final": "/dashboard",
+   "scrollWidth": 768,
+   "largura": 768,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "atendente",
+   "rota": "/dashboard",
+   "viewport": "1024x768",
+   "final": "/dashboard",
+   "scrollWidth": 1024,
+   "largura": 1024,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "atendente",
+   "rota": "/dashboard",
+   "viewport": "1440x900",
+   "final": "/dashboard",
+   "scrollWidth": 1440,
+   "largura": 1440,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/dashboard",
+   "viewport": "360x800",
+   "final": "/dashboard",
+   "scrollWidth": 360,
+   "largura": 360,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/dashboard",
+   "viewport": "390x844",
+   "final": "/dashboard",
+   "scrollWidth": 390,
+   "largura": 390,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/dashboard",
+   "viewport": "768x1024",
+   "final": "/dashboard",
+   "scrollWidth": 768,
+   "largura": 768,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/dashboard",
+   "viewport": "1024x768",
+   "final": "/dashboard",
+   "scrollWidth": 1024,
+   "largura": 1024,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/dashboard",
+   "viewport": "1440x900",
+   "final": "/dashboard",
+   "scrollWidth": 1440,
+   "largura": 1440,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/atendimento/todos",
+   "viewport": "360x800",
+   "final": "/atendimento/todos",
+   "scrollWidth": 360,
+   "largura": 360,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/atendimento/todos",
+   "viewport": "390x844",
+   "final": "/atendimento/todos",
+   "scrollWidth": 390,
+   "largura": 390,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/atendimento/todos",
+   "viewport": "768x1024",
+   "final": "/atendimento/todos",
+   "scrollWidth": 768,
+   "largura": 768,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/atendimento/todos",
+   "viewport": "1024x768",
+   "final": "/atendimento/todos",
+   "scrollWidth": 1024,
+   "largura": 1024,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/atendimento/todos",
+   "viewport": "1440x900",
+   "final": "/atendimento/todos",
+   "scrollWidth": 1440,
+   "largura": 1440,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/consulta-chamados",
+   "viewport": "360x800",
+   "final": "/consulta-chamados",
+   "scrollWidth": 360,
+   "largura": 360,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/consulta-chamados",
+   "viewport": "390x844",
+   "final": "/consulta-chamados",
+   "scrollWidth": 390,
+   "largura": 390,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/consulta-chamados",
+   "viewport": "768x1024",
+   "final": "/consulta-chamados",
+   "scrollWidth": 768,
+   "largura": 768,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/consulta-chamados",
+   "viewport": "1024x768",
+   "final": "/consulta-chamados",
+   "scrollWidth": 1024,
+   "largura": 1024,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/consulta-chamados",
+   "viewport": "1440x900",
+   "final": "/consulta-chamados",
+   "scrollWidth": 1440,
+   "largura": 1440,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/admin/usuarios",
+   "viewport": "360x800",
+   "final": "/admin/usuarios",
+   "scrollWidth": 360,
+   "largura": 360,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/admin/usuarios",
+   "viewport": "390x844",
+   "final": "/admin/usuarios",
+   "scrollWidth": 390,
+   "largura": 390,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/admin/usuarios",
+   "viewport": "768x1024",
+   "final": "/admin/usuarios",
+   "scrollWidth": 768,
+   "largura": 768,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/admin/usuarios",
+   "viewport": "1024x768",
+   "final": "/admin/usuarios",
+   "scrollWidth": 1024,
+   "largura": 1024,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/admin/usuarios",
+   "viewport": "1440x900",
+   "final": "/admin/usuarios",
+   "scrollWidth": 1440,
+   "largura": 1440,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/admin/categorias",
+   "viewport": "360x800",
+   "final": "/admin/categorias",
+   "scrollWidth": 360,
+   "largura": 360,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/admin/categorias",
+   "viewport": "390x844",
+   "final": "/admin/categorias",
+   "scrollWidth": 390,
+   "largura": 390,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/admin/categorias",
+   "viewport": "768x1024",
+   "final": "/admin/categorias",
+   "scrollWidth": 768,
+   "largura": 768,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/admin/categorias",
+   "viewport": "1024x768",
+   "final": "/admin/categorias",
+   "scrollWidth": 1024,
+   "largura": 1024,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/admin/categorias",
+   "viewport": "1440x900",
+   "final": "/admin/categorias",
+   "scrollWidth": 1440,
+   "largura": 1440,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/atendimento/todos/1",
+   "viewport": "360x800",
+   "final": "/atendimento/todos/1",
+   "scrollWidth": 360,
+   "largura": 360,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/atendimento/todos/1",
+   "viewport": "390x844",
+   "final": "/atendimento/todos/1",
+   "scrollWidth": 390,
+   "largura": 390,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/atendimento/todos/1",
+   "viewport": "768x1024",
+   "final": "/atendimento/todos/1",
+   "scrollWidth": 768,
+   "largura": 768,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/atendimento/todos/1",
+   "viewport": "1024x768",
+   "final": "/atendimento/todos/1",
+   "scrollWidth": 1024,
+   "largura": 1024,
+   "rolagemHorizontal": false,
+   "fora": []
+  },
+  {
+   "perfil": "admin",
+   "rota": "/atendimento/todos/1",
+   "viewport": "1440x900",
+   "final": "/atendimento/todos/1",
+   "scrollWidth": 1440,
+   "largura": 1440,
+   "rolagemHorizontal": false,
+   "fora": []
+  }
+ ],
+ "errosConsole": []
+}

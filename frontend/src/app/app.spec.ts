@@ -118,4 +118,88 @@ describe('App', () => {
       ),
     ).not.toBeNull();
   });
+
+  function autenticar(perfil: 'SOLICITANTE' | 'ATENDENTE' | 'ADMIN') {
+    Object.defineProperty(TestBed.inject(AuthService), 'currentUser', {
+      value: signal({
+        id: 1,
+        nome: 'Ana',
+        email: 'ana@example.com',
+        perfil,
+        ativo: true,
+        versao: 0,
+      }),
+    });
+  }
+
+  it('não exibe o botão de menu para visitantes', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('[data-testid="menu-toggle"]'),
+    ).toBeNull();
+  });
+
+  it('abre e fecha o menu recolhível pelo botão e pelo Escape, devolvendo o foco', () => {
+    autenticar('ADMIN');
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    const toggle = element.querySelector<HTMLButtonElement>('[data-testid="menu-toggle"]')!;
+
+    expect(toggle.getAttribute('aria-controls')).toBe('menu-principal');
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    toggle.click();
+    fixture.detectChanges();
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(toggle.textContent).toContain('Fechar menu');
+    expect(element.querySelector('header')?.classList).toContain('site-header--aberto');
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(document.activeElement).toBe(toggle);
+  });
+
+  it('fecha o menu após navegar', async () => {
+    autenticar('SOLICITANTE');
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const toggle = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
+      '[data-testid="menu-toggle"]',
+    )!;
+    toggle.click();
+    fixture.detectChanges();
+
+    await TestBed.inject(Router).navigateByUrl('/');
+    fixture.detectChanges();
+
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('mantém os itens administrativos somente para ADMIN', () => {
+    autenticar('ATENDENTE');
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.querySelector('a[routerLink="/atendimento"]')).not.toBeNull();
+    expect(element.querySelector('a[routerLink="/admin/usuarios"]')).toBeNull();
+    expect(element.querySelector('a[routerLink="/chamados/novo"]')).toBeNull();
+  });
+
+  it('o atalho de acessibilidade move o foco para o conteúdo sem navegar', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    document.body.appendChild(element);
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl');
+
+    element.querySelector<HTMLAnchorElement>('.skip-link')!.click();
+
+    expect(document.activeElement?.id).toBe('conteudo-principal');
+    expect(navigate).not.toHaveBeenCalled();
+    element.remove();
+  });
 });
