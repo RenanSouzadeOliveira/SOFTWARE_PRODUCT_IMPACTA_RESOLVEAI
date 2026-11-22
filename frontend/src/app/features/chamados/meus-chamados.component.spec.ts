@@ -13,21 +13,25 @@ import { MeusChamadosComponent } from './meus-chamados.component';
 describe('MeusChamadosComponent', () => {
   const responses: Subject<Pagina<ChamadoResumo>>[] = [];
   const exports: Subject<Blob>[] = [];
+  const requisitarPagina = () => {
+    const response = new Subject<Pagina<ChamadoResumo>>();
+    responses.push(response);
+    return response.asObservable();
+  };
   const chamadosService = {
     exportarCsv: vi.fn(() => {
       const result = new Subject<Blob>();
       exports.push(result);
       return result.asObservable();
     }),
-    listarMeus: vi.fn(() => {
-      const response = new Subject<Pagina<ChamadoResumo>>();
-      responses.push(response);
-      return response.asObservable();
-    }),
+    listarMeus: vi.fn(requisitarPagina),
+    listar: vi.fn(requisitarPagina),
   };
 
   let params: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
+  let global: boolean;
   beforeEach(async () => {
+    global = false;
     params = new BehaviorSubject(convertToParamMap({}));
     responses.length = 0;
     exports.length = 0;
@@ -40,7 +44,13 @@ describe('MeusChamadosComponent', () => {
           provide: FiltrosChamadosService,
           useValue: { listar: () => of({ categorias: [], responsaveis: [] }) },
         },
-        { provide: ActivatedRoute, useValue: { queryParamMap: params } },
+        {
+          provide: ActivatedRoute,
+          useFactory: () => ({
+            snapshot: { data: { global } },
+            queryParamMap: params,
+          }),
+        },
         { provide: ChamadosService, useValue: chamadosService },
       ],
     }).compileComponents();
@@ -172,7 +182,7 @@ describe('MeusChamadosComponent', () => {
     expect(element.querySelector('a[href="/chamados/10"]')).not.toBeNull();
   });
 
-  it('mostra estado vazio e atalho para abertura', () => {
+  it('distingue a lista vazia dos filtros sem resultados e oferece o atalho para abertura', () => {
     const fixture = TestBed.createComponent(MeusChamadosComponent);
     fixture.detectChanges();
     responses[0].next(page([]));
@@ -180,32 +190,62 @@ describe('MeusChamadosComponent', () => {
     fixture.detectChanges();
 
     const element = fixture.nativeElement as HTMLElement;
-    expect(element.querySelector('[data-testid="chamados-empty"]')).not.toBeNull();
-    expect(element.querySelector('a[href="/chamados/novo"]')).not.toBeNull();
+    const vazio = () => element.querySelector('[data-testid="chamados-empty"]');
+    expect(vazio()?.textContent).toContain('Você ainda não registrou chamados.');
+    expect(vazio()?.querySelector('a[href="/chamados/novo"]')?.textContent).toBe('Abrir chamado');
+
+    params.next(convertToParamMap({ search: 'acesso' }));
+    responses[1].next(page([]));
+    fixture.detectChanges();
+
+    expect(vazio()?.textContent).toContain('Nenhum chamado corresponde aos filtros aplicados.');
+    expect(vazio()?.querySelector('a[href="/chamados/novo"]')?.textContent).toBe('Abrir chamado');
   });
 
-  it('mostra erro e permite tentar novamente', () => {
-    const first = new Subject<Pagina<ChamadoResumo>>();
-    const second = new Subject<Pagina<ChamadoResumo>>();
-    chamadosService.listarMeus.mockReturnValueOnce(first).mockReturnValueOnce(second);
-    const fixture = TestBed.createComponent(MeusChamadosComponent);
-    fixture.detectChanges();
+  it.each([false, true])(
+    'só mostra o paginador com resultado carregado na consulta (global: %s)',
+    (consultaGlobal) => {
+      global = consultaGlobal;
+      const fixture = TestBed.createComponent(MeusChamadosComponent);
+      fixture.detectChanges();
+      const element = fixture.nativeElement as HTMLElement;
+      const paginacao = () => element.querySelector('nav[aria-label="Paginação de chamados"]');
 
-    first.error(new Error('indisponível'));
-    fixture.detectChanges();
-    expect(
-      (fixture.nativeElement as HTMLElement).querySelector('[data-testid="chamados-error"]'),
-    ).not.toBeNull();
+      expect(element.querySelector('[data-testid="chamados-loading"]')).not.toBeNull();
+      expect(paginacao()).toBeNull();
 
-    (fixture.nativeElement as HTMLElement)
-      .querySelector<HTMLButtonElement>('[data-testid="chamados-error"] .secondary-button')
-      ?.click();
-    expect(chamadosService.listarMeus).toHaveBeenCalledTimes(2);
-    second.next(page([ticket]));
-    second.complete();
-    fixture.detectChanges();
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('RA-2026-0001');
-  });
+      responses[0].next({
+        ...page([ticket]),
+        totalElements: 21,
+        totalPages: 2,
+      });
+      fixture.detectChanges();
+      expect(paginacao()?.textContent).toContain('21 chamado(s) · Página 1 de 2');
+
+      params.next(convertToParamMap({ search: 'acesso' }));
+      fixture.detectChanges();
+      const listar = global ? chamadosService.listar : chamadosService.listarMeus;
+      expect(listar).toHaveBeenLastCalledWith(expect.objectContaining({ search: 'acesso' }));
+      expect(paginacao()).toBeNull();
+
+      responses[1].error(new Error('indisponível'));
+      fixture.detectChanges();
+      const erro = element.querySelector('[data-testid="chamados-error"]');
+      expect(erro).not.toBeNull();
+      expect(paginacao()).toBeNull();
+
+      erro?.querySelector('button')?.click();
+      fixture.detectChanges();
+      expect(paginacao()).toBeNull();
+      expect(listar).toHaveBeenCalledTimes(3);
+
+      responses[2].next(page([ticket]));
+      fixture.detectChanges();
+      expect(element.textContent).toContain('RA-2026-0001');
+      expect(paginacao()?.textContent).toContain('1 chamado(s) · Página 1 de 1');
+    },
+  );
+
   it('restaura URL, cancela resposta antiga e navega com a ordenação e tamanho ativos', () => {
     params.next(convertToParamMap({ page: '1', size: '20', sort: 'titulo,asc' }));
     const fixture = TestBed.createComponent(MeusChamadosComponent);

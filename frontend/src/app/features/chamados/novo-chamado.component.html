@@ -5,10 +5,17 @@
     <p class="form-intro">Descreva o que aconteceu para que nossa equipe possa ajudar.</p>
 
     @if (createdTicket(); as chamado) {
-      <div class="success-panel" role="status" data-testid="chamado-success" tabindex="-1">
+      <div class="success-panel" role="status" aria-live="off" data-testid="chamado-success">
         <p class="success-panel__eyebrow">Chamado registrado</p>
-        <h2>Recebemos sua solicitação</h2>
-        <p>
+        <h2
+          #successHeading
+          id="chamado-success-title"
+          tabindex="-1"
+          aria-describedby="chamado-success-description"
+        >
+          Recebemos sua solicitação
+        </h2>
+        <p id="chamado-success-description">
           Anote o protocolo
           <strong data-testid="chamado-protocolo">{{ chamado.protocolo }}</strong>
           para acompanhar o atendimento.

@@ -1,0 +1,21 @@
+{
+ "controleNegativo": "9e1e681",
+ "checks": [
+  {
+   "nome": "Assumir: Escape restaura foco ao acionador",
+   "ok": false,
+   "erro": "Foco após o cancelamento: {\"mesmoElemento\":false,\"ativo\":\"BODY\",\"conectado\":true,\"habilitado\":true}"
+  },
+  {
+   "nome": "Assumir: Cancelar restaura foco ao acionador",
+   "ok": false,
+   "erro": "Foco após o cancelamento: {\"mesmoElemento\":false,\"ativo\":\"BODY\",\"conectado\":true,\"habilitado\":true}"
+  },
+  {
+   "nome": "Estado vazio por filtro: sem overflow em 320 × 640",
+   "ok": false,
+   "erro": "{\"scrollWidth\":340,\"largura\":320,\"rolagemHorizontal\":true,\"fora\":[\"header.site-header\",\"button.menu-toggle\",\"main.site-main\",\"app-meus-chamados\",\"section.tickets-page\",\"header.tickets-header\",\"div\",\"p.eyebrow\"],\"cta\":{\"seletor\":\"[data-testid=chamados-empty] a\",\"left\":37,\"right\":302.71875,\"height\":48.375,\"texto\":\"Abrir meu primeiro chamado\",\"scrollWidthAoPermitirQuebra\":320}}\n\n340 !== 320\n"
+  }
+ ],
+ "errosConsole": []
+}

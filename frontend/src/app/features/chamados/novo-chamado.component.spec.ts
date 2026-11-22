@@ -137,7 +137,7 @@ describe('NovoChamadoComponent', () => {
     expect(element.querySelector<HTMLButtonElement>('button[type="submit"]')?.disabled).toBe(false);
   });
 
-  it('mostra o protocolo no sucesso e permite abrir outro chamado', () => {
+  it('foca a confirmação com o protocolo e permite abrir outro chamado', async () => {
     const fixture = createFixture();
     completeCategories();
     fixture.detectChanges();
@@ -152,12 +152,16 @@ describe('NovoChamadoComponent', () => {
 
     const result = new Subject<Chamado>();
     chamados.criar.mockReturnValue(result);
-    submit(fixture.nativeElement as HTMLElement);
+    const element = fixture.nativeElement as HTMLElement;
+    element.querySelector<HTMLButtonElement>('button[type="submit"]')!.focus();
+    submit(element);
+    submit(element);
+    expect(chamados.criar).toHaveBeenCalledOnce();
     result.next(createdTicket);
     result.complete();
-    fixture.detectChanges();
+    await fixture.whenStable();
 
-    const element = fixture.nativeElement as HTMLElement;
+    expect(document.activeElement).toBe(element.querySelector('#chamado-success-title'));
     expect(element.querySelector('[data-testid="chamado-protocolo"]')?.textContent).toContain(
       'RA-2026-0001',
     );

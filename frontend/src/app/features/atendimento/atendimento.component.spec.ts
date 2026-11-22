@@ -173,16 +173,30 @@ describe('AtendimentoComponent', () => {
     expect(service.listarCategorias).toHaveBeenCalledOnce();
   });
 
-  it('exibe carregamento, vazio e erro recuperável', () => {
+  it('só mostra o paginador da fila com resultado carregado e preserva o estado vazio', () => {
     const fixture = render();
-    expect(fixture.nativeElement.textContent).toContain('Carregando chamados');
-    responses[0].error(new Error('offline'));
+    const element = fixture.nativeElement as HTMLElement;
+    const paginacao = () => element.querySelector('nav[aria-label="Paginação de chamados"]');
+
+    expect(element.textContent).toContain('Carregando chamados');
+    expect(paginacao()).toBeNull();
+    responses[0].next(page());
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Não foi possível carregar');
+    expect(paginacao()?.textContent).toContain('11 chamado(s) · Página 1 de 2');
+
     fixture.componentInstance.refresh();
-    responses[1].next(page([]));
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Nenhum chamado disponível');
+    expect(paginacao()).toBeNull();
+    responses[1].error(new Error('offline'));
+    fixture.detectChanges();
+    expect(element.textContent).toContain('Não foi possível carregar');
+    expect(paginacao()).toBeNull();
+
+    fixture.componentInstance.refresh();
+    responses[2].next(page([]));
+    fixture.detectChanges();
+    expect(element.textContent).toContain('Nenhum chamado disponível');
+    expect(paginacao()?.textContent).toContain('0 chamado(s) · Página 1 de 1');
   });
 
   it('restaura filtros da URL e cancela respostas obsoletas', () => {
@@ -250,6 +264,52 @@ describe('AtendimentoComponent', () => {
     expect(fixture.nativeElement.querySelector('.notice a').getAttribute('href')).toBe(
       '/atendimento/me',
     );
+  });
+
+  it.each(['Escape', 'Cancelar'])('restaura o foco ao cancelar por %s', async (action) => {
+    const fixture = render();
+    responses[0].next(page());
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    const trigger = element.querySelector<HTMLButtonElement>('article button')!;
+    trigger.focus();
+    trigger.click();
+    await fixture.whenStable();
+
+    const cancel = element.querySelector<HTMLButtonElement>('#cancel-assignment')!;
+    expect(trigger.disabled).toBe(true);
+    expect(document.activeElement).toBe(cancel);
+    if (action === 'Escape') {
+      cancel.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    } else {
+      cancel.click();
+    }
+    await fixture.whenStable();
+
+    expect(element.querySelector('[role="dialog"]')).toBeNull();
+    expect(trigger.isConnected).toBe(true);
+    expect(trigger.disabled).toBe(false);
+    expect(document.activeElement).toBe(trigger);
+    expect(service.assumir).not.toHaveBeenCalled();
+  });
+
+  it('foca o título da fila se o botão de atribuição saiu da lista', async () => {
+    const fixture = render();
+    responses[0].next(page());
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    const trigger = element.querySelector<HTMLButtonElement>('article button')!;
+    trigger.click();
+    await fixture.whenStable();
+
+    fixture.componentInstance.refresh();
+    responses[1].next(page([]));
+    await fixture.whenStable();
+    expect(trigger.isConnected).toBe(false);
+
+    element.querySelector<HTMLButtonElement>('#cancel-assignment')!.click();
+    await fixture.whenStable();
+    expect(document.activeElement).toBe(element.querySelector('#atendimento-title'));
   });
 
   it.each([409, 404])('explica conflito (%i) e atualiza a fila', (status) => {

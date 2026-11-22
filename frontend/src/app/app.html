@@ -29,39 +29,92 @@
 
     <nav id="menu-principal" aria-label="Navegação principal">
       @if (currentUser(); as user) {
-        <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+        <a
+          routerLink="/dashboard"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="correspondenciaExata"
+          ariaCurrentWhenActive="page"
+          >Dashboard</a
+        >
         @if (user.perfil === 'SOLICITANTE') {
-          <a routerLink="/chamados" routerLinkActive="active">Meus chamados</a>
-          <a routerLink="/chamados/novo" routerLinkActive="active">Abrir chamado</a>
+          <a
+            routerLink="/chamados"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="
+              abrirChamadoAtivo() ? correspondenciaExata : correspondenciaSecao
+            "
+            ariaCurrentWhenActive="page"
+            >Meus chamados</a
+          >
+          <a
+            routerLink="/chamados/novo"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="correspondenciaExata"
+            ariaCurrentWhenActive="page"
+            >Abrir chamado</a
+          >
         }
         @if (user.perfil === 'ATENDENTE' || user.perfil === 'ADMIN') {
           <a
             routerLink="/atendimento"
             routerLinkActive="active"
-            [routerLinkActiveOptions]="{ exact: true }"
+            [routerLinkActiveOptions]="
+              todosChamadosAtivo() ? correspondenciaExata : correspondenciaSecao
+            "
+            ariaCurrentWhenActive="page"
             >Atendimento</a
           >
         }
         @if (user.perfil === 'ADMIN') {
-          <a routerLink="/atendimento/todos" routerLinkActive="active">Todos os chamados</a>
+          <a routerLink="/atendimento/todos" routerLinkActive="active" ariaCurrentWhenActive="page"
+            >Todos os chamados</a
+          >
+          <a
+            routerLink="/consulta-chamados"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="correspondenciaExata"
+            ariaCurrentWhenActive="page"
+            >Consultar chamados</a
+          >
+          <a
+            routerLink="/admin/usuarios"
+            [class.active]="administracaoAtiva()"
+            [attr.aria-current]="administracaoAtiva() ? 'page' : null"
+            >Administração</a
+          >
         }
-        @if (user.perfil === 'ADMIN') {
-          <a routerLink="/consulta-chamados" routerLinkActive="active">Consultar chamados</a>
-          <a routerLink="/admin/usuarios" routerLinkActive="active">Administração</a>
-        }
-        <a routerLink="/minha-conta" routerLinkActive="active">Minha conta</a>
+        <a
+          routerLink="/minha-conta"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="correspondenciaExata"
+          ariaCurrentWhenActive="page"
+          >Minha conta</a
+        >
         <button type="button" class="nav-button" (click)="logout()">Sair</button>
       } @else {
         <a
           routerLink="/"
           routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: true }"
+          [routerLinkActiveOptions]="correspondenciaExata"
+          ariaCurrentWhenActive="page"
           data-testid="nav-home"
         >
           Início
         </a>
-        <a routerLink="/cadastro" routerLinkActive="active">Cadastre-se</a>
-        <a routerLink="/login" routerLinkActive="active">Entrar</a>
+        <a
+          routerLink="/cadastro"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="correspondenciaExata"
+          ariaCurrentWhenActive="page"
+          >Cadastre-se</a
+        >
+        <a
+          routerLink="/login"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="correspondenciaExata"
+          ariaCurrentWhenActive="page"
+          >Entrar</a
+        >
       }
     </nav>
   </header>

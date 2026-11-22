@@ -47,9 +47,19 @@
     @case ('empty') {
       <div class="state-panel" role="status" data-testid="chamados-empty">
         <h2>Nenhum chamado encontrado</h2>
-        <p>Nenhum chamado corresponde à consulta. Ajuste os filtros ou use Limpar filtros.</p>
+        @if (temFiltros()) {
+          <p>Nenhum chamado corresponde aos filtros aplicados. Ajuste ou limpe os filtros.</p>
+        } @else {
+          <p>
+            {{
+              global
+                ? 'Ainda não há chamados para consultar.'
+                : 'Você ainda não registrou chamados.'
+            }}
+          </p>
+        }
         @if (!global) {
-          <a class="secondary-link" routerLink="/chamados/novo">Abrir meu primeiro chamado</a>
+          <a class="secondary-link" routerLink="/chamados/novo">Abrir chamado</a>
         }
       </div>
     }
@@ -106,11 +116,12 @@
       </ul>
     }
   }
-  <app-paginacao
-    [query]="query()"
-    [result]="pagina()"
-    [disabled]="state() === 'loading'"
-    (pageChange)="goToPage($event)"
-    (settingsChange)="changeSettings($event)"
-  />
+  @if (state() === 'success' || state() === 'empty') {
+    <app-paginacao
+      [query]="query()"
+      [result]="pagina()"
+      (pageChange)="goToPage($event)"
+      (settingsChange)="changeSettings($event)"
+    />
+  }
 </section>

@@ -21,28 +21,225 @@
    "ok": true
   },
   {
-   "nome": "Estado vazio por filtro: mensagem orienta a limpar filtros",
-   "ok": true
+   "nome": "Menu SOLICITANTE: um indicador ativo no desktop e no celular",
+   "ok": true,
+   "observado": [
+    {
+     "largura": 360,
+     "rota": "/chamados?status=ABERTO",
+     "ativo": "/chamados"
+    },
+    {
+     "largura": 360,
+     "rota": "/chamados/1",
+     "ativo": "/chamados"
+    },
+    {
+     "largura": 360,
+     "rota": "/chamados/novo",
+     "ativo": "/chamados/novo"
+    },
+    {
+     "largura": 1440,
+     "rota": "/chamados?status=ABERTO",
+     "ativo": "/chamados"
+    },
+    {
+     "largura": 1440,
+     "rota": "/chamados/1",
+     "ativo": "/chamados"
+    },
+    {
+     "largura": 1440,
+     "rota": "/chamados/novo",
+     "ativo": "/chamados/novo"
+    }
+   ]
+  },
+  {
+   "nome": "Paginação: Meus chamados durante carga, erro e recuperação",
+   "ok": true,
+   "observado": {
+    "carregando": "oculta",
+    "erroHTTP503": "oculta",
+    "aposRepetir": "18 chamado(s) · Página 1 de 2",
+    "proxima": "18 chamado(s) · Página 2 de 2"
+   }
+  },
+  {
+   "nome": "Estado vazio por filtro: sem overflow em 320 × 640",
+   "ok": true,
+   "observado": {
+    "scrollWidth": 320,
+    "largura": 320,
+    "rolagemHorizontal": false,
+    "fora": [],
+    "cta": {
+     "seletor": "[data-testid=chamados-empty] a",
+     "left": 37,
+     "right": 189.546875,
+     "height": 48.375,
+     "texto": "Abrir chamado"
+    }
+   }
+  },
+  {
+   "nome": "Estado vazio por filtro: sem overflow em 360 × 800",
+   "ok": true,
+   "observado": {
+    "scrollWidth": 360,
+    "largura": 360,
+    "rolagemHorizontal": false,
+    "fora": [],
+    "cta": {
+     "seletor": "[data-testid=chamados-empty] a",
+     "left": 37,
+     "right": 189.546875,
+     "height": 48.375,
+     "texto": "Abrir chamado"
+    }
+   }
+  },
+  {
+   "nome": "Estado vazio por filtro: sem overflow em 390 × 844",
+   "ok": true,
+   "observado": {
+    "scrollWidth": 390,
+    "largura": 390,
+    "rolagemHorizontal": false,
+    "fora": [],
+    "cta": {
+     "seletor": "[data-testid=chamados-empty] a",
+     "left": 37,
+     "right": 189.546875,
+     "height": 48.375,
+     "texto": "Abrir chamado"
+    }
+   }
+  },
+  {
+   "nome": "Estado vazio por filtro: sem overflow em 768 × 1024",
+   "ok": true,
+   "observado": {
+    "scrollWidth": 768,
+    "largura": 768,
+    "rolagemHorizontal": false,
+    "fora": [],
+    "cta": {
+     "seletor": "[data-testid=chamados-empty] a",
+     "left": 53,
+     "right": 205.546875,
+     "height": 48.375,
+     "texto": "Abrir chamado"
+    }
+   }
+  },
+  {
+   "nome": "Estado vazio por filtro: sem overflow em 1440 × 900",
+   "ok": true,
+   "observado": {
+    "scrollWidth": 1440,
+    "largura": 1440,
+    "rolagemHorizontal": false,
+    "fora": [],
+    "cta": {
+     "seletor": "[data-testid=chamados-empty] a",
+     "left": 289,
+     "right": 441.546875,
+     "height": 48.375,
+     "texto": "Abrir chamado"
+    }
+   }
   },
   {
    "nome": "Detalhe 360px: sem rolagem horizontal",
    "ok": true
   },
   {
-   "nome": "Novo chamado: dupla ativação gera uma única requisição POST",
-   "ok": true
+   "nome": "Novo chamado: envia um POST, foca a confirmação e oferece próximo passo por Tab",
+   "ok": true,
+   "observado": {
+    "foco": "chamado-success-title",
+    "tab": "Abrir outro chamado",
+    "posts": 1
+   }
   },
   {
    "nome": "Fila 360px: sem rolagem horizontal",
    "ok": true
   },
   {
-   "nome": "Assumir: diálogo cancela com Escape e devolve o foco ao botão",
-   "ok": true
+   "nome": "Menu ATENDENTE: um indicador ativo no desktop e no celular",
+   "ok": true,
+   "observado": [
+    {
+     "largura": 360,
+     "rota": "/atendimento?status=ABERTO",
+     "ativo": "/atendimento"
+    },
+    {
+     "largura": 360,
+     "rota": "/atendimento/me",
+     "ativo": "/atendimento"
+    },
+    {
+     "largura": 360,
+     "rota": "/atendimento/chamados/1",
+     "ativo": "/atendimento"
+    },
+    {
+     "largura": 1440,
+     "rota": "/atendimento?status=ABERTO",
+     "ativo": "/atendimento"
+    },
+    {
+     "largura": 1440,
+     "rota": "/atendimento/me",
+     "ativo": "/atendimento"
+    },
+    {
+     "largura": 1440,
+     "rota": "/atendimento/chamados/1",
+     "ativo": "/atendimento"
+    }
+   ]
+  },
+  {
+   "nome": "Paginação: fila durante carga, erro e recuperação",
+   "ok": true,
+   "observado": {
+    "carregando": "oculta",
+    "erroHTTP503": "oculta",
+    "aposRepetir": "14 chamado(s) · Página 1 de 2",
+    "proxima": "14 chamado(s) · Página 2 de 2"
+   }
+  },
+  {
+   "nome": "Assumir: Escape restaura foco ao acionador",
+   "ok": true,
+   "observado": {
+    "mesmoElemento": true,
+    "ativo": "BUTTON",
+    "conectado": true,
+    "habilitado": true
+   }
+  },
+  {
+   "nome": "Assumir: Cancelar restaura foco ao acionador",
+   "ok": true,
+   "observado": {
+    "mesmoElemento": true,
+    "ativo": "BUTTON",
+    "conectado": true,
+    "habilitado": true
+   }
   },
   {
    "nome": "Assumir: confirmação dupla gera um único PATCH",
-   "ok": true
+   "ok": true,
+   "observado": {
+    "patches": 1
+   }
   },
   {
    "nome": "Dashboard 360px: sem rolagem horizontal",
@@ -61,9 +258,125 @@
    "ok": true
   },
   {
+   "nome": "Menu ADMIN: um indicador ativo no desktop e no celular",
+   "ok": true,
+   "observado": [
+    {
+     "largura": 360,
+     "rota": "/atendimento",
+     "ativo": "/atendimento"
+    },
+    {
+     "largura": 360,
+     "rota": "/atendimento/todos",
+     "ativo": "/atendimento/todos"
+    },
+    {
+     "largura": 360,
+     "rota": "/atendimento/todos/1",
+     "ativo": "/atendimento/todos"
+    },
+    {
+     "largura": 360,
+     "rota": "/consulta-chamados?status=ABERTO",
+     "ativo": "/consulta-chamados"
+    },
+    {
+     "largura": 360,
+     "rota": "/admin/usuarios",
+     "ativo": "/admin/usuarios"
+    },
+    {
+     "largura": 360,
+     "rota": "/admin/categorias",
+     "ativo": "/admin/usuarios"
+    },
+    {
+     "largura": 1440,
+     "rota": "/atendimento",
+     "ativo": "/atendimento"
+    },
+    {
+     "largura": 1440,
+     "rota": "/atendimento/todos",
+     "ativo": "/atendimento/todos"
+    },
+    {
+     "largura": 1440,
+     "rota": "/atendimento/todos/1",
+     "ativo": "/atendimento/todos"
+    },
+    {
+     "largura": 1440,
+     "rota": "/consulta-chamados?status=ABERTO",
+     "ativo": "/consulta-chamados"
+    },
+    {
+     "largura": 1440,
+     "rota": "/admin/usuarios",
+     "ativo": "/admin/usuarios"
+    },
+    {
+     "largura": 1440,
+     "rota": "/admin/categorias",
+     "ativo": "/admin/usuarios"
+    }
+   ]
+  },
+  {
+   "nome": "Paginação: consulta administrativa durante carga, erro e recuperação",
+   "ok": true,
+   "observado": {
+    "carregando": "oculta",
+    "erroHTTP503": "oculta",
+    "aposRepetir": "22 chamado(s) · Página 1 de 3",
+    "proxima": "22 chamado(s) · Página 2 de 3"
+   }
+  },
+  {
    "nome": "Rota de ADMIN negada para SOLICITANTE (guard mantido)",
    "ok": true
   }
  ],
+ "capturasLista": {
+  "alturaDocumento": 8300,
+  "partes": [
+   {
+    "arquivo": "04-lista-chamados-mobile-360.png",
+    "inicio": 0,
+    "fim": 2097,
+    "largura": 360,
+    "altura": 2097
+   },
+   {
+    "arquivo": "04-lista-chamados-mobile-360-parte-2.png",
+    "inicio": 2097,
+    "fim": 4079,
+    "largura": 360,
+    "altura": 1982
+   },
+   {
+    "arquivo": "04-lista-chamados-mobile-360-parte-3.png",
+    "inicio": 4079,
+    "fim": 5994,
+    "largura": 360,
+    "altura": 1915
+   },
+   {
+    "arquivo": "04-lista-chamados-mobile-360-parte-4.png",
+    "inicio": 5994,
+    "fim": 7543,
+    "largura": 360,
+    "altura": 1549
+   },
+   {
+    "arquivo": "04-lista-chamados-mobile-360-parte-5.png",
+    "inicio": 7543,
+    "fim": 8300,
+    "largura": 360,
+    "altura": 757
+   }
+  ]
+ },
  "errosConsole": []
 }

@@ -7,7 +7,15 @@ import {
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import {
+  isActive,
+  type IsActiveMatchOptions,
+  NavigationEnd,
+  Router,
+  RouterLink,
+  RouterLinkActive,
+  RouterOutlet,
+} from '@angular/router';
 import { filter } from 'rxjs';
 
 import { AuthService } from './core/auth/auth.service';
@@ -24,6 +32,32 @@ export class App {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly botaoMenu = viewChild<ElementRef<HTMLButtonElement>>('botaoMenu');
+
+  protected readonly correspondenciaExata: IsActiveMatchOptions = {
+    paths: 'exact',
+    queryParams: 'ignored',
+    matrixParams: 'ignored',
+    fragment: 'ignored',
+  };
+  protected readonly correspondenciaSecao: IsActiveMatchOptions = {
+    ...this.correspondenciaExata,
+    paths: 'subset',
+  };
+  protected readonly abrirChamadoAtivo = isActive(
+    '/chamados/novo',
+    this.router,
+    this.correspondenciaExata,
+  );
+  protected readonly todosChamadosAtivo = isActive(
+    '/atendimento/todos',
+    this.router,
+    this.correspondenciaSecao,
+  );
+  protected readonly administracaoAtiva = isActive(
+    '/admin',
+    this.router,
+    this.correspondenciaSecao,
+  );
 
   protected readonly currentUser = this.auth.currentUser;
   // Menu recolhível só existe em telas estreitas (CSS); no desktop a navegação fica sempre visível.

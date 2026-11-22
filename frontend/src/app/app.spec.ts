@@ -1,16 +1,20 @@
-import { signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 
 import { App } from './app';
+import { routes } from './app.routes';
 import { AuthService } from './core/auth/auth.service';
+
+@Component({ template: '' })
+class PaginaTeste {}
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [
-        provideRouter([]),
+        provideRouter(routes.map(({ path }) => ({ path, component: PaginaTeste }))),
         {
           provide: AuthService,
           useValue: { currentUser: signal(null), logout: vi.fn() },
@@ -187,6 +191,31 @@ describe('App', () => {
     expect(element.querySelector('a[routerLink="/atendimento"]')).not.toBeNull();
     expect(element.querySelector('a[routerLink="/admin/usuarios"]')).toBeNull();
     expect(element.querySelector('a[routerLink="/chamados/novo"]')).toBeNull();
+  });
+
+  it.each([
+    ['SOLICITANTE', '/chamados?search=acesso', '/chamados'],
+    ['SOLICITANTE', '/chamados/novo', '/chamados/novo'],
+    ['SOLICITANTE', '/chamados/7', '/chamados'],
+    ['ATENDENTE', '/atendimento?status=ABERTO', '/atendimento'],
+    ['ATENDENTE', '/atendimento/me', '/atendimento'],
+    ['ATENDENTE', '/atendimento/chamados/7', '/atendimento'],
+    ['ADMIN', '/atendimento/todos/7', '/atendimento/todos'],
+    ['ADMIN', '/consulta-chamados?search=acesso', '/consulta-chamados'],
+    ['ADMIN', '/admin/usuarios', '/admin/usuarios'],
+    ['ADMIN', '/admin/categorias', '/admin/usuarios'],
+  ] as const)('marca apenas o item atual para %s em %s', async (perfil, url, atual) => {
+    autenticar(perfil);
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    await TestBed.inject(Router).navigateByUrl(url);
+    await fixture.whenStable();
+
+    const menu = (fixture.nativeElement as HTMLElement).querySelector('#menu-principal')!;
+    const destinos = (seletor: string) =>
+      Array.from(menu.querySelectorAll(seletor), (link) => link.getAttribute('href'));
+    expect(destinos('a.active')).toEqual([atual]);
+    expect(destinos('a[aria-current="page"]')).toEqual([atual]);
   });
 
   it('o atalho de acessibilidade move o foco para o conteúdo sem navegar', () => {

@@ -1,6 +1,6 @@
 <section class="atendimento-page" aria-labelledby="atendimento-title">
   <p class="eyebrow">Atendimento</p>
-  <h1 id="atendimento-title">
+  <h1 #queueHeading id="atendimento-title" tabindex="-1">
     {{ todos ? 'Todos os chamados' : carteira ? 'Meus atendimentos' : 'Fila de chamados' }}
   </h1>
   <p>
@@ -16,7 +16,12 @@
     <a
       routerLink="/atendimento"
       routerLinkActive="active"
-      [routerLinkActiveOptions]="{ exact: true }"
+      [routerLinkActiveOptions]="{
+        paths: 'exact',
+        queryParams: 'ignored',
+        matrixParams: 'ignored',
+        fragment: 'ignored',
+      }"
       ariaCurrentWhenActive="page"
       >Fila</a
     >
@@ -165,11 +170,13 @@
       }
     }
   }
-  <app-paginacao
-    [query]="query()"
-    [result]="pagina()"
-    [disabled]="state() === 'loading' || submitting()"
-    (pageChange)="goToPage($event)"
-    (settingsChange)="changeSettings($event)"
-  />
+  @if (state() === 'success') {
+    <app-paginacao
+      [query]="query()"
+      [result]="pagina()"
+      [disabled]="submitting()"
+      (pageChange)="goToPage($event)"
+      (settingsChange)="changeSettings($event)"
+    />
+  }
 </section>

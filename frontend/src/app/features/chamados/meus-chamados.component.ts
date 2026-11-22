@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   DestroyRef,
   inject,
   OnInit,
@@ -29,7 +30,7 @@ import { ChamadoResumo, Prioridade, StatusChamado } from './chamado.model';
 import { ChamadosService } from './chamados.service';
 
 import { FiltrosChamadosComponent } from './filtros-chamados.component';
-import { ConsultaChamados, consultaDaUrl } from './filtros-chamados.model';
+import { CAMPOS_FILTROS, ConsultaChamados, consultaDaUrl } from './filtros-chamados.model';
 import { PRIORIDADE_LABELS, STATUS_LABELS } from '../../shared/rotulos';
 
 type MeusChamadosState = 'loading' | 'empty' | 'success' | 'error';
@@ -51,6 +52,9 @@ export class MeusChamadosComponent implements OnInit {
   private readonly reload = new BehaviorSubject(0);
   protected readonly query = signal<ConsultaChamados>({ page: 0, size: 20, sort: 'criadoEm,desc' });
   protected readonly pagina = signal<Pagina<ChamadoResumo> | null>(null);
+  protected readonly temFiltros = computed(() =>
+    CAMPOS_FILTROS.some((campo) => this.query()[campo] !== undefined),
+  );
 
   protected readonly state = signal<MeusChamadosState>('loading');
   protected readonly chamados = signal<readonly ChamadoResumo[]>([]);

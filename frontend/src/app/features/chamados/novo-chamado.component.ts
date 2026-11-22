@@ -1,11 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  ElementRef,
   inject,
+  Injector,
   OnInit,
   signal,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -42,6 +46,8 @@ export class NovoChamadoComponent implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly chamados = inject(ChamadosService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
+  private readonly successHeading = viewChild<ElementRef<HTMLHeadingElement>>('successHeading');
   private categoriasRequestInFlight = false;
 
   protected readonly categorias = signal<readonly Categoria[]>([]);
@@ -115,7 +121,12 @@ export class NovoChamadoComponent implements OnInit {
         finalize(() => this.submitting.set(false)),
       )
       .subscribe({
-        next: (chamado) => this.createdTicket.set(chamado),
+        next: (chamado) => {
+          this.createdTicket.set(chamado);
+          afterNextRender(() => this.successHeading()?.nativeElement.focus(), {
+            injector: this.injector,
+          });
+        },
         error: (error: unknown) => {
           this.errorMessage.set(
             apiErrorMessage(error, 'Não foi possível abrir o chamado. Tente novamente.'),

@@ -5,10 +5,12 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  ElementRef,
   inject,
   Injector,
   OnInit,
   signal,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, ParamMap, Router, RouterLink, RouterLinkActive } from '@angular/router';
@@ -49,7 +51,8 @@ export class AtendimentoComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
   private readonly reload = new BehaviorSubject(0);
-  private trigger: HTMLElement | null = null;
+  private readonly queueHeading = viewChild<ElementRef<HTMLHeadingElement>>('queueHeading');
+  private trigger: HTMLButtonElement | null = null;
   protected readonly carteira = this.route.snapshot.data['carteira'] === true;
   protected readonly todos = this.route.snapshot.data['todos'] === true;
   protected readonly auth = inject(AuthService);
@@ -147,7 +150,7 @@ export class AtendimentoComponent implements OnInit {
 
   confirm(item: AtendimentoResumo, event: Event): void {
     if (this.submitting()) return;
-    this.trigger = event.currentTarget as HTMLElement;
+    this.trigger = event.currentTarget as HTMLButtonElement;
     this.selected.set(item);
     afterNextRender(() => document.getElementById('cancel-assignment')?.focus(), {
       injector: this.injector,
@@ -157,7 +160,7 @@ export class AtendimentoComponent implements OnInit {
   cancel(): void {
     if (this.submitting()) return;
     this.selected.set(null);
-    this.trigger?.focus();
+    this.restoreTriggerFocus();
   }
 
   assumir(): void {
@@ -197,7 +200,22 @@ export class AtendimentoComponent implements OnInit {
   private finishAssignment(): void {
     this.submitting.set(false);
     this.selected.set(null);
-    this.trigger?.focus();
+    this.restoreTriggerFocus();
+  }
+
+  private restoreTriggerFocus(): void {
+    const trigger = this.trigger;
+    this.trigger = null;
+    afterNextRender(
+      () => {
+        if (trigger?.isConnected && !trigger.disabled) {
+          trigger.focus();
+        } else {
+          this.queueHeading()?.nativeElement.focus();
+        }
+      },
+      { injector: this.injector },
+    );
   }
 
   private filters(params: ParamMap): FiltrosAtendimento {
